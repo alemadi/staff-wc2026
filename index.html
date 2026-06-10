@@ -405,7 +405,7 @@
   </section>
 
   <footer class="app">
-    <b>QNB Staff WC2026</b> — staff World Cup pool · bragging rights only, no money<br>
+    <b>QNB Staff WC2026</b> — staff World Cup pool · free to enter · no buy-ins, ever<br>
     Kickoff times shown in Qatar time (AST · UTC+3). All 104 fixtures · 2026 FIFA World Cup.
   </footer>
 </div>
@@ -706,7 +706,8 @@ async function joinNow(){
   }
   const country=document.getElementById("j-country").value||"Qatar";
   if(!existing)existing={ig,name,dept,country,slug:sl,joinedAt:Date.now(),predictions:{}};
-  existing.name=name;existing.dept=dept;existing.ig=ig;existing.country=country;
+  const rawName=document.getElementById("j-name").value.trim();
+  existing.name=rawName||existing.name||name;existing.dept=dept;existing.ig=ig;existing.country=country;
   if(pin&&!existing.pin)existing.pin=await pinHash(pin);
   const ok=await setJSON("wc:player:"+sl,existing,true);
   if(!ok){toast("Couldn't reach the database — try again");return;}
