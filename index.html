@@ -7,17 +7,17 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="Matchday" />
+<meta name="apple-mobile-web-app-title" content="QNB WC2026" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>" />
-<title>Matchday · World Cup 2026 Staff Pool</title>
+<title>QNB Staff WC2026 · World Cup Predictor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
   :root{
-    --grape:#5b1a66; --plum:#3d1240; --ink:#2a0e2e;
-    --sapphire:#122b57; --sapphire-deep:#0b1b3a;
-    --magenta:#e5147e; --magenta-2:#ff3d9a;
+    --grape:#1e2a7a; --plum:#141b56; --ink:#0d1038;
+    --sapphire:#1a5fa8; --sapphire-deep:#0c2d5e;
+    --magenta:#c4156f; --magenta-2:#ec4f9d;
     --gold:#e7c879; --gold-bright:#fff0c6; --gold-deep:#c89b3c;
     --cream:#f4eee3; --muted:rgba(244,238,227,.62); --faint:rgba(244,238,227,.4);
     --line:rgba(244,238,227,.13); --line-2:rgba(244,238,227,.07);
@@ -32,10 +32,10 @@
   body{
     font-family:var(--font-b); color:var(--cream); line-height:1.45;
     background:
-      radial-gradient(1100px 760px at 8% -6%, rgba(180,40,140,.4), transparent 58%),
-      radial-gradient(1000px 720px at 102% 14%, rgba(22,64,150,.5), transparent 54%),
+      radial-gradient(1100px 760px at 8% -6%, rgba(176,23,105,.35), transparent 58%),
+      radial-gradient(1000px 720px at 102% 14%, rgba(32,116,178,.5), transparent 54%),
       radial-gradient(900px 900px at 50% 128%, rgba(231,200,121,.1), transparent 60%),
-      linear-gradient(162deg, #2a0e2e 0%, #1a1140 42%, #0b1b3a 100%);
+      linear-gradient(162deg, #151a52 0%, #1c2270 42%, #0c2d5e 100%);
     background-attachment:fixed; min-height:100%; overflow-x:hidden;
   }
   body::after{
@@ -49,7 +49,7 @@
   header.app{padding:calc(24px + env(safe-area-inset-top)) 0 14px;position:relative}
   .brandrow{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
   .mark{display:flex;align-items:baseline;gap:12px;min-width:0}
-  .mark .wm{font-family:var(--font-d);font-size:clamp(22px,6.5vw,38px);line-height:.85;letter-spacing:1.5px;
+  .mark .wm{font-family:var(--font-d);font-size:clamp(36px,10.5vw,56px);line-height:.82;letter-spacing:.5px;
     background:linear-gradient(96deg,var(--gold-deep),var(--gold-bright) 45%,var(--gold));
     -webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 14px rgba(231,200,121,.22))}
   .mark .divider{width:2px;align-self:stretch;background:linear-gradient(var(--magenta),transparent);border-radius:2px;opacity:.7;margin-top:4px}
@@ -69,7 +69,7 @@
 
   /* Countdown */
   .countdown{margin-top:16px;display:flex;align-items:center;gap:14px;
-    background:linear-gradient(100deg,rgba(229,20,126,.16),rgba(18,43,87,.2));
+    background:linear-gradient(100deg,rgba(196,21,111,.16),rgba(26,95,168,.2));
     border:1px solid var(--line);border-radius:18px;padding:13px 16px;backdrop-filter:blur(8px);animation:rise .6s both}
   .countdown .lbl{font-size:10.5px;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
   .countdown .match{font-weight:800;font-size:13.5px;margin-top:1px}
@@ -79,8 +79,8 @@
   .cd-unit b{font-family:var(--font-d);font-size:25px;line-height:1;display:block;
     background:linear-gradient(var(--gold-bright),var(--gold-deep));-webkit-background-clip:text;background-clip:text;color:transparent}
   .cd-unit span{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--faint)}
-  .pulse{width:7px;height:7px;border-radius:50%;background:var(--magenta-2);box-shadow:0 0 0 0 rgba(255,61,154,.6);animation:pulse 1.8s infinite}
-  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,61,154,.55)}70%{box-shadow:0 0 0 9px rgba(255,61,154,0)}100%{box-shadow:0 0 0 0 rgba(255,61,154,0)}}
+  .pulse{width:7px;height:7px;border-radius:50%;background:var(--magenta-2);box-shadow:0 0 0 0 rgba(236,79,157,.6);animation:pulse 1.8s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(236,79,157,.55)}70%{box-shadow:0 0 0 9px rgba(236,79,157,0)}100%{box-shadow:0 0 0 0 rgba(236,79,157,0)}}
 
   .view{display:none;animation:rise .45s both}
   .view.active{display:block}
@@ -103,7 +103,7 @@
   .chip{flex-shrink:0;border:1px solid var(--line);background:var(--glass);color:var(--cream);
     padding:8px 14px;border-radius:30px;font-size:12.5px;font-weight:700;cursor:pointer;transition:.18s;white-space:nowrap}
   .chip:hover{border-color:var(--gold)}
-  .chip.on{background:linear-gradient(100deg,var(--magenta),var(--grape));border-color:transparent;color:#fff;box-shadow:0 4px 16px rgba(229,20,126,.3)}
+  .chip.on{background:linear-gradient(100deg,var(--magenta),var(--grape));border-color:transparent;color:#fff;box-shadow:0 4px 16px rgba(196,21,111,.3)}
   .chip.sep{pointer-events:none;opacity:.3;padding:8px 2px;background:none;border:none}
 
   .daygroup{margin-top:14px}
@@ -115,7 +115,7 @@
   .match-card{background:var(--glass);border:1px solid var(--line);border-radius:20px;padding:15px 15px 13px;
     margin-bottom:13px;backdrop-filter:blur(10px);position:relative;overflow:hidden;animation:rise .5s both;transition:border-color .25s}
   .match-card::before{content:"";position:absolute;inset:0;background:radial-gradient(420px 120px at 50% -30%,rgba(255,255,255,.06),transparent);pointer-events:none}
-  .match-card.qatar{border-color:rgba(229,20,126,.42);box-shadow:0 0 0 1px rgba(229,20,126,.18),0 14px 38px -22px rgba(229,20,126,.6)}
+  .match-card.qatar{border-color:rgba(196,21,111,.42);box-shadow:0 0 0 1px rgba(196,21,111,.18),0 14px 38px -22px rgba(196,21,111,.6)}
   .match-card.qatar::after{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(var(--magenta),var(--gold))}
   .ribbon{position:absolute;top:11px;right:-30px;transform:rotate(38deg);background:linear-gradient(100deg,var(--magenta),var(--grape));
     color:#fff;font-size:9.5px;font-weight:800;letter-spacing:1.5px;padding:3px 34px;text-transform:uppercase;box-shadow:0 3px 10px rgba(0,0,0,.3)}
@@ -144,7 +144,7 @@
   @media(hover:hover){.pick:hover:not(:disabled){border-color:var(--gold);transform:translateY(-1px)}}
   .pick:active:not(:disabled){transform:scale(.97)}
   .pick.sel{background:linear-gradient(125deg,var(--grape),var(--magenta));border-color:transparent;color:#fff;
-    box-shadow:0 6px 18px -6px rgba(229,20,126,.7),inset 0 0 0 1.5px var(--gold)}
+    box-shadow:0 6px 18px -6px rgba(196,21,111,.7),inset 0 0 0 1.5px var(--gold)}
   .pick.sel::after{content:"✓";position:absolute;top:-7px;right:-7px;width:18px;height:18px;border-radius:50%;
     background:var(--gold);color:#1a0f22;font-size:11px;display:grid;place-items:center;box-shadow:0 2px 6px rgba(0,0,0,.4)}
   .pick:disabled{opacity:.55;cursor:default}
@@ -168,7 +168,7 @@
   .rnd-pill{display:inline-block;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:800;color:var(--gold);border:1px solid var(--line);border-radius:6px;padding:2px 8px;margin-bottom:11px}
   .match-card.final{border-color:rgba(231,200,121,.45);box-shadow:0 0 0 1px rgba(231,200,121,.2),0 16px 44px -22px rgba(231,200,121,.7)}
 
-  .demo-banner{display:flex;align-items:center;gap:9px;background:linear-gradient(100deg,rgba(231,200,121,.16),rgba(229,20,126,.12));
+  .demo-banner{display:flex;align-items:center;gap:9px;background:linear-gradient(100deg,rgba(231,200,121,.16),rgba(196,21,111,.12));
     border:1px dashed var(--gold);border-radius:14px;padding:10px 13px;margin-bottom:14px;font-size:11.5px;color:var(--gold-bright);font-weight:600}
   .podium{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:9px;align-items:end;margin:8px 0 18px}
   .pod{display:flex;flex-direction:column;align-items:center;gap:7px;animation:rise .6s both}
@@ -197,8 +197,8 @@
   .lb-pts b{font-family:var(--font-d);font-size:24px;background:linear-gradient(var(--gold-bright),var(--gold-deep));-webkit-background-clip:text;background-clip:text;color:transparent;display:block;line-height:1}
   .lb-pts span{font-size:9px;color:var(--faint);letter-spacing:1px;text-transform:uppercase}
 
-  .mecard{background:linear-gradient(135deg,rgba(91,26,102,.5),rgba(18,43,87,.45));border:1px solid var(--line);border-radius:22px;padding:22px 20px;text-align:center;position:relative;overflow:hidden;backdrop-filter:blur(10px)}
-  .mecard::before{content:"";position:absolute;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(229,20,126,.3),transparent 70%);top:-120px;right:-90px}
+  .mecard{background:linear-gradient(135deg,rgba(30,42,122,.5),rgba(26,95,168,.45));border:1px solid var(--line);border-radius:22px;padding:22px 20px;text-align:center;position:relative;overflow:hidden;backdrop-filter:blur(10px)}
+  .mecard::before{content:"";position:absolute;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(196,21,111,.3),transparent 70%);top:-120px;right:-90px}
   .mecard .av{width:72px;height:72px;font-size:25px;margin:0 auto 12px;position:relative}
   .mecard h3{font-size:20px;font-weight:800}
   .mecard .role{font-size:12px;color:var(--gold);margin-top:2px}
@@ -214,8 +214,8 @@
   .badge.gold{border-color:var(--gold);color:var(--gold-bright);background:rgba(231,200,121,.1)}
 
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;cursor:pointer;font-family:var(--font-b);font-weight:800;font-size:13px;padding:13px 20px;border-radius:14px;transition:.2s;width:100%}
-  .btn-primary{background:linear-gradient(125deg,var(--magenta),var(--grape));color:#fff;box-shadow:0 8px 24px -8px rgba(229,20,126,.7)}
-  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 30px -8px rgba(229,20,126,.8)}
+  .btn-primary{background:linear-gradient(125deg,var(--magenta),var(--grape));color:#fff;box-shadow:0 8px 24px -8px rgba(196,21,111,.7)}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 30px -8px rgba(196,21,111,.8)}
   .btn-ghost{background:var(--glass);border:1px solid var(--line);color:var(--cream)}
   .btn-ghost:hover{border-color:var(--gold)}
   .btn-danger{background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.4);color:#ff9b9b}
@@ -253,7 +253,7 @@
   .join-card{background:var(--glass);border:1px solid var(--line);border-radius:22px;padding:24px 20px;backdrop-filter:blur(10px)}
   .join-card h2{font-family:var(--font-d);font-size:26px;font-weight:400;text-align:center;margin-bottom:6px}
   .join-card p.sub{font-size:12.5px;color:var(--muted);text-align:center;margin-bottom:18px;line-height:1.5}
-  .sso-note{display:flex;gap:9px;align-items:flex-start;background:rgba(18,43,87,.4);border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:18px;font-size:11px;color:var(--muted);line-height:1.5}
+  .sso-note{display:flex;gap:9px;align-items:flex-start;background:rgba(26,95,168,.4);border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:18px;font-size:11px;color:var(--muted);line-height:1.5}
   .sso-note b{color:var(--cream)}
   .join-card label.fl{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);font-weight:700;display:block;margin:0 2px 7px}
   .join-card .input{width:100%;margin-bottom:15px}
@@ -285,9 +285,9 @@
   <header class="app">
     <div class="brandrow">
       <div class="mark">
-        <div class="wm">MATCHDAY</div>
+        <div class="wm">QNB</div>
         <div class="divider"></div>
-        <div class="wc"><b>World Cup</b><span>2026 · Predictor</span><em>Staff Prediction Pool · Doha</em></div>
+        <div class="wc"><b>Staff</b><span>WC2026 · Predictor</span><em>Staff Prediction Pool · Doha</em></div>
       </div>
       <div class="userchip" id="userchip" style="display:none" onclick="go('me')">
         <div class="avatar" id="chip-av">--</div>
@@ -307,7 +307,7 @@
     <div class="join-card">
       <h2>Join the pool</h2>
       <p class="sub">Predict all 104 matches of World Cup 2026, earn points, and climb the office leaderboard.</p>
-      <div class="sso-note">📸&nbsp;<div><b>No passwords, no work email.</b> Your Instagram handle is your identity — use the same handle on any device to pick up where you left off. An independent office pool — no money, just bragging rights.</div></div>
+      <div class="sso-note">📸&nbsp;<div><b>No passwords, no work email.</b> Your Instagram handle is your identity — use the same handle on any device to pick up where you left off. A pool for QNB colleagues — no money, just bragging rights.</div></div>
       <div id="cfg-warn" style="display:none;background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.4);color:#ff9b9b;border-radius:12px;padding:10px 13px;font-size:11.5px;font-weight:600;margin-bottom:15px">⚠️ Setup needed: database keys aren't configured yet, so picks won't sync. Organizer: paste the Supabase URL + anon key into the file.</div>
       <label class="fl">Instagram username</label>
       <input class="input" id="j-ig" type="text" placeholder="@yourhandle" autocomplete="off" autocapitalize="none" maxlength="31" />
@@ -318,11 +318,11 @@
       <label class="fl">Department</label>
       <select class="input" id="j-dept">
         <option value="">Select your department…</option>
-        <option>Communications &amp; Marketing</option><option>Retail</option>
-        <option>Corporate &amp; Institutional</option><option>Human Resources</option>
-        <option>Information Technology</option><option>Treasury</option>
-        <option>Risk</option><option>Finance</option><option>Operations</option>
-        <option>Wealth Management</option><option>Compliance</option><option>Other</option>
+        <option>Group Communications</option><option>Retail Banking</option>
+        <option>Corporate &amp; Institutional Banking</option><option>Group Human Capital</option>
+        <option>Group Information Technology</option><option>Group Treasury</option>
+        <option>Group Risk</option><option>Group Finance</option><option>Group Operations</option>
+        <option>Asset &amp; Wealth Management</option><option>Group Compliance</option><option>Other</option>
       </select>
       <button class="btn btn-primary" onclick="joinNow()">Join the pool ⚽</button>
       <p class="sub" style="margin:14px 0 0;font-size:11px">Your picks sync to the live shared leaderboard — the same handle on any device resumes your game.</p>
@@ -376,7 +376,7 @@
   </section>
 
   <footer class="app">
-    <b>Matchday · World Cup 2026 Staff Pool</b> — an independent office game · bragging rights only<br>
+    <b>QNB Staff WC2026</b> — staff World Cup pool · bragging rights only, no money<br>
     Kickoff times shown in Qatar time (AST · UTC+3). All 104 fixtures · 2026 FIFA World Cup.
   </footer>
 </div>
