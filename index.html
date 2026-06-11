@@ -207,6 +207,8 @@
   .pod.second .stand{height:96px} .pod.third .stand{height:80px}
 
   .lb-row{display:flex;align-items:center;gap:12px;background:var(--glass);border:1px solid var(--line);border-radius:15px;padding:11px 14px;margin-bottom:9px;backdrop-filter:blur(8px);animation:rise .45s both;transition:.2s}
+  .lb-gap{text-align:center;color:var(--faint);font-weight:800;letter-spacing:4px;padding:2px 0 8px}
+  .lb-more{display:block;width:100%;margin:6px 0 2px;padding:13px;border-radius:13px;border:1px solid var(--line);background:transparent;color:var(--gold);font:inherit;font-size:13px;font-weight:800;cursor:pointer}
   .lb-row.me{border-color:var(--gold);background:linear-gradient(100deg,rgba(180,151,89,.14),var(--glass));box-shadow:0 0 0 1px rgba(180,151,89,.25)}
   .lb-row .rank{font-family:var(--font-d);font-size:19px;color:var(--muted);min-width:26px;text-align:center}
   .lb-row.me .rank{color:var(--gold)}
@@ -644,6 +646,7 @@ async function sget(k,sh){
 async function sset(k,v,sh){
   if(!sh){lsSet(k,v);return true;}
   if(!CONFIGURED)return false;
+  if(k==="wc:results"||k==="wc:kteams"||k.indexOf("wc:player:")===0)bustStandings();
   const body=JSON.stringify({key:k,value:v,updated_at:new Date().toISOString()});
   for(let t=0;t<4;t++){
     try{const r=await fetch(SUPABASE_URL+"/rest/v1/kv",{method:"POST",headers:Object.assign({Prefer:"resolution=merge-duplicates,return=minimal"},SBH),body});if(r.ok)return true;}catch(e){}
@@ -654,6 +657,7 @@ async function sset(k,v,sh){
 async function sdel(k,sh){
   if(!sh){lsDel(k);return;}
   if(!CONFIGURED)return;
+  if(k.indexOf("wc:player:")===0)bustStandings();
   try{await fetch(SUPABASE_URL+"/rest/v1/kv?key=eq."+encodeURIComponent(k),{method:"DELETE",headers:SBH});}catch(e){}
 }
 async function slist(pre,sh){
@@ -678,6 +682,33 @@ async function sbulkJSON(pre){
     return out;
   }catch(e){return out;}
 }
+/* ===== Standings: server-computed via RPC (slim payload) =====
+   One Postgres function (sql/standings.sql) scores everyone server-side and returns
+   ~60 bytes/player instead of their full prediction blob (and never their PIN hash).
+   Falls back to the classic bulk pull + client scoring if the RPC isn't installed.
+   Cached 60s and shared by Leaderboard + Me, busted on any write that can change it. */
+let STAND_CACHE={t:0,rows:null};
+function bustStandings(){STAND_CACHE={t:0,rows:null};}
+async function fetchStandings(){
+  if(STAND_CACHE.rows&&Date.now()-STAND_CACHE.t<60000)return STAND_CACHE.rows;
+  let rows=null;
+  if(CONFIGURED){
+    try{
+      const r=await fetch(SUPABASE_URL+"/rest/v1/rpc/standings",{method:"POST",headers:SBH,body:"{}"});
+      if(r.ok){const j=await r.json();
+        if(Array.isArray(j))rows=j.map(x=>({slug:x.slug,name:x.name||x.slug,dept:x.dept||"",pts:x.pts|0,exact:x.exact|0,correct:x.correct|0,predicted:x.predicted|0}));}
+    }catch(e){}
+  }
+  if(!rows){
+    const players=await sbulkJSON("wc:player:");
+    rows=players.map(p=>{const s=scoreFor(p.predictions,state.results,p.champ);
+      return{slug:p.slug,name:p.name,dept:p.dept,pts:s.pts,exact:s.exact,correct:s.correct,
+        predicted:Object.values(p.predictions||{}).filter(x=>x.o||x.w).length};});
+  }
+  STAND_CACHE={t:Date.now(),rows};
+  return rows;
+}
+
 /* Server clock: kickoff locks use database time, not the phone's (anti-cheat) */
 let CLOCK_OFFSET=0;
 async function syncClock(){
@@ -1017,21 +1048,33 @@ function saveScore(id,h,a){
 }
 async function persistPlayer(){const ok=await setJSON("wc:player:"+state.meSlug,state.player,true);if(!ok){toast("⚠️ Connection hiccup — retrying your save automatically…");setTimeout(queueSave,10000);}}
 
+let LB_SHOWN=100;
+function lbRowHTML(r,i,PT){
+  return '<div class="lb-row '+(r.me?"me":"")+'" style="animation-delay:'+Math.min(i*0.03,0.5)+'s"><div class="rank">'+r.rank+'</div><div class="avatar">'+initials(r.name)+'</div>'+
+    '<div class="lb-info"><div class="n">'+esc(r.name)+(r.me?'<span class="youtag">YOU</span>':'')+(r.demo?'<span class="demotag">demo</span>':'')+'</div><div class="d">'+esc(r.dept||"")+'</div>'+
+    '<div class="lb-stats"><span>◎ <b>'+r.exact+'</b> exact</span><span>✓ <b>'+r.correct+'</b> correct</span><span>'+r.predicted+'/'+PT+' picked</span></div></div>'+
+    '<div class="lb-pts"><b>'+r.pts+'</b><span>pts</span></div></div>';
+}
+function lbMore(){LB_SHOWN+=200;renderLeaderboard();}
 async function renderLeaderboard(){
   const body=document.getElementById("lb-body");
   document.getElementById("demo-banner").style.display=state.demo?"flex":"none";
   body.innerHTML='<div class="empty"><div class="ic">⏳</div><span>Loading standings…</span></div>';
-  const resultsForScore=state.demo?DEMO_RESULTS:state.results;
   let rows=[];
-  const players=await sbulkJSON("wc:player:");
-  for(const p of players){
-    const s=scoreFor(p.predictions,resultsForScore,p.champ);
-    rows.push({name:p.name,dept:p.dept,slug:p.slug,pts:s.pts,exact:s.exact,correct:s.correct,predicted:Object.values(p.predictions||{}).filter(x=>x.o||x.w).length,me:p.slug===state.meSlug,demo:false});
+  if(state.demo){ /* demo: client-side scoring against demo results + demo players (never cached) */
+    const players=await sbulkJSON("wc:player:");
+    for(const p of players){
+      const s=scoreFor(p.predictions,DEMO_RESULTS,p.champ);
+      rows.push({name:p.name,dept:p.dept,slug:p.slug,pts:s.pts,exact:s.exact,correct:s.correct,predicted:Object.values(p.predictions||{}).filter(x=>x.o||x.w).length,me:p.slug===state.meSlug,demo:false});
+    }
+    DEMO_PLAYERS.forEach(d=>rows.push({name:d.name,dept:d.dept,slug:"demo:"+d.name,pts:d.correct*3+d.exact*2,exact:d.exact,correct:d.correct,predicted:d.predicted,me:false,demo:true}));
+  }else{
+    rows=(await fetchStandings()).map(r=>({name:r.name,dept:r.dept,slug:r.slug,pts:r.pts,exact:r.exact,correct:r.correct,predicted:r.predicted,me:r.slug===state.meSlug,demo:false}));
   }
-  if(state.demo)DEMO_PLAYERS.forEach(d=>rows.push({name:d.name,dept:d.dept,slug:"demo:"+d.name,pts:d.correct*3+d.exact*2,exact:d.exact,correct:d.correct,predicted:d.predicted,me:false,demo:true}));
   rows.sort((a,b)=>b.pts-a.pts||b.exact-a.exact||b.correct-a.correct||a.name.localeCompare(b.name));
   let rank=0,prev=null;rows.forEach((r,i)=>{if(prev===null||r.pts!==prev){rank=i+1;prev=r.pts;}r.rank=rank;});
   if(!rows.length){body.innerHTML='<div class="empty"><div class="ic">🏆</div><b>No predictions yet</b><span>Be the first to lock in your picks under “Matches”.</span></div>';return;}
+  const PT=predTotal();
   let html="";
   if(rows.length>=3){
     const ord=[rows[1],rows[0],rows[2]],cls=["second","first","third"],med=["🥈","🥇","🥉"];
@@ -1039,12 +1082,11 @@ async function renderLeaderboard(){
     ord.forEach((r,i)=>{html+='<div class="pod '+cls[i]+'" style="animation-delay:'+(i*0.08)+'s"><div class="medal">'+med[i]+'</div><div class="avatar av">'+initials(r.name)+'</div><div class="pname">'+esc(r.name)+'</div><div class="stand"><div class="ppts">'+r.pts+'<small> PTS</small></div></div></div>';});
     html+='</div>';
   }
-  rows.forEach((r,i)=>{
-    html+='<div class="lb-row '+(r.me?"me":"")+'" style="animation-delay:'+Math.min(i*0.03,0.5)+'s"><div class="rank">'+r.rank+'</div><div class="avatar">'+initials(r.name)+'</div>'+
-      '<div class="lb-info"><div class="n">'+esc(r.name)+(r.me?'<span class="youtag">YOU</span>':'')+(r.demo?'<span class="demotag">demo</span>':'')+'</div><div class="d">'+esc(r.dept||"")+'</div>'+
-      '<div class="lb-stats"><span>◎ <b>'+r.exact+'</b> exact</span><span>✓ <b>'+r.correct+'</b> correct</span><span>'+r.predicted+'/'+predTotal()+' picked</span></div></div>'+
-      '<div class="lb-pts"><b>'+r.pts+'</b><span>pts</span></div></div>';
-  });
+  const lim=Math.min(rows.length,LB_SHOWN);
+  for(let i=0;i<lim;i++)html+=lbRowHTML(rows[i],i,PT);
+  const meIdx=rows.findIndex(r=>r.me);
+  if(meIdx>=lim)html+='<div class="lb-gap">⋯</div>'+lbRowHTML(rows[meIdx],lim,PT);
+  if(rows.length>lim)html+='<button class="lb-more" onclick="lbMore()">Show more · '+(rows.length-lim)+' below</button>';
   body.innerHTML=html;
 }
 
@@ -1052,10 +1094,9 @@ async function renderMe(){
   if(!state.player){go("join");return;}
   const s=scoreFor(state.player.predictions,state.results,state.player.champ);
   const pc=predCount();
-  let rows=(await sbulkJSON("wc:player:")).map(p=>({slug:p.slug,pts:scoreFor(p.predictions,state.results,p.champ).pts}));
-  rows.sort((a,b)=>b.pts-a.pts);
-  let myRank="—",total=rows.length;
-  rows.forEach((r,i)=>{if(r.slug===state.meSlug&&myRank==="—")myRank=i+1;});
+  const st=(await fetchStandings()).slice().sort((a,b)=>b.pts-a.pts||b.exact-a.exact||b.correct-a.correct);
+  let myRank="—",total=st.length;
+  st.forEach((r,i)=>{if(r.slug===state.meSlug&&myRank==="—")myRank=i+1;});
   const badges=[];
   if(pc>=predTotal())badges.push({g:true,t:"⚡ All-In · "+pc+"/"+predTotal()});
   if(s.exact>=1)badges.push({g:true,t:"🎯 Sharpshooter"});
