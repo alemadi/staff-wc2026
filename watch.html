@@ -182,34 +182,32 @@
 
   /* ---------- the final ---------- */
   #final{padding:36px 0 8px}
-  .final-card{position:relative;overflow:hidden;text-align:center;border:1px solid rgba(180,151,89,.5);border-radius:22px;
-    background:radial-gradient(640px 340px at 50% -4%,rgba(180,151,89,.17),transparent 70%),var(--night-2);
-    box-shadow:0 20px 60px -22px rgba(180,151,89,.4);padding:42px 22px 36px}
-  .final-rays{position:absolute;inset:-45%;z-index:0;pointer-events:none;
-    background:repeating-conic-gradient(from 0deg at 50% 32%,rgba(227,211,163,.07) 0deg 5deg,transparent 5deg 17deg);
-    -webkit-mask-image:radial-gradient(closest-side at 50% 32%,#000,transparent 72%);
-    mask-image:radial-gradient(closest-side at 50% 32%,#000,transparent 72%);
-    animation:rayspin 90s linear infinite}
-  @keyframes rayspin{to{transform:rotate(360deg)}}
-  .final-in{position:relative;z-index:1}
-  .trophy{width:118px;height:auto;display:block;margin:0 auto 4px;
-    filter:drop-shadow(0 16px 32px rgba(180,151,89,.45));animation:tfloat 6s ease-in-out infinite}
-  @keyframes tfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
-  .final-eyebrow{font-size:.74rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-top:10px}
-  .final-title{font-family:var(--d);font-weight:400;font-size:clamp(2.7rem,10vw,4.6rem);letter-spacing:.045em;line-height:1;margin-top:6px;
-    background:linear-gradient(100deg,var(--gold-deep) 0%,var(--gold-bright) 28%,var(--gold) 55%,var(--gold-bright) 82%);
-    background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
-    animation:sheen 5.5s ease-in-out infinite}
-  @keyframes sheen{0%,100%{background-position:0% 0}50%{background-position:100% 0}}
-  .final-meta{margin-top:12px;color:var(--ink-dim);font-size:.96rem}
+  .final-card{position:relative;overflow:hidden;text-align:center;border:1px solid rgba(180,151,89,.45);border-radius:22px;
+    background:radial-gradient(560px 280px at 50% -6%,rgba(180,151,89,.14),transparent 70%),#0b0b0e;
+    box-shadow:0 20px 60px -22px rgba(180,151,89,.35);padding:38px 18px 34px}
+  .final-in{position:relative}
+  .trophy{width:96px;height:auto;display:block;margin:0 auto 4px;
+    filter:drop-shadow(0 14px 28px rgba(180,151,89,.45));animation:tfloat 6s ease-in-out infinite}
+  @keyframes tfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  .final-eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.26em;text-transform:uppercase;color:rgba(244,238,227,.45);margin-top:12px}
+  .fboard{display:flex;gap:6px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+  .flap{display:inline-flex;align-items:center;justify-content:center;width:clamp(30px,8vw,44px);height:clamp(44px,11vw,60px);border-radius:7px;
+    background:linear-gradient(#1a160d 49%,#15120a 51%);border:1px solid rgba(244,238,227,.14);
+    box-shadow:inset 0 -1px 0 rgba(0,0,0,.6),inset 0 12px 14px -12px rgba(227,211,163,.25);
+    font-family:var(--d);font-weight:400;font-size:clamp(22px,6vw,34px);color:var(--gold-bright);position:relative;transition:transform .18s}
+  .flap::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(0,0,0,.65)}
+  .flap.gap{background:transparent;border:none;box-shadow:none;width:12px}
+  .flap.sm{width:clamp(26px,7vw,36px);height:clamp(38px,9.5vw,50px);font-size:clamp(18px,5vw,26px)}
+  .flap.tick{transform:rotateX(72deg)}
+  .fclock{display:flex;gap:6px;justify-content:center;align-items:center;margin-top:14px;flex-wrap:wrap}
+  .fdot{color:var(--gold-deep);font-weight:800;font-size:1.1rem}
+  .fclock-labels{display:flex;justify-content:center;gap:34px;margin-top:8px;font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-dim)}
+  .fdone{padding:14px 22px;font-weight:700;color:var(--gold-bright);font-size:1.05rem;letter-spacing:.04em}
+  .final-meta{margin-top:16px;color:var(--ink-dim);font-size:.92rem}
   .final-meta b{color:var(--ink)}
-  .final-count{display:flex;gap:10px;justify-content:center;margin-top:24px;flex-wrap:wrap}
-  .fc{min-width:72px;padding:13px 10px 10px;background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:14px}
-  .fc b{display:block;font-family:var(--d);font-weight:400;font-size:1.95rem;line-height:1;color:var(--gold-bright);letter-spacing:.03em;font-variant-numeric:tabular-nums}
-  .fc span{display:block;margin-top:5px;font-size:.64rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-dim)}
-  .fc.done{min-width:0;padding:13px 22px;font-weight:700;color:var(--gold-bright);font-size:1rem;letter-spacing:.04em}
-  .final-cal{margin-top:24px}
-  @media (prefers-reduced-motion:reduce){.final-rays,.trophy,.final-title{animation:none}}
+  .final-meta .ok{color:var(--lime)}
+  .final-cal{margin-top:22px}
+  @media (prefers-reduced-motion:reduce){.trophy{animation:none}.flap{transition:none}}
 
   /* ---------- hotels ---------- */
   .tools{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-top:20px}
@@ -238,6 +236,7 @@
   .venue:hover{border-color:rgba(43,217,199,.5)}
   .venue .name{font-weight:600;font-size:.93rem;line-height:1.3}
   .venue .at{font-size:.74rem;color:var(--ink-dim);margin-top:-3px}
+  .v-more{grid-column:1/-1;padding:13px;border-radius:13px;border:1px solid var(--line);background:transparent;color:var(--gold);font:inherit;font-size:13px;font-weight:800;cursor:pointer}
   .venue a{
     font-size:.76rem;font-weight:600;color:var(--ink-dim);text-decoration:none;
     display:inline-flex;align-items:center;gap:5px;margin-top:auto;
@@ -367,7 +366,6 @@
   <!-- ================= THE FINAL ================= -->
   <section id="final">
     <div class="final-card">
-      <div class="final-rays" aria-hidden="true"></div>
       <div class="final-in">
         <svg class="trophy" viewBox="0 0 140 140" aria-hidden="true">
           <defs>
@@ -397,22 +395,22 @@
             <path d="M127 62 l1.4 3.2 3.2 1.4 -3.2 1.4 -1.4 3.2 -1.4 -3.2 -3.2 -1.4 3.2 -1.4 Z" opacity=".75"/>
           </g>
         </svg>
-        <div class="final-eyebrow">Sunday 19 July · New York New Jersey Stadium</div>
-        <h2 class="final-title">THE FINAL</h2>
-        <div class="final-meta">One match left standing — kickoff <b>10:00 PM Doha</b>, live on beIN.</div>
-        <div class="final-count" id="fcount">
-          <div class="fc"><b id="fc-d">&ndash;</b><span>days</span></div>
-          <div class="fc"><b id="fc-h">&ndash;</b><span>hrs</span></div>
-          <div class="fc"><b id="fc-m">&ndash;</b><span>min</span></div>
-          <div class="fc"><b id="fc-s">&ndash;</b><span>sec</span></div>
+        <div class="final-eyebrow">Departures · Sunday 19 July · 22:00 AST</div>
+        <div class="fboard" role="heading" aria-level="2" aria-label="The Final">
+          <span class="flap">T</span><span class="flap">H</span><span class="flap">E</span><span class="flap gap" aria-hidden="true"></span><span class="flap">F</span><span class="flap">I</span><span class="flap">N</span><span class="flap">A</span><span class="flap">L</span>
         </div>
+        <div class="fclock" id="fcount">
+          <span class="flap sm" id="fd1">&ndash;</span><span class="flap sm" id="fd2">&ndash;</span><span class="fdot" aria-hidden="true">·</span><span class="flap sm" id="fh1">&ndash;</span><span class="flap sm" id="fh2">&ndash;</span><span class="fdot" aria-hidden="true">·</span><span class="flap sm" id="fm1">&ndash;</span><span class="flap sm" id="fm2">&ndash;</span><span class="fdot" aria-hidden="true">·</span><span class="flap sm" id="fs1">&ndash;</span><span class="flap sm" id="fs2">&ndash;</span>
+        </div>
+        <div class="fclock-labels" id="fclock-labels"><span>days</span><span>hrs</span><span>min</span><span>sec</span></div>
+        <div class="final-meta">Destination: <b>glory</b> · Gate: <b>New York New Jersey</b> · Status: <b class="ok">on time</b></div>
         <a class="btn btn-ghost final-cal" target="_blank" rel="noopener"
            href="https://www.google.com/calendar/render?action=TEMPLATE&text=FIFA%20World%20Cup%202026%20Final&dates=20260719T190000Z/20260719T210000Z&details=The%20Final%20%C2%B7%20New%20York%20New%20Jersey%20Stadium%20%C2%B7%2010%3A00%20PM%20Doha%20time%20%C2%B7%20beIN%20SPORTS&location=Doha%2C%20Qatar">+ Add the Final to your calendar</a>
       </div>
     </div>
   </section>
 
-  <!-- ================= FANZONE ================= -->
+  
   <section id="fanzone">
     <div class="sec-head">
       <h2>The big screen</h2>
@@ -716,6 +714,7 @@ const q     = document.getElementById("q");
 const norm = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 
 let typ = "all";
+let SHOWN = 4;
 const TYPE_LABELS = { hotel: "Hotels", food: "Restaurants & lounges" };
 function buildSeg(){
   const seg = document.getElementById("seg"); if (!seg) return;
@@ -726,17 +725,17 @@ function buildSeg(){
   seg.innerHTML = tabs.map(([t, l, c]) =>
     '<button type="button" data-t="' + t + '"' + (t === typ ? ' class="on"' : '') +
     ' aria-pressed="' + (t === typ) + '">' + l + ' \u00b7 ' + c + '</button>').join("");
-  seg.querySelectorAll("button").forEach(b => b.onclick = () => { typ = b.dataset.t; buildSeg(); render(q.value); });
+  seg.querySelectorAll("button").forEach(b => b.onclick = () => { typ = b.dataset.t; SHOWN = 4; buildSeg(); render(q.value); });
 }
 
 function render(filter){
   const f = norm(filter || "");
   grid.innerHTML = "";
-  const visible = [];
-  VENUES.forEach(v => {
-    if (typ !== "all" && (v.t || "hotel") !== typ) return;
-    if (f && !norm(v.n).includes(f)) return;
-    visible.push(v);
+  const visible = VENUES.filter(v =>
+    (typ === "all" || (v.t || "hotel") === typ) && (!f || norm(v.n + " " + (v.at || "")).includes(f)));
+  const capped = !f && visible.length > SHOWN;
+  const list = capped ? visible.slice(0, SHOWN) : visible;
+  list.forEach(v => {
     const card = document.createElement("div");
     card.className = "venue";
     card.title = "Show on map";
@@ -751,10 +750,19 @@ function render(filter){
     });
     grid.appendChild(card);
   });
+  if (capped) {
+    const more = document.createElement("button");
+    more.type = "button"; more.className = "v-more";
+    more.textContent = "Show more \u00b7 " + (visible.length - SHOWN) + " more venues";
+    more.onclick = () => { SHOWN = visible.length; render(q.value); };
+    grid.appendChild(more);
+  }
   if (cluster) {
     cluster.clearLayers();
     cluster.addLayers(visible.map(v => markers[v.n]));
   }
+  /* note: the map always shows every venue matching the active tab + search,
+     even while the card list is capped at 4 — it's the overview. */
   const pool = typ === "all" ? VENUES.length : VENUES.filter(v => (v.t || "hotel") === typ).length;
   count.innerHTML = (f || typ !== "all")
     ? "<b>" + visible.length + "</b> of " + pool + " venues"
@@ -768,18 +776,28 @@ render("");
 /* ---- countdown to the Final: Sun 19 July, 10:00 PM Doha (19:00 UTC) ---- */
 (function(){
   const T = Date.UTC(2026, 6, 19, 19, 0, 0);
-  const box = document.getElementById("fcount");
-  if (!box) return;
-  const el = { d: document.getElementById("fc-d"), h: document.getElementById("fc-h"),
-               m: document.getElementById("fc-m"), s: document.getElementById("fc-s") };
+  const ids = ["fd1","fd2","fh1","fh2","fm1","fm2","fs1","fs2"];
+  const els = ids.map(i => document.getElementById(i));
+  if (els.some(e => !e)) return;
   const pad = n => (n < 10 ? "0" : "") + n;
+  function set(el, v){
+    if (el.textContent === v) return;
+    el.classList.add("tick");
+    setTimeout(() => { el.textContent = v; el.classList.remove("tick"); }, 90);
+  }
   function tick(){
     let ms = T - Date.now();
-    if (ms <= 0) { box.innerHTML = '<div class="fc done">It all comes down to this.</div>'; clearInterval(iv); return; }
+    if (ms <= 0) {
+      const c = document.getElementById("fcount");
+      if (c) c.innerHTML = '<div class="fdone">It all comes down to this.</div>';
+      const lb = document.getElementById("fclock-labels"); if (lb) lb.remove();
+      clearInterval(iv); return;
+    }
     const d = Math.floor(ms / 864e5); ms -= d * 864e5;
     const h = Math.floor(ms / 36e5);  ms -= h * 36e5;
     const m = Math.floor(ms / 6e4);   ms -= m * 6e4;
-    el.d.textContent = d; el.h.textContent = pad(h); el.m.textContent = pad(m); el.s.textContent = pad(Math.floor(ms / 1e3));
+    const str = pad(d) + pad(h) + pad(m) + pad(Math.floor(ms / 1e3));
+    els.forEach((e, i) => set(e, str[i]));
   }
   tick();
   const iv = setInterval(tick, 1000);
