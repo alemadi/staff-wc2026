@@ -407,8 +407,8 @@
     </div>
     <p class="sec-sub">
       Every venue below is screening matches through the tournament — switch between hotels and the
-      bars &amp; lounges with confirmed match-day deals (per Time Out Doha, June 2026). Search filters the list and the
-      map together; tap any card to jump to its pin on the map at the bottom (gold pins are hotels, red are bars &amp; lounges, blue is the fanzone).
+      restaurants &amp; lounges with confirmed match-day deals (per Time Out Doha, June 2026). Search filters the list and the
+      map together; tap any card to jump to its pin on the map at the bottom (gold pins are hotels, red are restaurants &amp; lounges, blue is the fanzone).
     </p>
 
     <div class="seg" id="seg" role="group" aria-label="Filter venues by type"></div>
@@ -428,7 +428,7 @@
     <div class="legend" id="legend">
       <span><i style="background:var(--grape)"></i>Official fanzone</span>
       <span><i style="background:var(--turq)"></i>Hotel screenings</span>
-      <span><i style="background:#ef3340"></i>Bars &amp; lounges</span>
+      <span><i style="background:#ef3340"></i>Restaurants &amp; lounges</span>
       <span id="loc-note"></span>
     </div>
     <noscript><p class="foot-note">Enable JavaScript to browse the hotel list.</p></noscript>
@@ -548,7 +548,7 @@ const VENUES = [
   { n:"W Doha Hotel and Residences", lat:25.3288845, lng:51.5303094 },
   { n:"Waldorf Astoria Doha Lusail", lat:25.4087296, lng:51.5200105 },
   { n:"Waldorf Astoria Doha West Bay", lat:25.3276521, lng:51.5332242 },
-  /* Bars & lounges confirmed screening WC2026 — Time Out Doha, 10 June 2026 */
+  /* Restaurants & lounges confirmed screening WC2026 — Time Out Doha, 10 June 2026 */
   { n:"Champions Sports Bar", at:"Marriott Marquis City Center", lat:25.3248685, lng:51.5280995, t:"food" },
   { n:"Mulberry Tavern", at:"Hilton Doha The Pearl", lat:25.3745457, lng:51.5400295, t:"food" },
   { n:"Shehrazad Lounge Bar & Terrace", at:"Radisson Blu Hotel", lat:25.2721867, lng:51.5137641, t:"food" },
@@ -647,7 +647,7 @@ const q     = document.getElementById("q");
 const norm = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 
 let typ = "all";
-const TYPE_LABELS = { hotel: "Hotels", food: "Bars & lounges" };
+const TYPE_LABELS = { hotel: "Hotels", food: "Restaurants & lounges" };
 function buildSeg(){
   const seg = document.getElementById("seg"); if (!seg) return;
   const counts = {};
