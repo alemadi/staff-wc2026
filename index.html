@@ -384,7 +384,24 @@
   .rv-pick{margin-top:8px;width:100%}
   .live-tag{color:#ff7b84;display:flex;align-items:center;gap:5px;justify-content:center}
   .live-tag .pulse{width:6px;height:6px}
-  @media (prefers-reduced-motion:reduce){.pb-dot{animation:none}}
+  .pulsebar{cursor:pointer}
+  .chips-lab{font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-top:12px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .chipb{font:inherit;font-size:12px;font-weight:800;padding:7px 12px;border-radius:99px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;transition:.12s}
+  .chipb.sel{background:linear-gradient(115deg,var(--gold-deep),var(--gold));color:#181106;border-color:transparent}
+  .chipb.custom{color:var(--faint)}
+  .chipb:active{transform:scale(.94)}
+  .jumpnext{position:fixed;right:14px;bottom:calc(86px + env(safe-area-inset-bottom,0px));z-index:40;font:inherit;font-size:13px;font-weight:800;padding:12px 18px;border-radius:99px;border:none;cursor:pointer;background:linear-gradient(115deg,var(--gold-deep),var(--gold));color:#181106;box-shadow:0 10px 28px -8px rgba(180,151,89,.6)}
+  .jumpnext:active{transform:scale(.96)}
+  .jflash{outline:2px solid var(--gold);outline-offset:3px;border-radius:20px;transition:outline-color 1.2s}
+  .dayhdr.soonhdr h3{color:#f3b13d}
+  .dot.soon{background:#f3b13d;box-shadow:0 0 10px rgba(243,177,61,.7)}
+  .sk-wrap{display:flex;flex-direction:column;gap:10px;padding:4px 0}
+  .sk-row{display:flex;align-items:center;gap:12px;background:var(--glass);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+  .sk{background:linear-gradient(90deg,rgba(255,255,255,.05) 25%,rgba(255,255,255,.13) 37%,rgba(255,255,255,.05) 63%);background-size:400% 100%;animation:skm 1.2s ease-in-out infinite;border-radius:8px;height:14px}
+  .sk.r{width:18px}.sk.av{width:36px;height:36px;border-radius:50%}.sk.nm{flex:1;max-width:180px}.sk.pt{width:46px;margin-left:auto}
+  @keyframes skm{0%{background-position:100% 0}100%{background-position:-100% 0}}
+  @media (prefers-reduced-motion:reduce){.pb-dot{animation:none}.sk{animation:none}}
 
   footer.app{text-align:center;font-size:10.5px;color:var(--faint);padding:26px 10px 6px;line-height:1.7}
   footer.app b{color:var(--muted)}
@@ -494,11 +511,12 @@
   <!-- MATCHES -->
   <section class="view" id="view-matches">
     <div class="sec-title"><h2>Matches</h2><div class="tag" id="match-tag">104 fixtures</div></div>
-    <div id="pulsebar" class="pulsebar" style="display:none"></div>
+    <div id="pulsebar" class="pulsebar" style="display:none" onclick="location.href='watch.html'" title="Where to watch" role="link"></div>
+    <button id="jumpnext" class="jumpnext" style="display:none" onclick="jumpToNext()">Next unpicked ↓</button>
     <div class="progress">
       <div class="top"><span>Predictions</span><span><b id="pred-count">0</b> / <span id="pred-total">72</span></span></div>
       <div class="bar"><i id="pred-bar" style="width:0%"></i></div>
-      <div class="rules"><b>+3</b> result &nbsp;·&nbsp; <b>+2</b> exact bonus &nbsp;·&nbsp; knockouts <b>+4→+10</b> &nbsp;·&nbsp; 🏆 champion <b>+25</b></div>
+      <div class="rules"><b>+3</b> result &nbsp;·&nbsp; <b>+2</b> exact bonus &nbsp;·&nbsp; knockouts <b>+4→+10</b> &nbsp;·&nbsp; 🏆 champion <b>+25</b> &nbsp;·&nbsp; ties break on <b>most predictions</b></div>
       <button class="ptbtn" onclick="togglePts(this)">How do points work? ▾</button>
       <div class="ptable" id="ptable">
         <div class="pgrp">Group stage · 11–27 June · predict the result</div>
@@ -1059,9 +1077,16 @@ function renderMatches(){
   document.getElementById("match-tag").textContent=(lblMap[state.filter]||RLABEL[state.filter])+" · "+list.length+" match"+(list.length===1?"":"es");
   const host=document.getElementById("match-list");
   if(!list.length){host.innerHTML='<div class="empty"><div class="ic">📅</div><b>No matches here</b><span>Nothing scheduled for this filter today — try another tab.</span></div>';return;}
+  const nowL=Date.now()+CLOCK_OFFSET;
+  const {soon,rest}=locksSoonSplit(list,nowL);
   const groups={},order=[];
-  list.forEach(m=>{const k=dayKey(m.ko);if(!groups[k]){groups[k]=[];order.push(k);}groups[k].push(m);});
+  rest.forEach(m=>{const k=dayKey(m.ko);if(!groups[k]){groups[k]=[];order.push(k);}groups[k].push(m);});
   let html="",idx=0;
+  if(soon.length){
+    html+='<div class="daygroup"><div class="dayhdr soonhdr"><span class="dot soon"></span><h3>\u23f3 Locking soon \u2014 pick now</h3><span class="ln"></span></div>';
+    soon.forEach(m=>{const v=fxView(m);html+=m.kn?(koReady(m)?koMatchCard(v,idx++):knockoutCard(v,idx++)):matchCard(v,idx++);});
+    html+='</div>';
+  }
   order.forEach(k=>{
     html+='<div class="daygroup"><div class="dayhdr"><span class="dot"></span><h3>'+fmtDay(groups[k][0].ko)+'</h3><span class="ln"></span></div>';
     groups[k].forEach(m=>{const v=fxView(m);html+=m.kn?(koReady(m)?koMatchCard(v,idx++):knockoutCard(v,idx++)):matchCard(v,idx++);});
@@ -1069,6 +1094,7 @@ function renderMatches(){
   });
   host.innerHTML=html;
   bindMatchEvents();
+  updateJump();
 }
 
 function matchCard(m,idx){
@@ -1089,8 +1115,9 @@ function matchCard(m,idx){
       '<button class="pick '+(p.o==="H"?"sel":"")+'" data-o="H"><span class="mini">'+m.home.f+'</span></button>'+
       '<button class="pick draw '+(p.o==="D"?"sel":"")+'" data-o="D">DRAW</button>'+
       '<button class="pick '+(p.o==="A"?"sel":"")+'" data-o="A"><span class="mini">'+m.away.f+'</span></button></div>'+
-      '<div class="bonus"><button class="bonus-toggle" data-bt="'+m.id+'">＋ Exact score (bonus +2)</button>'+
-      '<div class="bonus-fields '+((p.h!=null)?"show":"")+'" data-bf="'+m.id+'">'+
+      '<div class="chips-lab">Exact score · one tap · +2 bonus</div>'+
+      '<div class="chips" data-ch="'+m.id+'">'+SCORE_CHIPS.map(c=>'<button class="chipb'+((p.h===c[0]&&p.a===c[1])?' sel':'')+'" data-cid="'+m.id+'" data-h="'+c[0]+'" data-a="'+c[1]+'">'+c[0]+'\u2013'+c[1]+'</button>').join('')+'<button class="chipb custom" data-bt="'+m.id+'">custom\u2026</button></div>'+
+      '<div class="bonus-fields '+((p.h!=null&&!SCORE_CHIPS.some(c=>c[0]===p.h&&c[1]===p.a))?"show":"")+'" data-bf="'+m.id+'">'+
       '<label>'+m.home.f+'</label><input class="scorein" type="number" min="0" max="20" inputmode="numeric" data-sh="'+m.id+'" value="'+(p.h!=null?p.h:"")+'">'+
       '<span class="scoredash">–</span><input class="scorein" type="number" min="0" max="20" inputmode="numeric" data-sa="'+m.id+'" value="'+(p.a!=null?p.a:"")+'"><label>'+m.away.f+'</label></div></div>'+
       '<div class="lockin'+((lockTs(m)-Date.now()-CLOCK_OFFSET)<7200000?' soon':'')+'" data-lockts="'+lockTs(m)+'">⏳ '+fmtLeft(lockTs(m)-Date.now()-CLOCK_OFFSET)+'</div>';
@@ -1148,12 +1175,28 @@ function koMatchCard(m,idx){
     (!win&&!lk?'<div class="venue">'+(m.v?esc(m.v):"World Cup 2026 · Knockout stage")+'</div>':'')+picks+'</div>';
 }
 
+const SCORE_CHIPS=[[1,0],[2,0],[2,1],[1,1],[0,0],[3,1],[0,1],[1,2]];
+function chipPick(id,h,a){
+  if(!state.player.predictions[id])state.player.predictions[id]={};
+  const P=state.player.predictions[id];
+  P.h=h;P.a=a;P.o=h>a?"H":h<a?"A":"D";
+  const ih=document.querySelector('[data-sh="'+id+'"]'),ia=document.querySelector('[data-sa="'+id+'"]');
+  if(ih)ih.value=h;if(ia)ia.value=a;
+  syncPickRow(id);syncChips(id);syncProgress();updateChip();updateJump();
+  try{navigator.vibrate&&navigator.vibrate(8);}catch(e){}
+  queueSave();
+}
+function syncChips(id){
+  const P=state.player.predictions[id]||{};
+  document.querySelectorAll('.chipb[data-cid="'+id+'"]').forEach(b=>b.classList.toggle('sel',+b.dataset.h===P.h&&+b.dataset.a===P.a));
+}
 function bindMatchEvents(){
   document.querySelectorAll(".picks").forEach(row=>{row.querySelectorAll(".pick").forEach(btn=>btn.addEventListener("click",()=>{
     if(btn.dataset.w!=null)pickWinner(row.dataset.mid,btn.dataset.w);
     else pickOutcome(row.dataset.mid,btn.dataset.o);
   }));});
-  document.querySelectorAll(".bonus-toggle").forEach(b=>b.addEventListener("click",()=>{document.querySelector('[data-bf="'+b.dataset.bt+'"]').classList.toggle("show");}));
+  document.querySelectorAll(".chipb.custom").forEach(b=>b.addEventListener("click",()=>{document.querySelector('[data-bf="'+b.dataset.bt+'"]').classList.toggle("show");}));
+  document.querySelectorAll(".chipb[data-cid]").forEach(b=>b.addEventListener("click",()=>chipPick(b.dataset.cid,+b.dataset.h,+b.dataset.a)));
   document.querySelectorAll(".scorein").forEach(inp=>inp.addEventListener("change",()=>{
     const id=inp.dataset.sh||inp.dataset.sa;
     saveScore(id,document.querySelector('[data-sh="'+id+'"]').value,document.querySelector('[data-sa="'+id+'"]').value);
@@ -1181,7 +1224,8 @@ function pickWinner(id,team){
 function pickOutcome(id,o){
   if(!state.player.predictions[id])state.player.predictions[id]={};
   state.player.predictions[id].o=o;
-  syncPickRow(id);syncProgress();updateChip();
+  syncPickRow(id);syncProgress();updateChip();updateJump();
+  try{navigator.vibrate&&navigator.vibrate(8);}catch(e){}
   queueSave();
 }
 function saveScore(id,h,a){
@@ -1210,7 +1254,7 @@ function lbMore(){LB_SHOWN+=200;renderLeaderboard();}
 async function renderLeaderboard(){
   const body=document.getElementById("lb-body");
   document.getElementById("demo-banner").style.display=state.demo?"flex":"none";
-  body.innerHTML='<div class="empty"><div class="ic">⏳</div><span>Loading standings…</span></div>';
+  body.innerHTML='<div class="sk-wrap">'+Array(6).fill('<div class="sk-row"><div class="sk r"></div><div class="sk av"></div><div class="sk nm"></div><div class="sk pt"></div></div>').join('')+'</div>';
   const lm=document.getElementById("lbmode");
   if(lm)lm.style.display=state.demo?"none":"flex";
   if(LB_MODE==="dept"&&!state.demo){await renderDept(body);return;}
@@ -1743,6 +1787,36 @@ function liveDecorate(){
     const res=state.results&&state.results[m.id];
     const h=midHTML(m,res);if(n.innerHTML!==h)n.innerHTML=h;
   });
+}
+function locksSoonSplit(list,now){
+  const soon=[],rest=[];
+  list.forEach(m=>{
+    const left=lockTs(m)-now;
+    const picked=!!((state.player&&state.player.predictions[m.id]||{}).o||(state.player&&state.player.predictions[m.id]||{}).w);
+    const pickable=m.kn?koReady(m):true;
+    if(pickable&&!picked&&left>0&&left<=3*36e5)soon.push(m);else rest.push(m);
+  });
+  soon.sort((a,b)=>lockTs(a)-lockTs(b));
+  return {soon:soon,rest:rest};
+}
+function nextUnpicked(){
+  if(!state.player)return null;
+  const now=Date.now()+CLOCK_OFFSET;
+  return FIXTURES.filter(m=>(m.kn?koReady(m):true)&&lockTs(m)>now&&!((state.player.predictions[m.id]||{}).o||(state.player.predictions[m.id]||{}).w))
+    .sort((a,b)=>new Date(a.ko)-new Date(b.ko))[0]||null;
+}
+function updateJump(){
+  const b=document.getElementById("jumpnext");if(!b)return;
+  b.style.display=nextUnpicked()?"block":"none";
+}
+function jumpToNext(){
+  const nu=nextUnpicked();if(!nu)return;
+  const find=()=>{const r=document.querySelector('.picks[data-mid="'+nu.id+'"]');return r?r.closest('.match-card'):null;};
+  let el=find();
+  if(!el){setFilter(nu.round);el=find();}
+  if(!el)return;
+  el.scrollIntoView({behavior:"smooth",block:"center"});
+  el.classList.add("jflash");setTimeout(()=>el.classList.remove("jflash"),1300);
 }
 function liveTick(){
   const now=Date.now()+CLOCK_OFFSET;
