@@ -200,6 +200,9 @@
   .search input::placeholder{color:var(--ink-dim)}
   .count{font-size:.82rem;color:var(--ink-dim);white-space:nowrap}
   .count b{color:var(--turq)}
+  .seg{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+  .seg button{font:inherit;font-size:.8rem;font-weight:700;letter-spacing:.02em;padding:8px 15px;border-radius:99px;border:1px solid var(--line);background:rgba(255,255,255,.02);color:var(--ink-dim);cursor:pointer;transition:.15s}
+  .seg button.on{background:linear-gradient(115deg,var(--gold-deep),var(--gold));border-color:transparent;color:#181106}
   .venues{display:grid;grid-template-columns:repeat(auto-fill,minmax(236px,1fr));gap:10px;margin-top:18px}
   .venue{
     background:var(--night-2);border:1px solid var(--line);border-radius:12px;
@@ -208,6 +211,7 @@
   }
   .venue:hover{border-color:rgba(43,217,199,.5)}
   .venue .name{font-weight:600;font-size:.93rem;line-height:1.3}
+  .venue .at{font-size:.74rem;color:var(--ink-dim);margin-top:-3px}
   .venue a{
     font-size:.76rem;font-weight:600;color:var(--ink-dim);text-decoration:none;
     display:inline-flex;align-items:center;gap:5px;margin-top:auto;
@@ -224,6 +228,7 @@
   .venue{cursor:pointer}
   .leaflet-container{background:#0a0a0c;font-family:var(--en)}
   .dot-hotel{width:12px;height:12px;border-radius:50%;background:var(--turq);border:2px solid #0a0a0c;box-shadow:0 0 0 1.5px rgba(227,211,163,.55)}
+  .dot-food{width:12px;height:12px;border-radius:50%;background:#ef3340;border:2px solid #0a0a0c;box-shadow:0 0 0 1.5px rgba(239,51,64,.5)}
   .dot-fan{width:16px;height:16px;border-radius:50%;background:var(--grape);border:2px solid #0a0a0c;box-shadow:0 0 0 2.5px rgba(45,111,224,.7)}
   .dot-me{width:14px;height:14px;border-radius:50%;background:var(--gold);border:2.5px solid #fff;box-shadow:0 0 0 2px rgba(180,151,89,.5)}
   .locate-btn{display:flex;align-items:center;gap:6px;background:var(--night-3);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-family:var(--en);font-weight:700;font-size:.78rem;letter-spacing:.02em;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.45)}
@@ -401,9 +406,12 @@
       <h2>Hotel screenings across town</h2>
     </div>
     <p class="sec-sub">
-      Every venue below is screening matches through the tournament. Search to filter the list and the
-      map together — tap any card to jump to its pin on the map at the bottom (blue is the official fanzone, gold are hotels).
+      Every venue below is screening matches through the tournament — switch between hotels and the
+      bars &amp; lounges with confirmed match-day deals (per Time Out Doha, June 2026). Search filters the list and the
+      map together; tap any card to jump to its pin on the map at the bottom (gold pins are hotels, red are bars &amp; lounges, blue is the fanzone).
     </p>
+
+    <div class="seg" id="seg" role="group" aria-label="Filter venues by type"></div>
 
     <div class="tools">
       <label class="search">
@@ -420,6 +428,7 @@
     <div class="legend" id="legend">
       <span><i style="background:var(--grape)"></i>Official fanzone</span>
       <span><i style="background:var(--turq)"></i>Hotel screenings</span>
+      <span><i style="background:#ef3340"></i>Bars &amp; lounges</span>
       <span id="loc-note"></span>
     </div>
     <noscript><p class="foot-note">Enable JavaScript to browse the hotel list.</p></noscript>
@@ -538,7 +547,18 @@ const VENUES = [
   { n:"Tio Sea Resort (Al Khor)", lat:25.6851928, lng:51.5222050 },
   { n:"W Doha Hotel and Residences", lat:25.3288845, lng:51.5303094 },
   { n:"Waldorf Astoria Doha Lusail", lat:25.4087296, lng:51.5200105 },
-  { n:"Waldorf Astoria Doha West Bay", lat:25.3276521, lng:51.5332242 }
+  { n:"Waldorf Astoria Doha West Bay", lat:25.3276521, lng:51.5332242 },
+  /* Bars & lounges confirmed screening WC2026 — Time Out Doha, 10 June 2026 */
+  { n:"Champions Sports Bar", at:"Marriott Marquis City Center", lat:25.3248685, lng:51.5280995, t:"food" },
+  { n:"Mulberry Tavern", at:"Hilton Doha The Pearl", lat:25.3745457, lng:51.5400295, t:"food" },
+  { n:"Shehrazad Lounge Bar & Terrace", at:"Radisson Blu Hotel", lat:25.2721867, lng:51.5137641, t:"food" },
+  { n:"Shisha Garden", at:"La Cigale Hotel \u00b7 open-air, 24/7", lat:25.2801410, lng:51.5079257, t:"food" },
+  { n:"Shots Sports Bar", at:"Hilton Doha, West Bay", lat:25.3260733, lng:51.5401288, t:"food" },
+  { n:"Stoke & Stoker", at:"Rosewood Doha, Lusail", lat:25.3836940, lng:51.5322500, t:"food" },
+  { n:"The Back Room", at:"ibis Doha", lat:25.2700685, lng:51.5144828, t:"food" },
+  { n:"The Highmore", at:"Waldorf Astoria Doha Lusail \u00b7 rooftop", lat:25.4076858, lng:51.5203304, t:"food" },
+  { n:"The Londoner", at:"Dusit Doha Hotel \u00b7 24/7 during WC", lat:25.3279905, lng:51.5291113, t:"food" },
+  { n:"Tropicana 360", at:"Dusit Hotel & Suites, West Bay \u00b7 to 4am", lat:25.3277075, lng:51.5321325, t:"food" },
 ];
 
 const gmaps = n => "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(n + " Qatar");
@@ -556,9 +576,10 @@ if (window.L && L.markerClusterGroup) {
   cluster = L.markerClusterGroup({ maxClusterRadius: 34, showCoverageOnHover: false });
   VENUES.forEach(v => {
     const m = L.marker([v.lat, v.lng], {
-      icon: L.divIcon({ className: "", html: '<div class="dot-hotel"></div>', iconSize: [12,12], iconAnchor: [6,6] })
+      icon: L.divIcon({ className: "", html: '<div class="' + (v.t === "food" ? "dot-food" : "dot-hotel") + '"></div>', iconSize: [12,12], iconAnchor: [6,6] })
     });
-    m.bindPopup("<b>" + v.n + "</b><br><a target=\"_blank\" rel=\"noopener\" href=\"" + gmaps(v.n) + "\">Open in Google Maps \u2197</a>");
+    m.bindPopup("<b>" + v.n + "</b>" + (v.at ? "<br><small>" + v.at + "</small>" : "") +
+      "<br><a target=\"_blank\" rel=\"noopener\" href=\"" + gmaps(v.n + " " + (v.at || "").split("\u00b7")[0]) + "\">Open in Google Maps \u2197</a>");
     markers[v.n] = m;
   });
   cluster.addLayers(Object.values(markers));
@@ -625,19 +646,35 @@ const q     = document.getElementById("q");
 
 const norm = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 
+let typ = "all";
+const TYPE_LABELS = { hotel: "Hotels", food: "Bars & lounges" };
+function buildSeg(){
+  const seg = document.getElementById("seg"); if (!seg) return;
+  const counts = {};
+  VENUES.forEach(v => { const t = v.t || "hotel"; counts[t] = (counts[t] || 0) + 1; });
+  const tabs = [["all", "All", VENUES.length]];
+  Object.keys(TYPE_LABELS).forEach(t => { if (counts[t]) tabs.push([t, TYPE_LABELS[t], counts[t]]); });
+  seg.innerHTML = tabs.map(([t, l, c]) =>
+    '<button type="button" data-t="' + t + '"' + (t === typ ? ' class="on"' : '') +
+    ' aria-pressed="' + (t === typ) + '">' + l + ' \u00b7 ' + c + '</button>').join("");
+  seg.querySelectorAll("button").forEach(b => b.onclick = () => { typ = b.dataset.t; buildSeg(); render(q.value); });
+}
+
 function render(filter){
   const f = norm(filter || "");
   grid.innerHTML = "";
   const visible = [];
   VENUES.forEach(v => {
+    if (typ !== "all" && (v.t || "hotel") !== typ) return;
     if (f && !norm(v.n).includes(f)) return;
     visible.push(v);
     const card = document.createElement("div");
     card.className = "venue";
     card.title = "Show on map";
-    card.innerHTML = '<div class="name"></div>' +
-      "<a target=\"_blank\" rel=\"noopener\" href=\"" + gmaps(v.n) + "\">Open in Maps \u2197</a>";
+    card.innerHTML = '<div class="name"></div>' + (v.at ? '<div class="at"></div>' : '') +
+      "<a target=\"_blank\" rel=\"noopener\" href=\"" + gmaps(v.n + " " + (v.at || "").split("\u00b7")[0]) + "\">Open in Maps \u2197</a>";
     card.querySelector(".name").textContent = v.n;
+    if (v.at) card.querySelector(".at").textContent = v.at;
     card.addEventListener("click", e => {
       if (e.target.tagName === "A" || !map) return;
       document.getElementById("map").scrollIntoView({ behavior: "smooth", block: "center" });
@@ -649,12 +686,14 @@ function render(filter){
     cluster.clearLayers();
     cluster.addLayers(visible.map(v => markers[v.n]));
   }
-  count.innerHTML = f
-    ? "<b>" + visible.length + "</b> of " + VENUES.length + " venues"
+  const pool = typ === "all" ? VENUES.length : VENUES.filter(v => (v.t || "hotel") === typ).length;
+  count.innerHTML = (f || typ !== "all")
+    ? "<b>" + visible.length + "</b> of " + pool + " venues"
     : "<b>" + VENUES.length + "</b> venues";
   empty.style.display = visible.length ? "none" : "block";
 }
 q.addEventListener("input", () => render(q.value));
+buildSeg();
 render("");
 </script>
 <nav class="bottom">
