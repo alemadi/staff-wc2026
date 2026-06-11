@@ -174,16 +174,42 @@
   .fz-partners{margin-top:18px;font-size:.76rem;color:var(--ink-dim);letter-spacing:.04em}
 
   /* ---------- TV strip ---------- */
-  .tv{
-    margin-top:22px;display:grid;grid-template-columns:1.4fr 1fr;gap:14px;
-  }
-  @media(max-width:700px){.tv{grid-template-columns:1fr}}
+  .tv{margin-top:22px;display:grid;grid-template-columns:1fr;gap:14px}
   .tv-card{background:var(--night-2);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
   .tv-card h3{font-weight:800;font-stretch:110%;font-size:1.05rem;margin-bottom:8px}
   .tv-card p{font-size:.9rem;color:var(--ink-dim)}
   .tv-card p b{color:var(--ink)}
-  .tv-final{display:flex;flex-direction:column;justify-content:center;border-color:rgba(180,151,89,.5);box-shadow:0 8px 26px -8px rgba(180,151,89,.3)}
-  .tv-final .when{font-family:var(--d);font-weight:400;font-size:1.5rem;letter-spacing:.02em;color:var(--gold-bright);margin-top:4px}
+
+  /* ---------- the final ---------- */
+  #final{padding:36px 0 8px}
+  .final-card{position:relative;overflow:hidden;text-align:center;border:1px solid rgba(180,151,89,.5);border-radius:22px;
+    background:radial-gradient(640px 340px at 50% -4%,rgba(180,151,89,.17),transparent 70%),var(--night-2);
+    box-shadow:0 20px 60px -22px rgba(180,151,89,.4);padding:42px 22px 36px}
+  .final-rays{position:absolute;inset:-45%;z-index:0;pointer-events:none;
+    background:repeating-conic-gradient(from 0deg at 50% 32%,rgba(227,211,163,.07) 0deg 5deg,transparent 5deg 17deg);
+    -webkit-mask-image:radial-gradient(closest-side at 50% 32%,#000,transparent 72%);
+    mask-image:radial-gradient(closest-side at 50% 32%,#000,transparent 72%);
+    animation:rayspin 90s linear infinite}
+  @keyframes rayspin{to{transform:rotate(360deg)}}
+  .final-in{position:relative;z-index:1}
+  .trophy{width:118px;height:auto;display:block;margin:0 auto 4px;
+    filter:drop-shadow(0 16px 32px rgba(180,151,89,.45));animation:tfloat 6s ease-in-out infinite}
+  @keyframes tfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+  .final-eyebrow{font-size:.74rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-top:10px}
+  .final-title{font-family:var(--d);font-weight:400;font-size:clamp(2.7rem,10vw,4.6rem);letter-spacing:.045em;line-height:1;margin-top:6px;
+    background:linear-gradient(100deg,var(--gold-deep) 0%,var(--gold-bright) 28%,var(--gold) 55%,var(--gold-bright) 82%);
+    background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+    animation:sheen 5.5s ease-in-out infinite}
+  @keyframes sheen{0%,100%{background-position:0% 0}50%{background-position:100% 0}}
+  .final-meta{margin-top:12px;color:var(--ink-dim);font-size:.96rem}
+  .final-meta b{color:var(--ink)}
+  .final-count{display:flex;gap:10px;justify-content:center;margin-top:24px;flex-wrap:wrap}
+  .fc{min-width:72px;padding:13px 10px 10px;background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:14px}
+  .fc b{display:block;font-family:var(--d);font-weight:400;font-size:1.95rem;line-height:1;color:var(--gold-bright);letter-spacing:.03em;font-variant-numeric:tabular-nums}
+  .fc span{display:block;margin-top:5px;font-size:.64rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-dim)}
+  .fc.done{min-width:0;padding:13px 22px;font-weight:700;color:var(--gold-bright);font-size:1rem;letter-spacing:.04em}
+  .final-cal{margin-top:24px}
+  @media (prefers-reduced-motion:reduce){.final-rays,.trophy,.final-title{animation:none}}
 
   /* ---------- hotels ---------- */
   .tools{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-top:20px}
@@ -338,6 +364,54 @@
     </p>
   </section>
 
+  <!-- ================= THE FINAL ================= -->
+  <section id="final">
+    <div class="final-card">
+      <div class="final-rays" aria-hidden="true"></div>
+      <div class="final-in">
+        <svg class="trophy" viewBox="0 0 140 140" aria-hidden="true">
+          <defs>
+            <linearGradient id="tg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#e3d3a3"/><stop offset=".5" stop-color="#b49759"/><stop offset="1" stop-color="#8a734a"/>
+            </linearGradient>
+            <linearGradient id="tg2" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#f4e9c8"/><stop offset="1" stop-color="#b49759"/>
+            </linearGradient>
+          </defs>
+          <path d="M30 38 C8 38 6 66 30 71" fill="none" stroke="url(#tg)" stroke-width="7" stroke-linecap="round"/>
+          <path d="M110 38 C132 38 134 66 110 71" fill="none" stroke="url(#tg)" stroke-width="7" stroke-linecap="round"/>
+          <path d="M30 27 h80 v20 a40 41 0 0 1 -80 0 Z" fill="url(#tg2)"/>
+          <g stroke="#8a734a" stroke-width="1.6" fill="none" opacity=".5">
+            <circle cx="70" cy="50" r="14.5"/>
+            <ellipse cx="70" cy="50" rx="14.5" ry="5.6"/>
+            <ellipse cx="70" cy="50" rx="5.6" ry="14.5"/>
+          </g>
+          <rect x="27" y="22" width="86" height="7" rx="3.5" fill="url(#tg)"/>
+          <path d="M61 87 c0 12 -7 17 -10 23 h38 c-3 -6 -10 -11 -10 -23 Z" fill="url(#tg)"/>
+          <rect x="43" y="110" width="54" height="8" rx="3" fill="url(#tg2)"/>
+          <rect x="34" y="118" width="72" height="12" rx="4" fill="url(#tg)"/>
+          <rect x="58" y="120.5" width="24" height="7" rx="2" fill="#181106" opacity=".7"/>
+          <g fill="#f4e9c8">
+            <path d="M22 12 l2.2 5 5 2.2 -5 2.2 -2.2 5 -2.2 -5 -5 -2.2 5 -2.2 Z"/>
+            <path d="M117 7 l1.7 3.8 3.8 1.7 -3.8 1.7 -1.7 3.8 -1.7 -3.8 -3.8 -1.7 3.8 -1.7 Z" opacity=".9"/>
+            <path d="M127 62 l1.4 3.2 3.2 1.4 -3.2 1.4 -1.4 3.2 -1.4 -3.2 -3.2 -1.4 3.2 -1.4 Z" opacity=".75"/>
+          </g>
+        </svg>
+        <div class="final-eyebrow">Sunday 19 July · New York New Jersey Stadium</div>
+        <h2 class="final-title">THE FINAL</h2>
+        <div class="final-meta">One match left standing — kickoff <b>10:00 PM Doha</b>, live on beIN.</div>
+        <div class="final-count" id="fcount">
+          <div class="fc"><b id="fc-d">&ndash;</b><span>days</span></div>
+          <div class="fc"><b id="fc-h">&ndash;</b><span>hrs</span></div>
+          <div class="fc"><b id="fc-m">&ndash;</b><span>min</span></div>
+          <div class="fc"><b id="fc-s">&ndash;</b><span>sec</span></div>
+        </div>
+        <a class="btn btn-ghost final-cal" target="_blank" rel="noopener"
+           href="https://www.google.com/calendar/render?action=TEMPLATE&text=FIFA%20World%20Cup%202026%20Final&dates=20260719T190000Z/20260719T210000Z&details=The%20Final%20%C2%B7%20New%20York%20New%20Jersey%20Stadium%20%C2%B7%2010%3A00%20PM%20Doha%20time%20%C2%B7%20beIN%20SPORTS&location=Doha%2C%20Qatar">+ Add the Final to your calendar</a>
+      </div>
+    </div>
+  </section>
+
   <!-- ================= FANZONE ================= -->
   <section id="fanzone">
     <div class="sec-head">
@@ -387,11 +461,6 @@
              href="https://www.bein.com/en/worldcup2026/?utm_source=beinsports-programmatic&utm_medium=splash&utm_campaign=26FIFAWorldCup&ctc=26FIFAWorldCup&source=47">
              Get the beIN offer →</a>
         </div>
-      </div>
-      <div class="tv-card tv-final">
-        <h3>The Final, in prime time</h3>
-        <p>Sunday 19 July · New York New Jersey</p>
-        <div class="when">10:00 PM Doha</div>
       </div>
     </div>
   </section>
@@ -695,6 +764,26 @@ function render(filter){
 q.addEventListener("input", () => render(q.value));
 buildSeg();
 render("");
+
+/* ---- countdown to the Final: Sun 19 July, 10:00 PM Doha (19:00 UTC) ---- */
+(function(){
+  const T = Date.UTC(2026, 6, 19, 19, 0, 0);
+  const box = document.getElementById("fcount");
+  if (!box) return;
+  const el = { d: document.getElementById("fc-d"), h: document.getElementById("fc-h"),
+               m: document.getElementById("fc-m"), s: document.getElementById("fc-s") };
+  const pad = n => (n < 10 ? "0" : "") + n;
+  function tick(){
+    let ms = T - Date.now();
+    if (ms <= 0) { box.innerHTML = '<div class="fc done">It all comes down to this.</div>'; clearInterval(iv); return; }
+    const d = Math.floor(ms / 864e5); ms -= d * 864e5;
+    const h = Math.floor(ms / 36e5);  ms -= h * 36e5;
+    const m = Math.floor(ms / 6e4);   ms -= m * 6e4;
+    el.d.textContent = d; el.h.textContent = pad(h); el.m.textContent = pad(m); el.s.textContent = pad(Math.floor(ms / 1e3));
+  }
+  tick();
+  const iv = setInterval(tick, 1000);
+})();
 </script>
 <nav class="bottom">
   <a class="navbtn" href="/#matches"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4M7 7l2.5 2.5M17 7l-2.5 2.5M7 17l2.5-2.5M17 17l-2.5-2.5"/></svg>Matches</a>
