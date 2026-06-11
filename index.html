@@ -1623,8 +1623,9 @@ function renderPulse(){
     const m=live[0];const le=(typeof liveFor==="function")?liveFor(m):null;
     const min=Math.max(1,Math.min(120,Math.floor((now-new Date(m.ko).getTime())/60000)));
     const sc=(le&&le.hs!=null&&le.state!=="pre")?('<b>'+le.hs+'\u2013'+le.as+'</b>'):'v';
-    const ck=(le&&le.state==="in"&&le.clock)?le.clock:(min+'\u2032');
-    el.innerHTML='<span class="pb-dot"></span><b>LIVE</b>&nbsp;'+(m.home.f?m.home.f+' ':'')+esc(m.home.n)+' '+sc+' '+esc(m.away.n)+(m.away.f?' '+m.away.f:'')+' \u00b7 '+esc(ck)+(live.length>1?'<span class="pb-more">+'+(live.length-1)+' more live</span>':'');
+    const done=!!(le&&le.done);
+    const ck=done?'FT':((le&&le.state==="in"&&le.clock)?le.clock:(min+'\u2032'));
+    el.innerHTML='<span class="pb-dot'+(done?' idle':'')+'"></span><b>'+(done?'FT':'LIVE')+'</b>&nbsp;'+(m.home.f?m.home.f+' ':'')+esc(m.home.n)+' '+sc+' '+esc(m.away.n)+(m.away.f?' '+m.away.f:'')+(done?'':' \u00b7 '+esc(ck))+(live.length>1?'<span class="pb-more">+'+(live.length-1)+' more live</span>':'');
     el.className="pulsebar live";el.style.display="flex";return;
   }
   const next=FIXTURES.filter(m=>new Date(m.ko).getTime()>now).sort((a,b)=>new Date(a.ko)-new Date(b.ko))[0];
@@ -1911,8 +1912,8 @@ function closeSwipe(){
 function swKey(e){
   if(!SW.open)return;
   if(e.key==="Escape")closeSwipe();
-  else if(e.key==="ArrowRight")swipeCommit("H");
-  else if(e.key==="ArrowLeft")swipeCommit("A");
+  else if(e.key==="ArrowRight")swipeCommit("A");
+  else if(e.key==="ArrowLeft")swipeCommit("H");
   else if(e.key==="ArrowUp")swipeCommit("D");
 }
 function swCur(){
@@ -1940,12 +1941,12 @@ function renderSwipeCard(){
   st.innerHTML='<div class="sw-card" id="sw-card">'+
     '<div class="sw-tag">'+esc((RLABEL[m.round]||m.round)+" \u00b7 "+fmtDay(m.ko)+" "+fmtTime(m.ko))+'</div>'+
     '<div class="sw-teams"><div class="sw-t">'+m.home.f+'<b>'+esc(m.home.n)+'</b></div><span class="sw-vs">VS</span><div class="sw-t">'+m.away.f+'<b>'+esc(m.away.n)+'</b></div></div></div>'+
-    '<div class="sw-glow l" id="sw-gl">'+esc(m.away.n+win)+'</div>'+
-    '<div class="sw-glow r" id="sw-gr">'+esc(m.home.n+win)+'</div>';
-  lg.innerHTML='\u2190 '+esc(m.away.n+win)+' &nbsp;\u00b7&nbsp; \u2191 '+(m.kn?"skip":"draw")+' &nbsp;\u00b7&nbsp; '+esc(m.home.n+win)+' \u2192';
-  bt.innerHTML='<button class="sw-b" onclick="swipeCommit(\'A\')">'+esc(m.away.n)+'</button>'+
+    '<div class="sw-glow l" id="sw-gl">'+esc(m.home.n+win)+'</div>'+
+    '<div class="sw-glow r" id="sw-gr">'+esc(m.away.n+win)+'</div>';
+  lg.innerHTML='\u2190 '+esc(m.home.n+win)+' &nbsp;\u00b7&nbsp; \u2191 '+(m.kn?"skip":"draw")+' &nbsp;\u00b7&nbsp; '+esc(m.away.n+win)+' \u2192';
+  bt.innerHTML='<button class="sw-b" onclick="swipeCommit(\'H\')">'+esc(m.home.n)+'</button>'+
     (m.kn?'<button class="sw-b dim" onclick="swipeSkip()">skip</button>':'<button class="sw-b" onclick="swipeCommit(\'D\')">Draw</button>')+
-    '<button class="sw-b" onclick="swipeCommit(\'H\')">'+esc(m.home.n)+'</button>';
+    '<button class="sw-b" onclick="swipeCommit(\'A\')">'+esc(m.away.n)+'</button>';
   bindSwipeGestures();
 }
 function swipeCommit(dir){
@@ -1964,7 +1965,7 @@ function swipeSkip(){
 function flyOff(card,dir,done){
   const rm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
   if(!card||rm){done();return;}
-  card.classList.add(dir==="H"?"fly-r":dir==="A"?"fly-l":"fly-u");
+  card.classList.add(dir==="H"?"fly-l":dir==="A"?"fly-r":"fly-u");
   setTimeout(done,240);
 }
 function bindSwipeGestures(){
@@ -1977,15 +1978,15 @@ function bindSwipeGestures(){
     if(!drag)return;
     const dx=e.clientX-sx,dy=e.clientY-sy;
     c.style.transform="translate("+dx+"px,"+(dy*0.4)+"px) rotate("+(dx*0.05)+"deg)";
-    if(gr)gr.style.opacity=Math.min(1,Math.max(0,dx/90));
-    if(gl)gl.style.opacity=Math.min(1,Math.max(0,-dx/90));
+    if(gr)gr.style.opacity=Math.min(1,Math.max(0,dx/90));   /* right drag \u2192 away */
+    if(gl)gl.style.opacity=Math.min(1,Math.max(0,-dx/90));  /* left drag \u2192 home */
   });
   c.addEventListener("pointerup",e=>{
     if(!drag)return;drag=false;
     const dx=e.clientX-sx,dy=e.clientY-sy;
     if(gl)gl.style.opacity=0;if(gr)gr.style.opacity=0;
-    if(dx>90)return swipeCommit("H");
-    if(dx<-90)return swipeCommit("A");
+    if(dx>90)return swipeCommit("A");
+    if(dx<-90)return swipeCommit("H");
     if(dy<-90)return swipeCommit("D");
     c.style.transition="transform .25s";c.style.transform="";
   });
