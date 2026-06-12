@@ -564,6 +564,10 @@
     .dep-fc{width:clamp(15px,4.4vw,24px);height:27px;font-size:14px;border-radius:3px}
     .dep-st{width:54px;letter-spacing:1.2px}
   }
+  /* ===== UX wave 2: stats ===== */
+  .cons .c2{display:block;margin-top:4px}
+  .rv-of{margin-top:13px;font-size:11.5px;color:var(--muted);font-weight:700;line-height:1.85;letter-spacing:.2px}
+  .champ-soc .fl-img{width:15px;height:11px;border-radius:2px;vertical-align:-1px}
 </style>
 </head>
 <body>
@@ -2330,18 +2334,32 @@ function consensus(){
   if(CONS.busy)return CONS.busy;
   CONS.busy=(async function(){
     const players=await sbulkJSON("wc:player:");
-    const map={};let champN=0;
+    const map={};let champN=0;const cm={};
+    const done=FIXTURES.filter(function(f){const r=state.results[f.id];return r&&(f.kn?r.w!=null:r.h!=null);})
+      .sort(function(a,b){return new Date(a.ko)-new Date(b.ko);});
+    let best={name:"",streak:0,hits:0};const pday={};
     players.forEach(function(p){
       if(!p)return;
-      if(p.champ)champN++;
+      if(p.champ){champN++;cm[p.champ]=(cm[p.champ]||0)+1;}
       const pr=p.predictions||{};
       for(const id in pr){const v=pr[id];if(!v)continue;
         const m=FIXBYID[id];if(!m)continue;
-        const c=map[id]||(map[id]={H:0,D:0,A:0,w:{}});
+        const c=map[id]||(map[id]={H:0,D:0,A:0,w:{},sc:{}});
         if(m.kn){if(v.w){c.w[v.w]=(c.w[v.w]||0)+1;}}
-        else if(v.o){c[v.o]++;}}
+        else{if(v.o)c[v.o]++;if(v.h!=null&&v.a!=null)c.sc[v.h+"-"+v.a]=(c.sc[v.h+"-"+v.a]||0)+1;}}
+      /* per-player form on settled matches (streak leader + perfect days) */
+      let hits=0;const seq=[];const byDay={};
+      done.forEach(function(f){const v=pr[f.id];if(!v)return;
+        if(f.kn?!v.w:!v.o)return;
+        const r=state.results[f.id];
+        const hit=f.kn?(v.w===r.w):(v.o===(r.h>r.a?"H":r.h<r.a?"A":"D"));
+        seq.push(!!hit);if(hit)hits++;
+        const k=dayKey(f.ko);(byDay[k]=byDay[k]||[]).push(!!hit);});
+      let stk=0;for(let i=seq.length-1;i>=0;i--){if(seq[i])stk++;else break;}
+      if(stk>best.streak||(stk===best.streak&&hits>best.hits))best={name:p.name||p.slug||"",streak:stk,hits:hits};
+      for(const k in byDay){const a=byDay[k];if(a.length>=2&&a.every(function(x){return x;}))pday[k]=(pday[k]||0)+1;}
     });
-    CONS={t:Date.now(),map:map,n:players.length,champN:champN,busy:null};
+    CONS={t:Date.now(),map:map,n:players.length,champN:champN,champMap:cm,best:best,perfectByDay:pday,busy:null};
     return CONS;
   })();
   return CONS.busy;
@@ -2349,17 +2367,35 @@ function consensus(){
 function consText(m,p){
   if(state.demo||!CONS.map)return "";
   const c=CONS.map[m.id];if(!c)return "";
+  const res=state.results[m.id];
+  const seg=function(nm,pc,mine){return '<b'+(mine?' class="cmine"':'')+'>'+esc(nm)+' '+pc+'%'+(mine?' (you)':'')+'</b>';};
   if(m.kn){
     const mv=fxView(m);
     const hN=c.w[mv.home.n]||0,aN=c.w[mv.away.n]||0,tot=hN+aN;
     if(tot<5)return "";
     const hp=Math.round(hN/tot*100);
-    const seg=function(pc,nm,mine){return '<b'+(mine?' class="cmine"':'')+'>'+pc+'% '+esc(nm)+'</b>';};
-    return '\ud83c\udfdf Office: '+seg(hp,mv.home.n,p&&p.w===mv.home.n)+' \u00b7 '+seg(100-hp,mv.away.n,p&&p.w===mv.away.n);
+    return '\ud83c\udfdf '+tot+' colleagues called it: '+seg(mv.home.n,hp,p&&p.w===mv.home.n)+' \u00b7 '+seg(mv.away.n,100-hp,p&&p.w===mv.away.n);
   }
   const tot=c.H+c.D+c.A;if(tot<5)return "";
-  const seg=function(k,lab){const pc=Math.round(c[k]/tot*100);return '<b'+((p&&p.o===k)?' class="cmine"':'')+'>'+pc+'% '+lab+'</b>';};
-  return '\ud83c\udfdf Office: '+seg("H",esc(m.home.n))+' \u00b7 '+seg("D","draw")+' \u00b7 '+seg("A",esc(m.away.n));
+  let line='\ud83c\udfdf '+tot+' colleagues called it: '
+    +seg(m.home.n,Math.round(c.H/tot*100),p&&p.o==="H")+' \u00b7 '
+    +seg("Draw",Math.round(c.D/tot*100),p&&p.o==="D")+' \u00b7 '
+    +seg(m.away.n,Math.round(c.A/tot*100),p&&p.o==="A");
+  const sc=c.sc||{};
+  if(res&&res.h!=null){
+    const key=res.h+"-"+res.a,n=sc[key]||0,scoreTxt=res.h+'\u2013'+res.a;
+    const youNailed=!!(p&&p.h===res.h&&p.a===res.a);
+    let l2;
+    if(n===0)l2='\ud83c\udfaf Nobody nailed '+scoreTxt;
+    else if(youNailed&&n===1)l2='\ud83c\udfaf Only you nailed '+scoreTxt;
+    else if(youNailed)l2='\ud83c\udfaf You + '+(n-1)+' other'+(n===2?'':'s')+' nailed '+scoreTxt;
+    else l2='\ud83c\udfaf '+n+' colleague'+(n===1?'':'s')+' nailed '+scoreTxt;
+    line+='<span class="c2">'+l2+'</span>';
+  }else{
+    let top=null;for(const k in sc){if(!top||sc[k]>sc[top])top=k;}
+    if(top&&sc[top]>=3)line+='<span class="c2">\ud83c\udfaf Top score pick: '+top.replace("-","\u2013")+' ('+sc[top]+')</span>';
+  }
+  return line;
 }
 function consRevealText(m,r,v){
   if(state.demo||!CONS.map)return "";
@@ -2381,7 +2417,15 @@ async function fillConsensus(){
     const h=consText(m,(state.player&&state.player.predictions||{})[m.id]);
     if(h){n.innerHTML=h;n.style.display="block";}
   });
-  if(soc&&CONS.champN>=10)soc.textContent="\ud83c\udfc6 "+CONS.champN+" colleagues have locked their champion";
+  if(soc&&CONS.champN>=10){
+    if(locked(CHAMP_LOCK)&&CONS.champMap){
+      const e=Object.keys(CONS.champMap).map(function(k){return [k,CONS.champMap[k]];})
+        .sort(function(a,b){return b[1]-a[1];}).slice(0,3);
+      soc.innerHTML='\ud83c\udfc6 Office champions: '+e.map(function(x){
+        return (FL[x[0]]?flagTag(FL[x[0]])+' ':'')+esc(x[0])+' '+Math.round(x[1]/CONS.champN*100)+'%';
+      }).join(' \u00b7 ');
+    }else{soc.textContent="\ud83c\udfc6 "+CONS.champN+" colleagues have locked their champion";}
+  }
 }
 
 /* ===== how it works · FAQ ===== */
@@ -2540,11 +2584,39 @@ async function revealFinale(){
     '<div class="rv-done"><div class="rv-sec">THIS REVEAL</div>'+
     '<div class="rv-big">+'+RV.total+'</div>'+
     (dr>0?'<div class="rv-climb">\u25b2 '+dr+' place'+(dr===1?"":"s")+(rank?' \u00b7 now #'+rank:'')+'</div>'
-        :(rank?'<div class="rv-sub">#'+rank+' overall</div>':''))+'</div>';
+        :(rank?'<div class="rv-sub">#'+rank+' overall</div>':''))+'<div class="rv-of" id="rv-of"></div></div>';
+  fillRevealOffice();
   document.getElementById("rv-foot").innerHTML=
     '<button class="sw-b" onclick="shareCard()">Share this</button>'+
     '<button class="sw-b sw-done-b" onclick="closeReveal()">Done</button>';
   if(dr>0)confetti();
+}
+function revealOfficeLines(){
+  if(state.demo||!CONS.map)return [];
+  const out=[];let worst=null,lastDay=null;
+  (RV.q||[]).forEach(function(m){
+    const r=state.results[m.id];if(!r)return;
+    const c=CONS.map[m.id];if(!c)return;
+    let pct=null;
+    if(m.kn){let tot=0;for(const k in c.w)tot+=c.w[k];
+      if(tot>=5&&r.w!=null)pct=Math.round((c.w[r.w]||0)/tot*100);}
+    else{const tot=c.H+c.D+c.A;
+      if(tot>=5&&r.h!=null){const ro=r.h>r.a?"H":r.h<r.a?"A":"D";pct=Math.round(c[ro]/tot*100);}}
+    if(pct!=null&&(worst===null||pct<worst.pct))worst={pct:pct,m:m};
+    const k=dayKey(m.ko);if(!lastDay||k>lastDay)lastDay=k;
+  });
+  if(worst&&worst.pct<=45){const mv=fxView(worst.m);
+    out.push('\ud83d\ude2c '+(100-worst.pct)+'% of the office missed '+esc(mv.home.n)+' v '+esc(mv.away.n));}
+  if(CONS.best&&CONS.best.streak>=3)
+    out.push('\ud83d\udd25 Longest streak: '+esc((CONS.best.name||"").split(" ")[0])+' \u2014 '+CONS.best.streak+' in a row');
+  if(out.length<2&&lastDay&&CONS.perfectByDay&&CONS.perfectByDay[lastDay])
+    out.push('\ud83d\udc8e '+CONS.perfectByDay[lastDay]+' colleague'+(CONS.perfectByDay[lastDay]===1?'':'s')+' had a perfect day');
+  return out.slice(0,2);
+}
+function fillRevealOffice(){
+  const of=document.getElementById("rv-of");if(!of)return;
+  const ls=revealOfficeLines();
+  if(ls.length)of.innerHTML=ls.map(function(t){return '<div>'+t+'</div>';}).join("");
 }
 function revealSummary(){
   clearTimeout(RV.timer);
