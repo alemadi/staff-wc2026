@@ -533,7 +533,7 @@
   footer.app{text-align:center;font-size:10.5px;color:var(--faint);padding:26px 10px 6px;line-height:1.7}
   footer.app b{color:var(--muted)}
   @media(max-width:420px){.me-stat{gap:18px}.teams{gap:2px}.tname{font-size:12.5px}}
-  /* ===== UX wave: header fit, slim sticky bar, consensus, welcome-back, swipe score step ===== */
+  /* ===== UX wave: header fit, slim sticky bar, consensus, welcome-back, swipe score-at-end ===== */
   @media(max-width:439px){body.in .mark .wc,body.in .mark .divider{display:none}}
   #prog-sent{height:1px}
   .progress.mini{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:13px}
@@ -552,12 +552,17 @@
   .wbnote{margin:-6px 0 13px;font-size:12px;color:var(--lime);background:rgba(61,220,151,.08);border:1px solid rgba(61,220,151,.28);padding:9px 12px;border-radius:11px;font-weight:600;line-height:1.5}
   .wbnote b{color:var(--cream)}
   .rivtag{margin-left:6px;font-size:8.5px;font-weight:800;letter-spacing:.5px;color:var(--magenta-2);background:rgba(239,51,64,.12);border:1px solid rgba(239,51,64,.3);padding:1px 6px;border-radius:5px;vertical-align:1px}
-  .sw-card.sw-score{cursor:default}
-  .sw-sq{margin-top:14px;font-size:14.5px;color:var(--cream);font-weight:700}
-  .sw-sq b{color:var(--gold)}
   .sw-chips{display:flex;flex-wrap:wrap;gap:9px;justify-content:center;margin-top:15px}
   .sw-chip{font-size:15px;padding:11px 17px}
-  .sw-sn{margin-top:15px;font-size:11px;color:var(--faint);letter-spacing:.3px}
+  .sw-ft{width:100%;max-height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 2px;touch-action:pan-y}
+  .sw-ft-h{text-align:center;font-size:22px;font-weight:800;color:var(--cream)}
+  .sw-ft-p{text-align:center;font-size:12px;color:var(--muted);font-weight:600;margin:6px 0 14px}
+  .sw-ft-p b{color:var(--gold-bright)}
+  .sw-ftr{background:var(--glass);border:1px solid var(--line);border-radius:14px;padding:11px 12px;margin-bottom:8px;transition:border-color .2s}
+  .sw-ftr.ok{border-color:rgba(61,220,151,.45)}
+  .sw-ftm{font-size:12px;font-weight:800;color:var(--cream);margin-bottom:4px}
+  .sw-ftm i{font-style:normal;color:var(--lime);font-weight:800}
+  .sw-ftr .sw-chips{margin-top:9px}
   @media(max-width:430px){
     .dep-row{gap:8px}
     .dep-fb{gap:2px;flex-wrap:nowrap}
@@ -2709,7 +2714,7 @@ armSheet("#reveal",()=>closeReveal());
 armSheet("#faqov",()=>closeFaq());
 
 /* ===== quick-pick swipe mode ===== */
-const SW={list:[],i:0,open:false,peek:false,step:null};
+const SW={list:[],i:0,open:false,peek:false};
 function openSwipe(){
   SW.list=swipeQueue();SW.i=0;
   if(!SW.list.length){toast("All picked \u2014 nothing left \u26a1");return;}
@@ -2728,7 +2733,6 @@ function closeSwipe(){
 function swKey(e){
   if(!SW.open)return;
   if(e.key==="Escape")return closeSwipe();
-  if(SW.step){if(e.key==="ArrowRight"||e.key==="ArrowUp")swScoreSkip();return;}
   if(e.key==="ArrowRight")swipeCommit("A");
   else if(e.key==="ArrowLeft")swipeCommit("H");
   else if(e.key==="ArrowUp")swipeCommit("D");
@@ -2743,13 +2747,14 @@ function swCur(){
   return null;
 }
 function renderSwipeCard(){
-  SW.step=null;
   const m=swCur();
   const st=document.getElementById("sw-stage"),lg=document.getElementById("sw-legend"),bt=document.getElementById("sw-btns");
   const done=SW.list.filter(x=>{const p=state.player.predictions[x.id]||{};return p.o||p.w;}).length;
   document.getElementById("sw-count").textContent=(SW.list.length-done)+" left";
   document.getElementById("sw-bar").style.width=(SW.list.length?done/SW.list.length*100:100)+"%";
   if(!m){
+    const ft=swFineTune();
+    if(ft.length)return renderFineTune(ft);
     st.innerHTML='<div class="sw-done">\ud83c\udf89<br>All caught up<br><span>'+predCount()+' / '+predTotal()+' picked</span></div>';
     lg.textContent="";
     bt.innerHTML='<button class="sw-b sw-done-b" onclick="closeSwipe()">Done</button>';
@@ -2774,7 +2779,7 @@ function swipeCommit(dir){
   if(m.kn){if(dir==="D")return swipeSkip();pickWinner(m.id,dir==="H"?m.home.n:m.away.n);SW.i++;flyOff(card,dir,renderSwipeCard);return;}
   pickOutcome(m.id,dir);
   SW.i++;
-  flyOff(card,dir,function(){renderScoreStep(m,dir);});
+  flyOff(card,dir,renderSwipeCard);
 }
 function swipeSkip(){
   const m=swCur();if(!m)return;
@@ -2782,25 +2787,35 @@ function swipeSkip(){
   flyOff(document.getElementById("sw-card"),"U",renderSwipeCard);
 }
 const SW_SCORES={H:[[1,0],[2,0],[2,1],[3,1]],D:[[0,0],[1,1],[2,2]],A:[[0,1],[0,2],[1,2],[1,3]]};
-function renderScoreStep(m,dir){
-  if(!SW.open)return;
-  SW.step=m.id;
-  const st=document.getElementById("sw-stage"),lg=document.getElementById("sw-legend"),bt=document.getElementById("sw-btns");
-  const done=SW.list.filter(function(x){const q=state.player.predictions[x.id]||{};return q.o||q.w;}).length;
-  document.getElementById("sw-count").textContent=(SW.list.length-done)+" left";
-  document.getElementById("sw-bar").style.width=(SW.list.length?done/SW.list.length*100:100)+"%";
-  const picked=dir==="H"?m.home.n:dir==="A"?m.away.n:"Draw";
-  const p=state.player.predictions[m.id]||{};
-  st.innerHTML='<div class="sw-card sw-score" id="sw-card">'+
-    '<div class="sw-tag">\u2713 '+esc(picked)+(dir==="D"?"":" wins")+'</div>'+
-    '<div class="sw-sq">Exact score? <b>+2 bonus</b></div>'+
-    '<div class="sw-chips">'+SW_SCORES[dir].map(function(c){return '<button class="chipb sw-chip'+((p.h===c[0]&&p.a===c[1])?' sel':'')+'" onclick="swScore(\''+m.id+'\','+c[0]+','+c[1]+')">'+c[0]+'\u2013'+c[1]+'</button>';}).join('')+'</div>'+
-    '<div class="sw-sn">'+esc(m.home.n)+' \u2013 '+esc(m.away.n)+'</div></div>';
-  lg.textContent="one tap arms the bonus \u00b7 or skip";
-  bt.innerHTML='<button class="sw-b sw-done-b" style="flex:1" onclick="swScoreSkip()">Skip \u2192</button>';
+/* Score-at-end: the deck never stops for scores. Group picks still missing an
+   exact score get one calm fine-tune pass on the "All caught up" screen. */
+function swFineTune(){
+  const now=Date.now()+CLOCK_OFFSET;
+  return SW.list.filter(function(x){
+    if(x.kn)return false;
+    const p=state.player.predictions[x.id]||{};
+    return p.o&&(p.h==null||p.a==null)&&lockTs(x)>now;
+  });
 }
-function swScore(id,h,a){chipPick(id,h,a);SW.step=null;renderSwipeCard();}
-function swScoreSkip(){SW.step=null;renderSwipeCard();}
+function renderFineTune(list){
+  const st=document.getElementById("sw-stage"),lg=document.getElementById("sw-legend"),bt=document.getElementById("sw-btns");
+  st.innerHTML='<div class="sw-ft">'+
+    '<div class="sw-ft-h">\ud83c\udf89 All caught up</div>'+
+    '<div class="sw-ft-p">'+list.length+' pick'+(list.length===1?"":"s")+' can still earn the <b>+2 exact-score bonus</b> \u2014 one tap each:</div>'+
+    list.map(function(m){
+      const p=state.player.predictions[m.id]||{};
+      const picked=p.o==="H"?m.home.n:p.o==="A"?m.away.n:"Draw";
+      return '<div class="sw-ftr" id="ftr-'+m.id+'"><div class="sw-ftm">'+m.home.f+' '+esc(m.home.n)+' \u2013 '+esc(m.away.n)+' '+m.away.f+' \u00b7 <i>\u2713 '+esc(picked)+(p.o==="D"?"":" wins")+'</i></div>'+
+      '<div class="sw-chips">'+SW_SCORES[p.o].map(function(c){return '<button class="chipb sw-chip" data-cid="'+m.id+'" data-h="'+c[0]+'" data-a="'+c[1]+'" onclick="swFtPick(\''+m.id+'\','+c[0]+','+c[1]+')">'+c[0]+'\u2013'+c[1]+'</button>';}).join('')+'</div></div>';
+    }).join('')+'</div>';
+  lg.textContent="optional \u00b7 a wrong score never costs points";
+  bt.innerHTML='<button class="sw-b sw-done-b" onclick="closeSwipe()">Done</button>';
+  confetti();
+}
+function swFtPick(id,h,a){
+  chipPick(id,h,a);
+  const r=document.getElementById("ftr-"+id);if(r)r.classList.add("ok");
+}
 function flyOff(card,dir,done){
   const rm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
   if(!card||rm){done();return;}
