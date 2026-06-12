@@ -368,3 +368,17 @@ writes simply start failing, which is the point) — but keep the gap short.
 
 **kv snapshot taken before overwrite (if applicable):**
     N/A — no kv key was written.
+
+## 2026-06-12 22:48 (Doha)
+**Pushed:** 0b75da8
+**Changed:** Champion card/chip relocated above the sticky Predictions panel at the top of Matches (was below it). Placed above the #prog-sent sentinel so the mini-collapse trigger timing is unchanged; .champ gains 11px bottom margin. Lifecycle from fca6dac unchanged. Frontend only — no DB/robot/kv change.
+
+**Rollback (git):**
+    git revert 0b75da8
+    git push https://x-access-token:<TOKEN>@github.com/alemadi/qnb-staff-wc2026.git main
+
+**Rollback (DB), if applicable:**
+    N/A — frontend only, no SQL or kv writes in this push.
+
+**kv snapshot taken before overwrite (if applicable):**
+    N/A — no kv key was written.
