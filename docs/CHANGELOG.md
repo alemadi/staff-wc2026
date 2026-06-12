@@ -388,3 +388,20 @@ writes simply start failing, which is the point) — but keep the gap short.
 
 **kv snapshot taken before overwrite (if applicable):**
     N/A — no kv key was written.
+
+## 2026-06-12 23:31 (Doha)
+**Pushed:** c87f11b, plus this ops commit
+**Changed:** Completed-match treatment in the Matches view. Finished matches render as
+receipt cards (final score, dashed rule, your call + points); finished matches from
+previous days collapse into one-line "Completed · day" rows at the bottom of the round
+view, tap-to-expand. Group + knockout supported. Frontend only — no DB/robot change.
+
+**Rollback (git):**
+    git revert c87f11b
+    git push https://x-access-token:<TOKEN>@github.com/alemadi/qnb-staff-wc2026.git main
+
+**Rollback (DB), if applicable:**
+    none — no database or kv change in this push
+
+**kv snapshot taken before overwrite (if applicable):**
+    n/a
