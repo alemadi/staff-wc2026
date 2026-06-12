@@ -5,6 +5,29 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-06-12 17:41 — UX wave 1: link cards, slim sticky bar, office consensus, swipe +2 step, welcome-back
+
+**Commits:** `e8f2729` (app + og.png) + this changelog commit.
+
+**What changed** (frontend only, `index.html` + new `og.png`; rebased atop anti-cheat Phase 1 `4f5ed8f`):
+- OG/Twitter meta + new `og.png` (1200×630) — shared links now unfurl properly in WhatsApp/Teams.
+- Header fits at 390px when signed in (WORLD CUP 26 column hides ≤439px once the user chip shows).
+- Sticky progress panel collapses to a slim one-row bar on scroll, seated below the filter chips; the points table auto-closes when it shrinks.
+- Swipe mode: each group-match swipe now offers an optional exact-score step that arms the +2 bonus (skippable; arrows skip; KO swipes unchanged). Swipe-card date uses the short format so it no longer wraps.
+- Office consensus on locked/finished cards plus a line in the reveal ritual ("Only 23% of the office called this — sharp."). Client-side aggregate of player rows, cached 10 min, displayed for locked matches only, hidden in demo. Future optimisation: robot-written `wc:consensus` key.
+- Champion card shows "N colleagues have locked their champion" once N ≥ 10.
+- Join: typing an existing handle shows a welcome-back note, prefills dept/country, and the CTA becomes "Resume my game"; department is no longer re-required for returning players (kept from their row). Sign-out copy says "handle", not "email".
+- Reveal: the verdict stamp sits below the result text — no more overlap at 390px.
+- Leaderboard: viewable signed-out with a join CTA; Matches/Me bounce visitors to join with a toast; the pinned rival is tagged 🎯 in the list.
+- Me: new computed badges — 🔥 streak ≥3, 💎 perfect day, 🃏 maverick (won a pick ≤25% of the office shared), 🇶🇦 all-in on Qatar — capped at 5 shown.
+- Live-feed guard: ESPN live/finished scores render only once the match is locked by server clock, so picks can never sit open next to a live score.
+- A11y: aria-labels on all pick buttons and score inputs; score chips grown to a comfortable tap size.
+- MALDIVES departures flaps fit one line at 390px.
+
+**DB:** none. No kv writes, no SQL — consensus is read-only `sbulkJSON` over world-readable rows.
+
+**Rollback:** `git revert e8f2729 && git push origin main` — pure frontend + one static asset.
+
 ## 2026-06-12 17:05 (Doha) — Anti-cheat Phase 1: APPLIED to production + promoted
 
 **Pushed:** `25b2d13` fast-forwarded onto `main` (from `a98a477`), plus this addendum commit.
