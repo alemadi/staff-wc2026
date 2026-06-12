@@ -255,6 +255,22 @@
   .result-line{margin-top:11px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:8px}
   .result-line .pts{margin-left:auto;background:var(--glass-2);border:1px solid var(--line);border-radius:20px;padding:3px 11px;color:var(--gold);font-weight:800;font-size:12px}
   .result-line.win{color:var(--ok)} .result-line.lose{color:var(--bad)}
+  /* completed-match treatment: receipt cards + collapsed archive rows */
+  .match-card.done .result-line{border-top:1px dashed var(--line);padding-top:10px}
+  .match-card.done{border-color:rgba(244,238,227,.08)}
+  .archive{margin-top:18px}
+  .arch-head{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--faint);font-weight:800;margin:14px 2px 8px;display:flex;align-items:center;gap:8px}
+  .arch-head::after{content:"";flex:1;height:1px;background:var(--line)}
+  .thin{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.035);border:1px solid var(--line);border-radius:12px;padding:8px 12px;margin-bottom:7px;font-size:12px;cursor:pointer;animation:rise .4s both}
+  .thin:active{background:rgba(255,255,255,.06)}
+  .thin.qatar{border-color:rgba(138,21,56,.45)}
+  .thin .fl{font-size:18px;line-height:1;flex:none}
+  .thin .fl .fl-img{width:22px;height:auto;border-radius:3px;vertical-align:-2px;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+  .thin .sc{font-family:var(--font-d);font-size:14px;color:var(--gold-bright);margin:0 2px;white-space:nowrap;flex:none}
+  .thin .yp{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .thin .tp{margin-left:auto;font-family:var(--font-d);font-size:12px;letter-spacing:.5px;color:var(--faint);flex:none;padding-left:8px}
+  .thin .tp.win{color:var(--ok)} .thin .tp.miss{color:var(--bad)}
+  .arch-toggle{text-align:center;font-size:10.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--faint);margin:-6px 0 12px;cursor:pointer}
   .locked-tag{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--faint);font-weight:800;border:1px solid var(--line);padding:2px 8px;border-radius:6px}
   .kn-note{margin-top:6px;font-size:10.5px;color:var(--faint);text-align:center;font-style:italic}
   .rnd-pill{display:inline-block;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:800;color:var(--gold);border:1px solid var(--line);border-radius:6px;padding:2px 8px;margin-bottom:11px}
@@ -1485,8 +1501,12 @@ function renderMatches(){
   if(!list.length){host.innerHTML='<div class="empty"><div class="ic">📅</div><b>No matches here</b><span>Nothing scheduled for this filter today — try another tab.</span></div>';return;}
   const nowL=Date.now()+CLOCK_OFFSET;
   const {soon,rest}=locksSoonSplit(list,nowL);
-  const groups={},order=[];
-  rest.forEach(m=>{const k=dayKey(m.ko);if(!groups[k]){groups[k]=[];order.push(k);}groups[k].push(m);});
+  const todayK=dayKey(new Date(nowL).toISOString());
+  const groups={},order=[],arch=[];
+  rest.forEach(m=>{
+    if(matchFinished(m)&&dayKey(m.ko)<todayK){arch.push(m);return;}
+    const k=dayKey(m.ko);if(!groups[k]){groups[k]=[];order.push(k);}groups[k].push(m);
+  });
   let html="",idx=0;
   if(soon.length){
     html+='<div class="daygroup"><div class="dayhdr soonhdr"><span class="dot soon"></span><h3>\u23f3 Locking soon \u2014 pick now</h3><span class="ln"></span></div>';
@@ -1498,11 +1518,53 @@ function renderMatches(){
     groups[k].forEach(m=>{const v=fxView(m);html+=m.kn?(koReady(m)?koMatchCard(v,idx++):knockoutCard(v,idx++)):matchCard(v,idx++);});
     html+='</div>';
   });
+  if(arch.length){
+    const ag={},aord=[];
+    arch.forEach(m=>{const k=dayKey(m.ko);if(!ag[k]){ag[k]=[];aord.push(k);}ag[k].push(m);});
+    html+='<div class="archive">';
+    aord.forEach(k=>{
+      html+='<div class="arch-head">Completed · '+fmtDay(ag[k][0].ko)+'</div>';
+      ag[k].forEach(m=>{
+        const v=fxView(m);
+        if(ARCH_EXP.has(m.id)){
+          html+=(m.kn?koMatchCard(v,idx++):matchCard(v,idx++))+'<div class="arch-toggle" data-archless="'+m.id+'">Show less \u25b4</div>';
+        }else html+=thinRow(v,idx++);
+      });
+    });
+    html+='</div>';
+  }
   host.innerHTML=html;
   bindMatchEvents();
   updateJump();
   renderDayBanner();
   fillConsensus();
+}
+
+const ARCH_EXP=new Set();
+function matchFinished(m){const r=state.results[m.id];return m.kn?!!(r&&r.w):!!r;}
+function gScorePts(p,res){
+  if(!p||!p.o||!res)return 0;
+  const ro=res.h>res.a?"H":res.h<res.a?"A":"D";
+  return (p.o===ro?3:0)+((p.h!=null&&p.a!=null&&Number(p.h)===res.h&&Number(p.a)===res.a)?2:0);
+}
+function thinRow(m,idx){
+  const p=state.player.predictions[m.id]||{};
+  const r=state.results[m.id]||{};
+  let sc,you,got,hadPick;
+  if(m.kn){
+    sc="FT";hadPick=!!p.w;
+    got=(hadPick&&p.w===r.w)?koPts(m):0;
+    you='\u2192 '+esc(r.w||"")+' \u00b7 '+(hadPick?('you: '+esc(p.w)):'no pick');
+  }else{
+    sc=r.h+'\u2013'+r.a;hadPick=!!p.o;
+    got=gScorePts(p,r);
+    you=hadPick?('you: '+(p.h!=null&&p.a!=null?(p.h+'\u2013'+p.a):(p.o==="H"?esc(m.home.n):p.o==="A"?esc(m.away.n):"Draw"))):'no pick';
+  }
+  const cls=hadPick?(got>0?"win":"miss"):"";
+  const mark=hadPick?(got>0?"\u2713 ":"\u2717 "):"";
+  return '<div class="thin'+(m.tag==="qatar"?" qatar":"")+'" data-arch="'+m.id+'" role="button" tabindex="0" aria-label="'+esc(m.home.n)+' '+sc+' '+esc(m.away.n)+', tap for details" style="animation-delay:'+Math.min(idx*0.02,0.3)+'s">'+
+    '<span class="fl">'+m.home.f+'</span><span class="sc">'+sc+'</span><span class="fl">'+m.away.f+'</span>'+
+    '<span class="yp">\u00b7 '+you+'</span><span class="tp '+cls+'">'+mark+'+'+got+'</span></div>';
 }
 
 function matchCard(m,idx){
@@ -1515,7 +1577,7 @@ function matchCard(m,idx){
     const lab=p.o?("Picked: "+(p.o==="H"?m.home.n:p.o==="A"?m.away.n:"Draw")):"No pick";
     if(res&&p.o){
       const ro=res.h>res.a?"H":res.h<res.a?"A":"D";
-      const got=(p.o===ro?3:0)+((p.h!=null&&p.a!=null&&Number(p.h)===res.h&&Number(p.a)===res.a)?2:0);
+      const got=gScorePts(p,res);
       picks='<div class="result-line '+(p.o===ro?"win":"lose")+'">'+(p.o===ro?"✓ ":"✗ ")+esc(lab)+(p.h!=null?' &nbsp;<span style="color:var(--faint)">('+p.h+'–'+p.a+')</span>':'')+'<span class="pts">+'+got+' pts</span></div>';
     }else{picks='<div class="result-line">'+(isLive(m)?'<span class="live-pill"><span class="pulse"></span>LIVE</span>':'<span class="locked-tag">Locked</span>')+' <span style="color:var(--muted)">'+esc(lab)+(p.o&&p.h!=null&&p.a!=null?' <span style="color:var(--faint)">('+p.h+'–'+p.a+')</span>':'')+'</span></div>';}
     picks+='<div class="cons" data-cons="'+m.id+'"></div>';
@@ -1531,7 +1593,7 @@ function matchCard(m,idx){
       '<span class="scoredash">–</span><input class="scorein" type="number" min="0" max="20" inputmode="numeric" aria-label="'+esc(m.away.n)+' goals" data-sa="'+m.id+'" value="'+(p.a!=null?p.a:"")+'"><label>'+m.away.f+'</label></div></div>'+
       '<div class="lockin'+((lockTs(m)-Date.now()-CLOCK_OFFSET)<7200000?' soon':'')+'" data-lockts="'+lockTs(m)+'">⏳ '+fmtLeft(lockTs(m)-Date.now()-CLOCK_OFFSET)+'</div>';
   }
-  return '<div class="match-card '+(m.tag==="qatar"?"qatar":"")+'" style="animation-delay:'+Math.min(idx*0.03,0.4)+'s">'+ribbon+
+  return '<div class="match-card '+(m.tag==="qatar"?"qatar":"")+(res?" done":"")+'" style="animation-delay:'+Math.min(idx*0.03,0.4)+'s">'+ribbon+
     '<div class="teams"><div class="team"><div class="flag">'+m.home.f+'</div><div class="tname">'+esc(m.home.n)+'</div></div>'+mid+
     '<div class="team right"><div class="flag">'+m.away.f+'</div><div class="tname">'+esc(m.away.n)+'</div></div></div>'+
     (!res&&!lk?'<div class="venue">'+(m.v?esc(m.v):"World Cup 2026 · Group Stage")+'</div>':'')+picks+'</div>';
@@ -1578,7 +1640,7 @@ function koMatchCard(m,idx){
       '<div class="kn-note">Pick who goes through — extra time &amp; penalties count</div>'+
       '<div class="lockin'+((lockTs(m)-Date.now()-CLOCK_OFFSET)<7200000?' soon':'')+'" data-lockts="'+lockTs(m)+'">⏳ '+fmtLeft(lockTs(m)-Date.now()-CLOCK_OFFSET)+'</div>';
   }
-  return '<div class="match-card '+(isQa?"qatar":"")+(m.tag==="final"?" final":"")+'" style="animation-delay:'+Math.min(idx*0.03,0.4)+'s">'+ribbon+
+  return '<div class="match-card '+(isQa?"qatar":"")+(m.tag==="final"?" final":"")+(win?" done":"")+'" style="animation-delay:'+Math.min(idx*0.03,0.4)+'s">'+ribbon+
     '<div class="rnd-pill">'+label+'</div>'+
     '<div class="teams"><div class="team"><div class="flag">'+m.home.f+'</div><div class="tname">'+esc(m.home.n)+'</div></div>'+mid+
     '<div class="team right"><div class="flag">'+m.away.f+'</div><div class="tname">'+esc(m.away.n)+'</div></div></div>'+
@@ -1616,6 +1678,12 @@ function chipPick(id,h,a){
   queueSave();
 }
 function bindMatchEvents(){
+  document.querySelectorAll(".thin[data-arch]").forEach(el=>{
+    const open=()=>{ARCH_EXP.add(el.dataset.arch);renderMatches();};
+    el.addEventListener("click",open);
+    el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();open();}});
+  });
+  document.querySelectorAll("[data-archless]").forEach(el=>el.addEventListener("click",()=>{ARCH_EXP.delete(el.dataset.archless);renderMatches();}));
   document.querySelectorAll(".picks").forEach(row=>{row.querySelectorAll(".pick").forEach(btn=>btn.addEventListener("click",()=>{
     if(btn.dataset.w!=null)pickWinner(row.dataset.mid,btn.dataset.w);
     else pickOutcome(row.dataset.mid,btn.dataset.o);
