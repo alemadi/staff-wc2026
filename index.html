@@ -99,6 +99,7 @@
     box-shadow:0 2px 10px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.18)}
   .avatar .avbg{position:absolute;inset:0;width:100%;height:100%;display:block}
   .avatar .avmono{position:relative;z-index:1;text-shadow:0 1px 2px rgba(0,0,0,.55)}
+  .avatar.deptbadge{border-radius:28%}
 
   /* Countdown */
   .countdown{margin-top:16px;display:flex;align-items:center;gap:14px;
@@ -1186,6 +1187,28 @@ function avatarFill(name){
     +'</svg>';
   return svg+'<span class="avmono">'+initials(name)+'</span>';
 }
+/* Deterministic DEPARTMENT badge — a rounded-square plaque (distinct from the
+   circular people badge) with a Bauhaus quarter-disc and a three-dot "group"
+   glyph that reads as a department. Same jewel palette + initial overlay. */
+function deptAvatarFill(name){
+  name=String(name||"");
+  var pk=avTake(AV_JEWELS,avHash(name+"::deptpal"),3);
+  var bg=avMix(pk[0],"#000000",.46),c1=avMix(pk[1],"#ffffff",.12),c2=avMix(pk[2],"#ffffff",.10),acc="#E8CD7E";
+  var h=avHash(name+"::dept"),corner=h%4,R=27,q;
+  if(corner===0)      q="M 0 0 H "+R+" A "+R+" "+R+" 0 0 1 0 "+R+" Z";
+  else if(corner===1) q="M 64 0 V "+R+" A "+R+" "+R+" 0 0 1 "+(64-R)+" 0 Z";
+  else if(corner===2) q="M 0 64 V "+(64-R)+" A "+R+" "+R+" 0 0 0 "+R+" 64 Z";
+  else                q="M 64 64 H "+(64-R)+" A "+R+" "+R+" 0 0 0 64 "+(64-R)+" Z";
+  var svg='<svg class="avbg" viewBox="0 0 64 64" preserveAspectRatio="xMidYMid slice" aria-hidden="true">'
+    +'<rect width="64" height="64" fill="'+bg+'"/>'
+    +'<path d="'+q+'" fill="'+c1+'"/>'
+    +'<rect x="3" y="3" width="58" height="58" rx="15" fill="none" stroke="rgba(255,255,255,.10)" stroke-width="1.3"/>'
+    +'<circle cx="24" cy="53.5" r="3.2" fill="'+acc+'"/>'
+    +'<circle cx="32" cy="53.5" r="3.2" fill="'+c2+'"/>'
+    +'<circle cx="40" cy="53.5" r="3.2" fill="'+acc+'"/>'
+    +'</svg>';
+  return svg+'<span class="avmono">'+initials(name)+'</span>';
+}
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));}
 
 function scoreFor(preds,results,champ){
@@ -2175,7 +2198,7 @@ async function renderDept(body){
   let html='<div class="dept-note">Ranked by average points per player \u00b7 ties broken by total points</div>';
   deps.forEach((x,i)=>{
     html+='<div class="lb-row" style="animation-delay:'+Math.min(i*0.03,0.4)+'s"><div class="rank">'+(i+1)+'</div>'+
-      '<div class="avatar">'+avatarFill(x.d)+'</div>'+
+      '<div class="avatar deptbadge">'+deptAvatarFill(x.d)+'</div>'+
       '<div class="lb-info"><div class="n">'+esc(x.d)+'</div><div class="d">'+x.n+' player'+(x.n===1?"":"s")+' \u00b7 \u03a3 '+x.sum+' pts</div></div>'+
       '<div class="lb-pts"><b>'+(Math.round(x.avg*10)/10)+'</b><span>avg</span></div></div>';});
   body.innerHTML=html;
