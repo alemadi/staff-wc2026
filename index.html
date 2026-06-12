@@ -2025,10 +2025,10 @@ function tickCountdown(){
   const now=Date.now();
   const next=FIXTURES.filter(m=>new Date(m.ko).getTime()>now).sort((a,b)=>new Date(a.ko)-new Date(b.ko))[0];
   const wrap=document.getElementById("cd-clock"),lab=document.getElementById("cd-match");
-  if(!next){lab.textContent="Tournament underway";wrap.innerHTML="";return;}
+  if(!next){if(lab.__nm!=="over"){lab.__nm="over";lab.textContent="Tournament underway";wrap.innerHTML="";}return;}
   const nv=fxView(next);
-  const nm=(next.kn&&!koReady(next))?(RLABEL[next.round]+": "+esc(nv.home.n)+" v "+esc(nv.away.n)):(nv.home.f+' '+esc(nv.home.n)+' v '+esc(nv.away.n)+' '+nv.away.f);
-  lab.innerHTML=nm+(next.tag==="qatar"?' <small>⭐</small>':'');
+  const nm=((next.kn&&!koReady(next))?(RLABEL[next.round]+": "+esc(nv.home.n)+" v "+esc(nv.away.n)):(nv.home.f+' '+esc(nv.home.n)+' v '+esc(nv.away.n)+' '+nv.away.f))+(next.tag==="qatar"?' <small>⭐</small>':'');
+  if(lab.__nm!==nm){lab.__nm=nm;lab.innerHTML=nm;} /* rebuild only on change — recreating the flag <img>s every second made the header jitter each tick */
   let diff=Math.max(0,new Date(next.ko).getTime()-now);
   const d=Math.floor(diff/864e5);diff-=d*864e5;
   const h=Math.floor(diff/36e5);diff-=h*36e5;
