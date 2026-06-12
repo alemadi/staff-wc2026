@@ -124,7 +124,7 @@
   .sec-title .tag{margin-left:auto;font-size:11px;color:var(--muted);font-weight:600;text-align:right}
   .live{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);font-weight:700}
 
-  .progress{background:#101014;border:1px solid var(--line);border-radius:16px;padding:13px 15px;margin-bottom:6px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 58px);z-index:30;transition:padding .18s ease}
+  .progress{background:#101014;border:1px solid var(--line);border-radius:16px;padding:13px 15px;margin-bottom:6px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 58px);z-index:30;transition:padding .18s ease,border-radius .18s ease,gap .18s ease}
   .progress .top{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;margin-bottom:9px}
   .progress .top b{color:var(--gold);font-weight:800}
   .bar{height:7px;border-radius:6px;background:rgba(0,0,0,.28);overflow:hidden}
@@ -438,6 +438,7 @@
   @keyframes skm{0%{background-position:100% 0}100%{background-position:-100% 0}}
   .qpbtn{display:none;width:100%;justify-content:center;align-items:center;gap:6px;margin-top:11px;padding:12px;border-radius:12px;border:none;cursor:pointer;background:linear-gradient(115deg,var(--gold-deep),var(--gold));color:#181106;font:inherit;font-size:13.5px;font-weight:800;box-shadow:0 6px 18px -6px rgba(180,151,89,.5)}
   .qpbtn:active{transform:scale(.985)}
+  .qpbtn{transition:width .18s ease,padding .18s ease,font-size .18s ease,border-radius .18s ease,margin .18s ease}
   .swipe{position:fixed;inset:0;z-index:200;background:rgba(6,6,9,.97);display:flex;flex-direction:column;padding:calc(14px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px))}
   .sw-top{display:flex;align-items:center;gap:12px}
   .sw-x{flex:none;width:42px;height:42px;border-radius:99px;background:var(--glass);border:1px solid var(--line);color:var(--cream);font:inherit;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:transform .12s}
@@ -539,6 +540,8 @@
   /* ===== UX wave: header fit, slim sticky bar, consensus, welcome-back, swipe score-at-end ===== */
   @media(max-width:439px){body.in .mark .wc,body.in .mark .divider{display:none}}
   #prog-sent{height:1px}
+  #view-matches{overflow-anchor:none} /* stop scroll anchoring fighting the sticky collapse (jitter loop) */
+  :root{interpolate-size:allow-keywords} /* lets width/height:auto animate in modern browsers; harmless elsewhere */
   .progress.mini{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:13px}
   .progress.mini .top{margin:0;flex:0 0 auto;display:flex;gap:7px;font-size:12px}
   .progress.mini .bar{flex:1;height:5px;min-width:40px}
@@ -3082,6 +3085,7 @@ function liveTick(){
   if(!s||!p||!window.IntersectionObserver)return;
   new IntersectionObserver(function(en){
     const e=en[0];const st=!e.isIntersecting&&e.boundingClientRect.top<0;
+    if(st===p.classList.contains("mini"))return;
     p.classList.toggle("mini",st);
     if(st){const t=document.getElementById("ptable");
       if(t&&t.classList.contains("show")){t.classList.remove("show");const b=p.querySelector(".ptbtn");if(b)b.textContent="How do points work? \u25be";}}
