@@ -469,3 +469,20 @@ and their CSS/JS. Frontend only — no DB/robot change.
 
 **kv snapshot taken before overwrite (if applicable):**
     n/a
+
+## 2026-06-13 15:10 (Doha)
+**Pushed:** bca0b68, plus this ops commit
+**Changed:** Matches filter bar. Added a "✓ Completed N" chip (filters to finished matches,
+live count, only shows when >=1 done). Collapsed the 8 per-round chips into a single grouped
+"Round" dropdown with per-round match counts — bar drops from 13 chips to 5 + the picker.
+Finished matches still render inline as receipts in other views. Frontend only — no DB/robot change.
+
+**Rollback (git):**
+    git revert bca0b68
+    git push https://x-access-token:<TOKEN>@github.com/alemadi/qnb-staff-wc2026.git main
+
+**Rollback (DB), if applicable:**
+    none — no database or kv change in this push
+
+**kv snapshot taken before overwrite (if applicable):**
+    n/a
