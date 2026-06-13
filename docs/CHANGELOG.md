@@ -436,3 +436,19 @@ view, tap-to-expand. Group + knockout supported. Frontend only — no DB/robot c
 
 **kv snapshot taken before overwrite (if applicable):**
     n/a
+
+## 2026-06-13 14:39 (Doha)
+**Pushed:** 91e4032, plus this ops commit
+**Changed:** Completed-match archive moved from the bottom of the Matches list to the top,
+behind a compact foldable "Completed [n]" header (folded by default). Tap to reveal the
+day-grouped thin rows; each still expands to a full receipt. Frontend only — no DB/robot change.
+
+**Rollback (git):**
+    git revert 91e4032
+    git push https://x-access-token:<TOKEN>@github.com/alemadi/qnb-staff-wc2026.git main
+
+**Rollback (DB), if applicable:**
+    none — no database or kv change in this push
+
+**kv snapshot taken before overwrite (if applicable):**
+    n/a
