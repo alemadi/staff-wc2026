@@ -1,0 +1,75 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+  :root{
+    --gold:#b49759; --gold-bright:#e3d3a3; --gold-deep:#8a734a;
+    --cream:#f4eee3; --muted:rgba(244,238,227,.62); --faint:rgba(244,238,227,.4);
+    --line:rgba(244,238,227,.13); --line-2:rgba(244,238,227,.07);
+    --glass:rgba(255,255,255,.06); --glass-2:rgba(255,255,255,.095);
+    --font-b:ui-sans-serif,system-ui,-apple-system,"Hanken Grotesk",sans-serif;
+  }
+  html,body{margin:0}
+  body{font-family:var(--font-b);color:var(--cream);background:#0a0a0d;padding:0}
+  .wrap{padding:18px 22px}
+  .cap{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:800;margin:18px 4px 2px}
+  .panel{position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--line-2)}
+  /* exact .filters + .chip rules from index.html */
+  .filters{display:flex;gap:8px;overflow-x:auto;padding:12px 16px 9px;scrollbar-width:none;background:rgba(10,10,12,.9);border-bottom:1px solid var(--line-2)}
+  .filters::-webkit-scrollbar{display:none}
+  .chip{flex-shrink:0;border:1px solid var(--line);background:var(--glass);color:var(--cream);
+    padding:10px 15px;border-radius:30px;font-size:12.5px;font-weight:700;cursor:pointer;transition:.18s;white-space:nowrap;touch-action:manipulation}
+  .chip:hover{border-color:var(--gold)}
+  .chip.on{background:linear-gradient(115deg,var(--gold-deep),var(--gold));border-color:transparent;color:#181106;box-shadow:0 4px 16px rgba(180,151,89,.3)}
+  .chip.sep{pointer-events:none;opacity:.3;padding:8px 2px;background:none;border:none}
+  .rounddd{position:relative;display:inline-flex;flex-shrink:0}
+  .chip.ddsel{-webkit-appearance:none;appearance:none;padding-right:30px;line-height:normal}
+  .rounddd .ddcar{position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:10px;color:var(--cream);opacity:.55}
+  .chip.ddsel.on ~ .ddcar{color:#181106;opacity:.85}
+  .fl-img{width:auto;height:13px;border-radius:3px;vertical-align:-2px;display:inline-block;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+</style></head><body><div class="wrap">
+
+  <div class="cap">New order · "Today" tab active</div>
+  <div class="panel"><div class="filters" id="barA"></div></div>
+
+  <div class="cap">New order · a Round selected (dropdown shows "Matchday 1 · 24")</div>
+  <div class="panel"><div class="filters" id="barB"></div></div>
+
+<script>
+/* ---- minimal stubs so the REAL renderFilters logic runs unchanged ---- */
+const ROUNDS=[["MD1","Matchday 1"],["MD2","Matchday 2"],["MD3","Matchday 3"],["R32","Round of 32"],["R16","Round of 16"],["QF","Quarter-finals"],["SF","Semi-finals"],["FINAL","Final"]];
+const RLABEL=Object.fromEntries(ROUNDS);
+// build 104 fixtures with screenshot-matching per-round counts, 7 finished
+const COUNTS={MD1:24,MD2:24,MD3:24,R32:16,R16:8,QF:4,SF:2,FINAL:2};
+const FIXTURES=[];let _i=0;
+for(const k in COUNTS){for(let n=0;n<COUNTS[k];n++){FIXTURES.push({id:"m"+(_i++),round:k,done:(k==="MD1"&&n<7)});}}
+function isFinished(m){return !!m.done;}            // 7 done
+// faithful inline Qatar flag (maroon + white serrated band) so preview needs no network
+function flagTag(c){return '<img class="fl-img" alt="" src="data:image/svg+xml;utf8,'+encodeURIComponent(
+  '<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'30\' height=\'20\'><rect width=\'30\' height=\'20\' fill=\'%238a1538\'/><path d=\'M0 0H9L6 1.6 9 3.2 6 4.8 9 6.4 6 8 9 9.6 6 11.2 9 12.8 6 14.4 9 16 6 17.6 9 19.2 0 20Z\' fill=\'%23ffffff\'/></svg>'.replace(/%23/g,'#'))+'">';}
+
+const state={filter:"today"};
+
+/* ---- VERBATIM body of renderFilters() from index.html, returning html ---- */
+function barHTML(){
+  const doneCount=FIXTURES.filter(isFinished).length;
+  const roundKeys=ROUNDS.map(r=>r[0]);
+  const onRound=roundKeys.indexOf(state.filter)>=0;
+  let html="";
+  html+='<button class="chip '+(state.filter==="today"?"on":"")+'" onclick="setFilter(\'today\')">Today</button>';
+  html+='<button class="chip '+(state.filter==="qatar"?"on":"")+'" onclick="setFilter(\'qatar\')">'+flagTag("qa")+' Qatar</button>';
+  html+='<button class="chip '+(state.filter==="arab"?"on":"")+'" onclick="setFilter(\'arab\')">Arab Teams</button>';
+  const grp=[["Group stage",["MD1","MD2","MD3"]],["Knockouts",["R32","R16","QF","SF","FINAL"]]];
+  let opts='<option value=""'+(onRound?"":" selected")+' disabled hidden>Rounds</option>';
+  grp.forEach(g=>{
+    const ks=g[1].filter(k=>roundKeys.indexOf(k)>=0);
+    if(!ks.length)return;
+    opts+='<optgroup label="'+g[0]+'">';
+    ks.forEach(k=>{var cnt=FIXTURES.filter(m=>m.round===k).length;opts+='<option value="'+k+'"'+(state.filter===k?" selected":"")+'>'+RLABEL[k]+' · '+cnt+'</option>';});
+    opts+='</optgroup>';
+  });
+  html+='<span class="rounddd"><select class="chip ddsel'+(onRound?" on":"")+'" aria-label="Filter by round">'+opts+'</select><span class="ddcar">▾</span></span>';
+  html+='<button class="chip '+(state.filter==="all"?"on":"")+'" onclick="setFilter(\'all\')">All 104</button>';
+  if(doneCount)html+='<button class="chip '+(state.filter==="completed"?"on":"")+'" onclick="setFilter(\'completed\')">✓ Completed '+doneCount+'</button>';
+  return html;
+}
+state.filter="today"; document.getElementById("barA").innerHTML=barHTML();
+state.filter="MD1";   document.getElementById("barB").innerHTML=barHTML();
+</script></div></body></html>
