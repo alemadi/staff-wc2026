@@ -5,6 +5,28 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-06-16 12:28 (Doha) — Feat: Group tables — standings for all 12 groups (A–L)
+
+**Commits:** `8161b97b4719534e360be6663a33ab6c205677b7` (app + changelog, single commit).
+
+**What changed** (frontend only, `index.html`):
+- New **Groups** view (5th item in the bottom nav, between Matches and Leaderboard) showing live standings for each of the 12 World Cup groups. Public — viewable without joining, like the leaderboard.
+- The 12 groups (A–L) are **derived once from the existing fixtures**, not hardcoded: any two teams that meet before the knockouts share a group (union-find over the 72 group matches → 12 cliques of 4). Letters follow kickoff order. No second source of truth to drift — verified to yield 4 teams / 6 matches per group, all 48 teams unique, structural-problem count 0.
+- Each table scores from organizer-confirmed full-time results in `state.results` (win +3 · draw +1) and shows P · W · D · L · GD · Pts, plus an "x/6 played" tag. Ranking mirrors FIFA: points → goal difference → goals for → head-to-head (points then goals) → name. Top 2 marked with a gold rail (advance to R32); 3rd row tinted (best-thirds race). Verified headless (node): points/goal conservation holds (ΣGF=ΣGA), tiebreaks resolve deterministically on a fully-played group.
+- Updates live: `renderGroups()` is wired into `bustStandings()`, so any result the organizer saves while the view is open re-renders the tables. A "↻ Refresh tables" button re-pulls `wc:results` from the server on demand. Deep-link `#groups` supported.
+- Bottom nav now holds 5 cells; added a `≤430px` rule (font 10.5→9.5px, icon 22→20px, `white-space:nowrap`) so "Leaderboard" stays on one line.
+
+**DB:** none. Read-only over the existing `wc:results` kv row. No kv writes, no SQL, no schema change.
+
+**Rollback (git):**
+
+    git revert 8161b97b4719534e360be6663a33ab6c205677b7
+    git push https://x-access-token:<TOKEN>@github.com/alemadi/qnb-staff-wc2026.git claude/practical-archimedes-t3i3tl
+
+**Rollback (DB):** n/a.
+
+---
+
 ## 2026-06-12 19:12 (Doha) — Fix: countdown header jitter (flag imgs rebuilt every second)
 
 **Commits:** `6ceb352` (app) + this changelog commit.

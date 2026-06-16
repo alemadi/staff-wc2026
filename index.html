@@ -370,8 +370,9 @@
   .empty span{font-size:12px}
 
   nav.bottom{position:fixed;left:0;right:0;bottom:0;height:calc(var(--nav-h) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);z-index:50;background:linear-gradient(0deg,rgba(8,8,10,.97),rgba(16,16,19,.9));border-top:1px solid var(--line);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);display:flex;align-items:stretch;padding-left:max(16px,calc((100% - 760px)/2));padding-right:max(16px,calc((100% - 760px)/2))}
-  .navbtn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;color:var(--faint);cursor:pointer;font-family:var(--font-b);font-weight:700;font-size:10.5px;letter-spacing:.4px;transition:.2s;position:relative}
+  .navbtn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;color:var(--faint);cursor:pointer;font-family:var(--font-b);font-weight:700;font-size:10.5px;letter-spacing:.4px;transition:.2s;position:relative;white-space:nowrap}
   .navbtn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;transition:.2s}
+  @media(max-width:430px){.navbtn{font-size:9.5px;letter-spacing:.1px;gap:2px}.navbtn svg{width:20px;height:20px}}
   .navbtn.on{color:var(--gold)}
   .navbtn.on::before{content:"";position:absolute;top:0;width:30px;height:3px;border-radius:0 0 4px 4px;background:linear-gradient(90deg,var(--gold-deep),var(--gold))}
 
@@ -400,6 +401,30 @@
   .lbmode button{font:inherit;font-size:12px;font-weight:800;letter-spacing:.02em;padding:8px 16px;border-radius:99px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;transition:.15s}
   .lbmode button.on{background:linear-gradient(115deg,var(--gold-deep),var(--gold));border-color:transparent;color:#181106}
   .dept-note{font-size:11px;color:var(--faint);font-weight:600;margin:0 0 10px}
+  /* Group standings tables (A–L) */
+  .grp-note{font-size:11.5px;color:var(--muted);font-weight:600;margin:0 0 14px;line-height:1.55}
+  .grp-note b{color:var(--gold-bright)}
+  .grp-grid{display:grid;grid-template-columns:1fr;gap:13px}
+  @media(min-width:560px){.grp-grid{grid-template-columns:1fr 1fr}}
+  .grp-card{background:var(--glass);border:1px solid var(--line);border-radius:18px;padding:12px 13px 8px;animation:rise .45s both}
+  .grp-head{display:flex;align-items:baseline;gap:9px;margin:0 2px 8px}
+  .grp-head h3{font-family:var(--font-d);font-size:18px;font-weight:400;letter-spacing:.5px}
+  .grp-head .gp{margin-left:auto;font-size:9.5px;color:var(--faint);font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+  table.gtbl{width:100%;border-collapse:collapse;font-size:12.5px;table-layout:fixed}
+  table.gtbl col.cn{width:30px}
+  table.gtbl th{font-size:9.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--faint);font-weight:700;padding:0 0 6px;text-align:center}
+  table.gtbl th.tm{text-align:left;padding-left:6px}
+  table.gtbl td{padding:7px 0;text-align:center;color:var(--muted);font-weight:600;border-top:1px solid var(--line-2)}
+  table.gtbl td.tm{text-align:left;color:var(--cream);font-weight:800;padding-left:6px;overflow:hidden}
+  table.gtbl td.pos{font-family:var(--font-d);font-size:14px;color:var(--faint)}
+  table.gtbl td.pts{color:var(--gold-bright);font-weight:800;font-size:13.5px}
+  table.gtbl .tm-in{display:flex;align-items:center;gap:7px;min-width:0}
+  table.gtbl .tm-in .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  table.gtbl .tm-in .fl-img{height:12px;flex:0 0 auto}
+  table.gtbl tr.q td.pos{color:var(--gold);border-left:3px solid var(--gold)}
+  table.gtbl tr.q td.tm{color:var(--cream)}
+  table.gtbl tr.cut td{border-top-color:var(--gold-deep)}
+  table.gtbl tr.q3 td.pos{color:var(--muted)}
 
   .sharebtn{display:flex;width:100%;justify-content:center;margin-top:12px;padding:13px;border-radius:13px;border:none;cursor:pointer;
     background:linear-gradient(115deg,var(--gold-deep),var(--gold));color:#181106;font:inherit;font-size:14px;font-weight:800;box-shadow:0 6px 20px -6px rgba(180,151,89,.5)}
@@ -723,6 +748,14 @@
     <button class="btn btn-ghost btn-sm" style="margin:10px auto 0;display:flex" onclick="renderLeaderboard()">↻ Refresh standings</button>
   </section>
 
+  <!-- GROUPS -->
+  <section class="view" id="view-groups">
+    <div class="sec-title"><h2>Group tables</h2><div class="tag">12 groups · 48 teams</div></div>
+    <div class="grp-note"><b>Top 2</b> of every group reach the Round of 32 — the <b>8 best third-placed</b> teams go through too. Standings build from confirmed full-time results: <b>Pts</b> first, then goal difference, goals for, head-to-head.</div>
+    <div id="grp-body"></div>
+    <button class="btn btn-ghost btn-sm" style="margin:14px auto 0;display:flex" onclick="refreshGroups()">↻ Refresh tables</button>
+  </section>
+
   <!-- ME -->
   <section class="view" id="view-me">
     <div class="sec-title"><h2>Me</h2></div>
@@ -769,6 +802,7 @@
 
 <nav class="bottom">
   <button class="navbtn on" id="nav-matches" onclick="go('matches')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4M7 7l2.5 2.5M17 7l-2.5 2.5M7 17l2.5-2.5M17 17l-2.5-2.5"/></svg>Matches</button>
+  <button class="navbtn" id="nav-groups" onclick="go('groups')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9.5h18M3 14.5h18M9 4.5v15"/></svg>Groups</button>
   <button class="navbtn" id="nav-leaderboard" onclick="go('leaderboard')"><svg viewBox="0 0 24 24"><path d="M6 9V4h12v5a6 6 0 0 1-12 0Z"/><path d="M6 5H3v2a3 3 0 0 0 3 3M18 5h3v2a3 3 0 0 1-3 3M9 21h6M12 15v6"/></svg>Leaderboard</button>
   <a class="navbtn" href="/watch.html" style="text-decoration:none"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Watch</a>
   <button class="navbtn" id="nav-me" onclick="go('me')"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/></svg>Me</button>
@@ -936,6 +970,29 @@ const FIXTURES = RAW.map(r=>({id:r[0],round:r[1],home:T(r[2]),away:T(r[3]),ko:r[
 const FXID={};FIXTURES.forEach(f=>FXID[f.id]=f);
 const GROUP_TOTAL = FIXTURES.filter(f=>!f.kn).length;
 const FIXBYID={};FIXTURES.forEach(f=>FIXBYID[f.id]=f);
+
+/* ===== The 12 World Cup groups (A–L) — derived once from the group-stage
+   fixtures: any two teams that meet before the knockouts share a group, so the
+   draw is reconstructed without a second source of truth. Letters follow the
+   order groups first take the field (kickoff order). ===== */
+const GROUPS=(function(){
+  const par={};
+  function find(x){while(par[x]!==x)x=par[x]=par[par[x]];return x;}
+  const order=[];
+  FIXTURES.forEach(f=>{ if(f.kn)return;
+    const h=f.home.n,a=f.away.n;
+    if(par[h]===undefined){par[h]=h;order.push(h);}
+    if(par[a]===undefined){par[a]=a;order.push(a);}
+    par[find(h)]=find(a);
+  });
+  const byRoot={},gs=[];
+  order.forEach(t=>{const r=find(t);
+    if(!byRoot[r]){byRoot[r]={letter:"",teams:[],mids:[]};gs.push(byRoot[r]);}
+    byRoot[r].teams.push(t);});
+  gs.forEach((g,i)=>g.letter=String.fromCharCode(65+i));
+  FIXTURES.forEach(f=>{if(!f.kn)byRoot[find(f.home.n)].mids.push(f.id);});
+  return gs;
+})();
 const ARAB = new Set(["Qatar","Morocco","Egypt","Tunisia","Saudi Arabia","Algeria","Iraq","Jordan"]);
 const ROUNDS=[["MD1","Matchday 1"],["MD2","Matchday 2"],["MD3","Matchday 3"],["R32","Round of 32"],["R16","Round of 16"],["QF","Quarter-finals"],["SF","Semi-finals"],["FINAL","Final"]];
 const RLABEL=Object.fromEntries(ROUNDS);
@@ -1091,7 +1148,7 @@ async function sbulkJSON(pre){
    Falls back to the classic bulk pull + client scoring if the RPC isn't installed.
    Cached 60s and shared by Leaderboard + Me, busted on any write that can change it. */
 let STAND_CACHE={t:0,rows:null};
-function bustStandings(){STAND_CACHE={t:0,rows:null};}
+function bustStandings(){STAND_CACHE={t:0,rows:null};if(state.view==="groups")renderGroups();}
 async function fetchStandings(){
   if(STAND_CACHE.rows&&Date.now()-STAND_CACHE.t<60000)return STAND_CACHE.rows;
   let rows=null;
@@ -1280,8 +1337,9 @@ function showView(view){
   document.body.classList.toggle("in",!!state.player);
   document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
   const el=document.getElementById("view-"+view);if(el)el.classList.add("active");
-  ["matches","leaderboard","me"].forEach(n=>{const b=document.getElementById("nav-"+n);if(b)b.classList.toggle("on",n===view);});
+  ["matches","groups","leaderboard","me"].forEach(n=>{const b=document.getElementById("nav-"+n);if(b)b.classList.toggle("on",n===view);});
   if(view==="matches"){renderFilters();renderMatches();}
+  if(view==="groups")renderGroups();
   if(view==="leaderboard")renderLeaderboard();
   if(view==="me"){renderMe();showOrg();}
   if(view==="join")rollBoard();
@@ -2240,6 +2298,58 @@ async function renderDept(body){
   body.innerHTML=html;
 }
 
+/* ===== Group tables — standings for each of the 12 groups, scored from the
+   organizer-confirmed full-time results. Win +3 · draw +1. Ranking: points,
+   then goal difference, goals for, head-to-head (points then goals), name. ===== */
+function groupStandings(g){
+  const R={};g.teams.forEach(t=>R[t]={team:t,P:0,W:0,D:0,L:0,GF:0,GA:0,GD:0,Pts:0});
+  let played=0;
+  g.mids.forEach(id=>{
+    const r=state.results[id];if(!r||r.h==null||r.a==null)return;
+    const m=FIXBYID[id],A=R[m.home.n],B=R[m.away.n];if(!A||!B)return;
+    const x=+r.h,y=+r.a;played++;
+    A.P++;B.P++;A.GF+=x;A.GA+=y;B.GF+=y;B.GA+=x;
+    if(x>y){A.W++;B.L++;A.Pts+=3;}else if(y>x){B.W++;A.L++;B.Pts+=3;}else{A.D++;B.D++;A.Pts++;B.Pts++;}
+  });
+  const rows=g.teams.map(t=>{const o=R[t];o.GD=o.GF-o.GA;return o;});
+  rows.sort((a,b)=>b.Pts-a.Pts||b.GD-a.GD||b.GF-a.GF||grpH2H(a,b,g)||a.team.localeCompare(b.team));
+  return {rows,played,total:g.mids.length};
+}
+function grpH2H(a,b,g){
+  let ap=0,bp=0,ag=0,bg=0;
+  g.mids.forEach(id=>{
+    const r=state.results[id];if(!r||r.h==null||r.a==null)return;
+    const m=FIXBYID[id];if(!((m.home.n===a.team&&m.away.n===b.team)||(m.home.n===b.team&&m.away.n===a.team)))return;
+    const ax=(m.home.n===a.team)?+r.h:+r.a, bx=(m.home.n===b.team)?+r.h:+r.a;
+    ag+=ax;bg+=bx;
+    if(ax>bx)ap+=3;else if(bx>ax)bp+=3;else{ap++;bp++;}
+  });
+  return (bp-ap)||(bg-ag);
+}
+function grpRowHTML(o,i){
+  return '<tr class="'+(i<2?"q":(i===2?"q3":""))+(i===2?" cut":"")+'">'+
+    '<td class="pos">'+(i+1)+'</td>'+
+    '<td class="tm"><div class="tm-in">'+(FL[o.team]?flagTag(FL[o.team]):"")+'<span class="nm">'+esc(o.team)+'</span></div></td>'+
+    '<td>'+o.P+'</td><td>'+o.W+'</td><td>'+o.D+'</td><td>'+o.L+'</td>'+
+    '<td>'+(o.GD>0?"+":"")+o.GD+'</td><td class="pts">'+o.Pts+'</td></tr>';
+}
+function renderGroups(){
+  const body=document.getElementById("grp-body");if(!body)return;
+  body.innerHTML='<div class="grp-grid">'+GROUPS.map(g=>{
+    const s=groupStandings(g);
+    return '<div class="grp-card"><div class="grp-head"><h3>Group '+g.letter+'</h3>'+
+      '<span class="gp">'+s.played+'/'+s.total+' played</span></div>'+
+      '<table class="gtbl"><colgroup><col class="cn"><col><col class="cn"><col class="cn"><col class="cn"><col class="cn"><col class="cn"><col class="cn"></colgroup>'+
+      '<thead><tr><th>#</th><th class="tm">Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr></thead>'+
+      '<tbody>'+s.rows.map(grpRowHTML).join('')+'</tbody></table></div>';
+  }).join('')+'</div>';
+}
+async function refreshGroups(){
+  const rs=await getJSON("wc:results",true);
+  if(rs&&typeof rs==="object")state.results=rs;
+  renderGroups();toast("Group tables updated ✓");
+}
+
 async function pickRival(){
   const st=(await fetchStandings()).filter(r=>r.slug!==state.meSlug).sort((a,b)=>a.name.localeCompare(b.name));
   const host=document.getElementById("rival-slot");if(!host)return;
@@ -3007,7 +3117,7 @@ function liveTick(){
     document.getElementById("userchip").style.display="flex";
     document.getElementById("countdown").style.display="flex";
     const h=(location.hash||"").slice(1);
-    updateChip();go(["matches","leaderboard","me"].indexOf(h)>=0?h:"matches");
+    updateChip();go(["matches","groups","leaderboard","me"].indexOf(h)>=0?h:"matches");
     if(!openReveal())welcomeDelta();
   }else{go("join");}
   renderPulse();setInterval(renderPulse,30000);
