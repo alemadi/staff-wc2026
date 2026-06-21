@@ -217,7 +217,14 @@
   .match-card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:15px 15px 13px;
     margin-bottom:13px;position:relative;overflow:hidden;animation:rise .5s both;transition:border-color .25s,box-shadow .25s;
     box-shadow:var(--elev),inset 0 1px 0 rgba(255,255,255,.05)}
-  .match-card::before{content:"";position:absolute;inset:0;background:radial-gradient(420px 120px at 50% -30%,rgba(255,255,255,.06),transparent);pointer-events:none}
+  /* the card is a stylised pitch: a faint halfway line splits the two teams,
+     with a soft kickoff glow behind the VS (replaces the generic top sheen). */
+  .match-card::before{content:"";position:absolute;inset:0;pointer-events:none;
+    background:
+      radial-gradient(420px 120px at 50% -30%,rgba(255,255,255,.045),transparent),
+      radial-gradient(150px 150px at 50% 32%,rgba(244,238,227,.055),transparent 70%),
+      radial-gradient(circle 3px at 50% 32%,rgba(244,238,227,.16),transparent 3px),
+      linear-gradient(90deg,transparent calc(50% - .65px),rgba(244,238,227,.10) calc(50% - .65px),rgba(244,238,227,.10) calc(50% + .65px),transparent calc(50% + .65px))}
   .match-card.qatar{border-color:rgba(138,21,56,.55);box-shadow:0 0 0 1px rgba(138,21,56,.25),0 14px 38px -22px rgba(138,21,56,.7)}
   .match-card.qatar::after{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(var(--qatar),var(--gold))}
   .ribbon{position:absolute;top:11px;right:-30px;transform:rotate(38deg);background:linear-gradient(100deg,#a31b45,var(--qatar));
