@@ -487,6 +487,9 @@
   .help-chip.open{background:var(--gold);color:#15120a}
   .help-chip.open .hc-chev{transform:rotate(90deg)}
   .help-body{margin-top:8px;font-size:11px;line-height:1.55;color:var(--muted);background:rgba(255,255,255,.035);border:1px solid var(--line);border-left:2px solid var(--gold);border-radius:9px;padding:9px 11px}
+  .help-eg{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
+  .help-eg .eg-y{color:var(--lime);font-weight:800}
+  .help-eg .eg-n{color:#ff7b84;font-weight:800}
   .help-body b{color:var(--gold)}
   .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
   .chipb{font:inherit;font-size:12px;font-weight:800;padding:9px 13px;border-radius:99px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;transition:.12s}
@@ -1868,7 +1871,7 @@ function koMatchCard(m,idx){
       '<div class="kn-note">Pick who goes through — <b>extra time &amp; penalties decide it</b></div>'+
       '<div class="chips-lab">Final score · +'+koBonus(m)+' bonus · optional</div>'+
       '<button type="button" class="help-chip" aria-expanded="false" onclick="toggleHelp(event,this)">ⓘ How the bonus works <span class="hc-chev">›</span></button>'+
-      '<div class="help-body" hidden>Final score = the score when the match ends — <b>after extra time</b> if it’s played; penalties don’t change it. <b>Example:</b> 1–1 after 90 min that ends 2–1 in extra time → the final score is 2–1, so you’d predict 2–1.</div>'+
+      '<div class="help-body" hidden>Final score = where the match ends: <b>90 min</b>, or <b>120 min</b> if it went to extra time. Penalties don’t count.<div class="help-eg"><b>Example</b> — a match is <b>1–1 at 90 min</b>, then <b>2–1 after extra time</b>:<br><span class="eg-y">✓ predict 2–1</span> — wins the bonus (that’s the final score)<br><span class="eg-n">✗ 1–1</span> doesn’t win — that was only the 90-min score</div></div>'+
       '<div class="kn-note" style="font-style:normal;margin-top:5px">Predict the <b style="color:var(--gold)">final score</b> — after extra time if it’s played; penalties don’t count</div>'+
       '<div class="bonus-fields show"><label>'+m.home.f+'</label><input class="scorein" type="number" min="0" max="20" inputmode="numeric" aria-label="'+esc(m.home.n)+' goals" data-ksh="'+m.id+'" value="'+(p.h!=null?p.h:"")+'"><span class="scoredash">–</span><input class="scorein" type="number" min="0" max="20" inputmode="numeric" aria-label="'+esc(m.away.n)+' goals" data-ksa="'+m.id+'" value="'+(p.a!=null?p.a:"")+'"><label>'+m.away.f+'</label></div>'+
       '<div class="lockin'+((lockTs(m)-Date.now()-CLOCK_OFFSET)<7200000?' soon':'')+'" data-lockts="'+lockTs(m)+'">⏳ '+fmtLeft(lockTs(m)-Date.now()-CLOCK_OFFSET)+'</div>';
@@ -1959,8 +1962,8 @@ function queueSave(){saveChain=saveChain.then(()=>persistPlayer());}
 function stakeText(id){
   try{
     const m=(typeof FIXTURES!=="undefined")?FIXTURES.find(x=>x.id===id):null;
-    if(m&&m.kn)return "+"+koPts(m)+" on the line";
     const P=(state.player.predictions||{})[id]||{};
+    if(m&&m.kn)return (P.h!=null&&P.a!=null)?("+"+(koPts(m)+koBonus(m))+" on the line \u26a1"):("+"+koPts(m)+" on the line");
     return (P.h!=null&&P.a!=null)?"+5 on the line \u26a1":"+3 on the line";
   }catch(e){return "+3 on the line";}
 }
@@ -2604,7 +2607,8 @@ function ppPtsHTML(m,pk,r){
   if(!r)return dash;
   if(m.kn){
     if(r.w==null||!pk||!pk.w)return dash;
-    return pk.w===r.w?'<span style="color:var(--lime)">✓ +'+koPts(m)+'</span>':'<span style="color:#ff7b84">✗ +0</span>';
+    const tot=(pk.w===r.w?koPts(m):0)+(koScoreHit(pk,r)?koBonus(m):0);
+    return tot>0?'<span style="color:var(--lime)">✓ +'+tot+'</span>':'<span style="color:#ff7b84">✗ +0</span>';
   }
   if(r.h==null||!pk||!pk.o)return dash;
   const ro=r.h>r.a?"H":(r.h<r.a?"A":"D");
@@ -3467,8 +3471,14 @@ let LB_PREV={};
 
 /* ===== the reveal ritual ===== */
 function rvVerdict(m,p,r){
-  if(m.kn){const ok=p.w&&r.w&&p.w===r.w;
-    return ok?{pts:koPts(m),cls:"hit",label:"\u2713 +"+koPts(m)}:{pts:0,cls:"miss",label:"\u2717 +0"};}
+  if(m.kn){
+    const ok=!!(p.w&&r.w&&p.w===r.w);
+    const wpts=ok?koPts(m):0,bpts=koScoreHit(p,r)?koBonus(m):0,tot=wpts+bpts; /* winner ladder + independent final-score bonus, matching scoreFor */
+    if(tot<=0)return{pts:0,cls:"miss",label:"\u2717 +0"};
+    if(ok&&bpts)return{pts:tot,cls:"exact",label:"\u25ce +"+tot+" exact!"};
+    if(ok)return{pts:tot,cls:"hit",label:"\u2713 +"+tot};
+    return{pts:tot,cls:"hit",label:"\u25ce +"+tot+" score"};
+  }
   const ro=r.h>r.a?"H":r.h<r.a?"A":"D";
   const ex=p.h!=null&&p.a!=null&&Number(p.h)===r.h&&Number(p.a)===r.a;
   const oc=p.o===ro;const pts=(oc?3:0)+(ex?2:0);
@@ -3646,7 +3656,8 @@ function provFor(m,le,preds){
   if(le==null||le.hs==null||le.as==null)return null;
   if(m.kn){const mv=fxView(m);
     const lead=le.hs>le.as?mv.home.n:le.hs<le.as?mv.away.n:null;
-    return {pts:(lead&&p.w===lead)?koPts(m):0};}
+    const bp=(p.h!=null&&p.a!=null&&Number(p.h)===le.hs&&Number(p.a)===le.as)?koBonus(m):0;
+    return {pts:((lead&&p.w===lead)?koPts(m):0)+bp};}
   const ro=le.hs>le.as?"H":le.hs<le.as?"A":"D";
   return {pts:(p.o===ro?3:0)+((p.h!=null&&p.a!=null&&Number(p.h)===le.hs&&Number(p.a)===le.as)?2:0)};
 }
@@ -3688,7 +3699,7 @@ function renderDayBanner(){
     const r=state.results[m.id],p=state.player.predictions[m.id];
     const settled=m.kn?(r&&r.w!=null):(r&&r.h!=null);
     if(settled)got+=rvVerdict(m,p,r).pts;
-    else{left++;pot+=m.kn?koPts(m):((p.h!=null&&p.a!=null)?5:3);}
+    else{left++;pot+=m.kn?(koPts(m)+((p.h!=null&&p.a!=null)?koBonus(m):0)):((p.h!=null&&p.a!=null)?5:3);}
   });
   if(left>0&&got===0)el.innerHTML='Today: up to <b>+'+pot+'</b> riding on your '+left+' pick'+(left===1?'':'s');
   else if(left>0)el.innerHTML='Today so far: <b>+'+got+'</b> \u00b7 '+left+' still to play <small>up to +'+(got+pot)+' possible</small>';
