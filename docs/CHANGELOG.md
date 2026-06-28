@@ -26,6 +26,34 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 **Rollback:** `git revert <this commit>` restores the "either 90 or 120" behavior and the two-field organizer entry. Frontend-only; no DB/state migration.
 
+**Reconciliation:** a parallel session independently landed the same scoring correction (`fde663b`) with a different design — a two-field organizer where `h2/a2` *supersedes* `h/a`, and no tooltip or winner clarification. This commit merges over it and consolidates to the single **"Final score"** field, the **ⓘ tooltip**, and the **"extra time & penalties decide it"** winner note (the approach approved for this session), while **preserving that session's unrelated `watch.html`** live-knockout-fixtures feature. The superseded entry is kept below for history.
+
+---
+
+## 2026-06-28 — Fix: knockout score bonus is the **final** score, not 90 **or** 120
+
+**Commits:** this commit (app `index.html` + this changelog).
+
+**What:** the previous entry made the knockout exact-score bonus hit on the **90-minute score OR the after-extra-time (120-minute) score** — both counted. That was wrong. The bonus is judged on a **single final scoreline**:
+- Tie settled inside 90 minutes → the **90-minute** score counts.
+- Tie level at 90 and decided in extra time → the **after-ET (120-minute)** score counts, and the 90-minute line **no longer** does.
+
+So for a tie that's 1–1 at 90 and finishes 2–1 in extra time, only **2–1** wins the bonus; 1–1 does not (it stopped being the result the moment the game went to ET).
+
+**What changed** (frontend only, `index.html`):
+- `koScoreHit(p,r)`: was `match(90) || match(120)`. Now it picks one target — if an after-ET score (`h2/a2`) is recorded, the prediction must equal **that**; otherwise it must equal the 90-min score (`h/a`). Still number-coerces both sides so string inputs match. All four call sites (`scoreFor`, `koMatchCard`, `brkTie`, `renderBracket`) inherit the fix unchanged.
+- Player pick card: rule line now reads *"Predict the **final** scoreline — the **90-min** score, or the score **after extra time** if the tie is level at 90"*; worked example now reads *"…then 2–1 in extra time → you need **2–1** to win the bonus"*.
+- Organizer editor: the "After ET (120)" hint now reads *"only if ET — replaces 90-min for the bonus"*.
+- Rules/points panel + both FAQ answers ("How do points work?", "Knockouts — how does the score bonus work?") reworded from "matches at 90 **or** after extra time" to the final-score rule, with the example spelling out that 1–1 stops counting once the tie goes to ET.
+
+**Data model:** unchanged. Knockout results still carry `h/a` (90 min), optional `h2/a2` (after ET), and `w` (winner). Only the interpretation changed: `h2/a2`, when present, now *supersedes* `h/a` for the bonus instead of being an additional way to win.
+
+**Verified:** `koScoreHit` truth table re-checked — for `{h:1,a:1,h2:2,a2:1}` only pred 2–1 hits (1–1 and 0–0 miss); for a 90-only result `{h:2,a:0}` pred 2–0 hits; empty/partial preds miss; string scores coerce. `node --check` on the extracted script clean. Group scoring paths untouched.
+
+**DB:** none.
+
+**Rollback:** `git revert <this commit>` (frontend-only; no DB/state migration).
+
 ---
 
 ## 2026-06-28 — Feature: knockout exact-score bonus hits on 90 **or** 120 min
