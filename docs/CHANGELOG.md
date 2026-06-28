@@ -5,6 +5,29 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-06-28 — Correction: knockout bonus is judged on the **final score** (not "90 or 120, either")
+
+**Commits:** this commit (app `index.html` + this changelog).
+
+**Why:** the previous two entries implemented "the bonus hits if your score matches at 90 min **or** after extra time (either one wins)." That was a misread of the intent. The correct rule: there is **one** scoreline that counts per tie — the **final score**. If the tie is decided inside 90 minutes, that's the 90-minute score; if it's **level at 90 and goes to extra time, the after-extra-time score is the one that counts** (the 90-minute draw is just an interim and does **not** win the bonus). Penalties never change the recorded scoreline.
+
+**Net effect on players:** they predict a single **final score**. Example: a tie is 1–1 after 90 min and ends 2–1 after extra time — predicting **2–1 wins**, predicting **1–1 does not** (previously both won — too generous).
+
+**What changed** (frontend only, `index.html`):
+- `koScoreHit(p,r)` simplified to a single-scoreline match against the result's `h/a` (the final score). The "or `h2/a2`" branch is gone. All four call sites (`scoreFor`, `koMatchCard`, `brkTie`, `renderBracket`) were already routed through `koScoreHit`, so they pick up the fix unchanged.
+- Organizer editor reverted to **one "Final score" row** per tie (the separate "After ET (120)" row is removed). Note under it: *"Score after extra time if the tie went there · penalties don’t count."* `orgSetKScore` writes only `h/a` and deletes any legacy `h2/a2`.
+- New **tiny ⓘ tooltip** (`koInfo()` + `.infodot` CSS): on the knockout pick card it explains *"Final score = the score when the match ends — after extra time if it’s played. Penalties don’t change it,"* with the 1–1→2–1 example. Hover title on desktop, tap-to-toast on mobile.
+- Winner pick clarified: *"Pick who goes through — **extra time & penalties decide it**."*
+- Copy aligned everywhere: pick-card label is now **"Final score"**; rules/points panel, terms paragraph, and the two FAQ entries all describe the **final score (after extra time; penalties excluded)** with the worked example. Removed all "90 or 120, either wins" wording.
+
+**Data model:** knockout result reverts to a single scoreline `h/a` (now meaning the **final** score, after ET, excl. penalties) alongside `w`. The short-lived `h2/a2` keys are no longer read or written, and `orgSetKScore` strips them on save. No KO results had been entered yet, so there's nothing to migrate.
+
+**Verified:** `koScoreHit` truth table (node) — decided-in-90 and after-ET both match the recorded final score; the 90-min interim of an ET tie now **misses**; pens tie keeps its level final; string scores coerce; winner-only result misses. `node --check` clean. Tooltip HTML well-formed.
+
+**Rollback:** `git revert <this commit>` restores the "either 90 or 120" behavior and the two-field organizer entry. Frontend-only; no DB/state migration.
+
+---
+
 ## 2026-06-28 — Feature: knockout exact-score bonus hits on 90 **or** 120 min
 
 **Commits:** this commit (app `index.html` + this changelog).
