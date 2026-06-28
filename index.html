@@ -869,7 +869,7 @@
         <div class="pgrp">Group stage · 11–27 June · predict the result</div>
         <div class="prow"><span>Correct result (win / draw / loss)</span><b>+3</b></div>
         <div class="prow"><span>Exact score — bonus on top <span class="pfaint">(perfect call = 5)</span></span><b>+2</b></div>
-        <div class="pgrp">Knockouts · from 28 June · who goes through <span style="text-transform:none">(ET &amp; penalties count)</span> + optional exact score <span style="text-transform:none">(matches at 90 min or after extra time)</span></div>
+        <div class="pgrp">Knockouts · from 28 June · who goes through <span style="text-transform:none">(ET &amp; penalties count)</span> + optional exact score <span style="text-transform:none">(final score — 90 min, or after extra time if level at 90)</span></div>
         <div class="prow"><span>Round of 32 <span class="pfaint">· +4 exact score</span></span><b>+4</b></div>
         <div class="prow"><span>Round of 16 <span class="pfaint">· +5 score</span></span><b>+5</b></div>
         <div class="prow"><span>Quarter-final <span class="pfaint">· +6 score</span></span><b>+6</b></div>
@@ -1137,16 +1137,22 @@ RLABEL["FINAL"]="Final";
    tie; "L" = losers (third-place play-off only). */
 const KO_PTS={R32:4,R16:5,QF:6,SF:8,third:6,final:10};
 function koPts(m){return m.tag==="final"?KO_PTS.final:(m.tag==="third"?KO_PTS.third:(KO_PTS[m.round]||4));}
-/* Knockout exact-score bonus, scaled by round, on top of the winner points. A prediction
-   wins the bonus if it matches the 90-min scoreline OR the after-extra-time (120-min)
-   scoreline — the organizer records the 120-min score (h2/a2) only when a tie goes to ET. */
+/* Knockout exact-score bonus, scaled by round, on top of the winner points. The bonus is
+   judged on the FINAL scoreline: the 90-min score when the tie is settled in normal time,
+   or the after-extra-time (120-min) score when it's level at 90 and goes to ET. The
+   organizer records the 120-min score (h2/a2) only when a tie goes to ET; once that's set
+   it replaces the 90-min line for the bonus. */
 const KO_BONUS={R32:4,R16:5,QF:6,SF:7,third:5,final:8};
 function koBonus(m){return m.tag==="final"?KO_BONUS.final:(m.tag==="third"?KO_BONUS.third:(KO_BONUS[m.round]||0));}
 function koScoreHit(p,r){
   if(!p||!r||p.h==null||p.a==null)return false;
   const ph=Number(p.h),pa=Number(p.a);
-  if(r.h!=null&&r.a!=null&&ph===r.h&&pa===r.a)return true;
-  if(r.h2!=null&&r.a2!=null&&ph===r.h2&&pa===r.a2)return true;
+  /* The bonus is judged on the FINAL score. If the tie went to extra time (an after-ET
+     score is recorded because it was level at 90), only the 120-min score counts — the
+     90-min line no longer does. Otherwise the tie was settled in normal time, so the
+     90-min score is what counts. */
+  if(r.h2!=null&&r.a2!=null)return ph===Number(r.h2)&&pa===Number(r.a2);
+  if(r.h!=null&&r.a!=null)return ph===Number(r.h)&&pa===Number(r.a);
   return false;
 }
 const BRACKET={
@@ -1458,7 +1464,7 @@ function scoreFor(preds,results,champ){
   for(const id in results){
     if(id.charAt(0)==="_")continue;
     const r=results[id],p=preds&&preds[id];
-    if(r&&r.w!=null){ /* knockout: winner points by round ladder + scaled exact-score bonus (90 or 120 min) */
+    if(r&&r.w!=null){ /* knockout: winner points by round ladder + scaled exact-score bonus on the final score (90 min, or 120 if it went to ET) */
       if(!p||(!p.w&&p.h==null))continue;
       scored++;
       const f=FIXBYID[id];
@@ -1803,8 +1809,8 @@ function koMatchCard(m,idx){
       '<button class="pick '+(p.w===m.away.n?"sel":"")+'" data-w="'+esc(m.away.n)+'" aria-label="Pick '+esc(m.away.n)+' to go through"><span class="mini">'+m.away.f+'</span></button></div>'+
       '<div class="kn-note">Pick who goes through — extra time &amp; penalties count</div>'+
       '<div class="chips-lab">Exact score · +'+koBonus(m)+' bonus · optional</div>'+
-      '<div class="kn-note" style="font-style:normal;margin-top:5px">Predict <b>one</b> scoreline — it wins the bonus if it matches at <b style="color:var(--gold)">90 min</b> or <b style="color:var(--gold)">after extra time</b></div>'+
-      '<div class="kn-note" style="margin-top:2px;font-size:9.5px;opacity:.85">e.g. 1–1 at 90 min, then 2–1 in extra time → guessing either 1–1 or 2–1 wins</div>'+
+      '<div class="kn-note" style="font-style:normal;margin-top:5px">Predict the <b>final</b> scoreline — the <b style="color:var(--gold)">90-min</b> score, or the score <b style="color:var(--gold)">after extra time</b> if the tie is level at 90</div>'+
+      '<div class="kn-note" style="margin-top:2px;font-size:9.5px;opacity:.85">e.g. 1–1 at 90 min, then 2–1 in extra time → you need <b>2–1</b> to win the bonus</div>'+
       '<div class="bonus-fields show"><label>'+m.home.f+'</label><input class="scorein" type="number" min="0" max="20" inputmode="numeric" aria-label="'+esc(m.home.n)+' goals" data-ksh="'+m.id+'" value="'+(p.h!=null?p.h:"")+'"><span class="scoredash">–</span><input class="scorein" type="number" min="0" max="20" inputmode="numeric" aria-label="'+esc(m.away.n)+' goals" data-ksa="'+m.id+'" value="'+(p.a!=null?p.a:"")+'"><label>'+m.away.f+'</label></div>'+
       '<div class="lockin'+((lockTs(m)-Date.now()-CLOCK_OFFSET)<7200000?' soon':'')+'" data-lockts="'+lockTs(m)+'">⏳ '+fmtLeft(lockTs(m)-Date.now()-CLOCK_OFFSET)+'</div>';
   }
@@ -2719,7 +2725,7 @@ function renderKnockoutEditor(host,rnd){
       '<input class="input ksel" type="number" min="0" max="20" inputmode="numeric" data-krh2="'+m.id+'" value="'+(r&&r.h2!=null?r.h2:"")+'"'+((t.h&&t.a)?'':' disabled')+' style="max-width:60px;text-align:center">'+
       '<span style="color:var(--faint)">–</span>'+
       '<input class="input ksel" type="number" min="0" max="20" inputmode="numeric" data-kra2="'+m.id+'" value="'+(r&&r.a2!=null?r.a2:"")+'"'+((t.h&&t.a)?'':' disabled')+' style="max-width:60px;text-align:center">'+
-      '<span style="font-size:10px;color:var(--faint)">only if ET — bonus hits 90 or 120</span><span class="saved" data-krs2="'+m.id+'">'+(r&&r.h2!=null?"✓":"")+'</span></div></div>';
+      '<span style="font-size:10px;color:var(--faint)">only if ET — replaces 90-min for the bonus</span><span class="saved" data-krs2="'+m.id+'">'+(r&&r.h2!=null?"✓":"")+'</span></div></div>';
   });
   host.innerHTML=html;
   host.querySelectorAll('[data-kh],[data-ka]').forEach(s=>s.addEventListener("change",()=>orgSetKTeam(s.dataset.kh||s.dataset.ka)));
@@ -2749,8 +2755,8 @@ async function orgSetKWinner(id){
   toast(v?(v+" through — next round updated 🏆"):"Winner cleared");
 }
 /* Organizer enters the knockout scoreline(s) for the exact-score bonus: the 90-min score
-   plus an optional after-extra-time (120-min) score. A prediction wins the bonus on either.
-   Preserves the winner. */
+   plus an optional after-extra-time (120-min) score. When an ET score is present the bonus
+   is judged on it (the tie was level at 90); otherwise on the 90-min score. Preserves the winner. */
 async function orgSetKScore(id){
   const hi=document.querySelector('[data-krh="'+id+'"]'),ai=document.querySelector('[data-kra="'+id+'"]');
   const hi2=document.querySelector('[data-krh2="'+id+'"]'),ai2=document.querySelector('[data-kra2="'+id+'"]');
@@ -3351,8 +3357,8 @@ async function fillConsensus(){
 
 /* ===== how it works · FAQ ===== */
 const FAQ_ITEMS=[
- {q:"How do points work?",a:"Group matches: 3 points for the right result, +2 for the exact score \u2014 5 max. Knockouts pay more each round: Round of 32 = 4 \u00b7 Round of 16 = 5 \u00b7 Quarterfinals = 6 \u00b7 Semifinals = 8 \u00b7 Third place = 6 \u00b7 the Final = 10. In knockouts you can also add a predicted score for a bonus on top \u2014 it lands if you match the result at 90 minutes or after extra time (see the next question)."},
- {q:"Knockouts \u2014 how does the score bonus work?",a:"First you pick who goes through (extra time and penalties count). On top of that, you may add one predicted scoreline for a bonus \u2014 +4 in the Round of 32 rising to +8 in the Final. You earn it if your score matches the result at 90 minutes OR after extra time. Example: a tie is 1\u20131 at 90 minutes, then 2\u20131 after extra time \u2014 predicting either 1\u20131 or 2\u20131 wins the bonus. It\u2019s judged separately from your who-goes-through pick, so you can land one, both, or neither."},
+ {q:"How do points work?",a:"Group matches: 3 points for the right result, +2 for the exact score \u2014 5 max. Knockouts pay more each round: Round of 32 = 4 \u00b7 Round of 16 = 5 \u00b7 Quarterfinals = 6 \u00b7 Semifinals = 8 \u00b7 Third place = 6 \u00b7 the Final = 10. In knockouts you can also add a predicted score for a bonus on top \u2014 it lands if you match the final score: the score at 90 minutes, or the score after extra time if the tie is level at 90 (see the next question)."},
+ {q:"Knockouts \u2014 how does the score bonus work?",a:"First you pick who goes through (extra time and penalties count). On top of that, you may add one predicted scoreline for a bonus \u2014 +4 in the Round of 32 rising to +8 in the Final. You earn it if your score matches the final result: the score at 90 minutes, or \u2014 if the tie is level at 90 and goes to extra time \u2014 the score after extra time. Example: a tie is 1\u20131 at 90 minutes, then 2\u20131 after extra time \u2014 you need 2\u20131 to win the bonus (1\u20131 no longer counts once it goes to extra time). It\u2019s judged separately from your who-goes-through pick, so you can land one, both, or neither."},
  {q:"When do picks lock?",a:"At kickoff, match by match. Until then edit freely \u2014 changes save as you type."},
  {q:"I got the score right but only received 3 points?",a:"Exact-score points need both number boxes filled before kickoff. If one was empty, only your result pick counted."},
  {q:"When do results and points appear?",a:"Scores post and points update about 30 minutes after the final whistle \u2014 automatically. Next time you open the app, the morning reveal replays how your picks did."},
