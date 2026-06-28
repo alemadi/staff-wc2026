@@ -1199,6 +1199,9 @@ async function sbulkJSON(pre){
    Cached 60s and shared by Leaderboard + Me, busted on any write that can change it. */
 let STAND_CACHE={t:0,rows:null};
 function bustStandings(){STAND_CACHE={t:0,rows:null};}
+/* fold stray/legacy department labels onto the official QNB list (the join dropdown). e.g. a leftover "Finance" → "Group Finance" so it stops showing as its own department */
+const DEPT_ALIAS={"finance":"Group Finance"};
+function canonDept(d){const t=(d||"").trim();return DEPT_ALIAS[t.toLowerCase()]||t;}
 async function fetchStandings(){
   if(STAND_CACHE.rows&&Date.now()-STAND_CACHE.t<60000)return STAND_CACHE.rows;
   let rows=null;
@@ -1206,13 +1209,13 @@ async function fetchStandings(){
     try{
       const r=await fetch(SUPABASE_URL+"/rest/v1/rpc/standings",{method:"POST",headers:SBH,body:"{}"});
       if(r.ok){const j=await r.json();
-        if(Array.isArray(j))rows=j.map(x=>({slug:x.slug,name:x.name||x.slug,dept:x.dept||"",pts:x.pts|0,exact:x.exact|0,correct:x.correct|0,predicted:x.predicted|0}));}
+        if(Array.isArray(j))rows=j.map(x=>({slug:x.slug,name:x.name||x.slug,dept:canonDept(x.dept),pts:x.pts|0,exact:x.exact|0,correct:x.correct|0,predicted:x.predicted|0}));}
     }catch(e){}
   }
   if(!rows){
     const players=await sbulkJSON("wc:player:");
     rows=players.map(p=>{const s=scoreFor(p.predictions,state.results,p.champ);
-      return{slug:p.slug,name:p.name,dept:p.dept,pts:s.pts,exact:s.exact,correct:s.correct,
+      return{slug:p.slug,name:p.name,dept:canonDept(p.dept),pts:s.pts,exact:s.exact,correct:s.correct,
         predicted:Object.values(p.predictions||{}).filter(x=>x.o||x.w).length};});
   }
   STAND_CACHE={t:Date.now(),rows};
@@ -2550,7 +2553,7 @@ function csvEsc(v){v=String(v==null?"":v);return '"'+v.replace(/"/g,'""')+'"';}
 async function downloadReport(){
   toast("Building report…");
   const players=await sbulkJSON("wc:player:");
-  const rows=players.map(p=>{const s=scoreFor(p.predictions,state.results,p.champ);return{name:p.name,ig:"@"+(p.ig||p.slug),dept:p.dept||"",country:p.country||"",pts:s.pts,exact:s.exact,correct:s.correct,picked:Object.values(p.predictions||{}).filter(x=>x.o||x.w).length,champ:p.champ||""};});
+  const rows=players.map(p=>{const s=scoreFor(p.predictions,state.results,p.champ);return{name:p.name,ig:"@"+(p.ig||p.slug),dept:canonDept(p.dept),country:p.country||"",pts:s.pts,exact:s.exact,correct:s.correct,picked:Object.values(p.predictions||{}).filter(x=>x.o||x.w).length,champ:p.champ||""};});
   rows.sort(cmpSt);
   rows.forEach((r,i)=>r.rank=i+1);
   const depts={};

@@ -5,6 +5,32 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-06-28 11:37 (Doha) — Departments: fold stray "Finance" into the canonical "Group Finance"
+
+**Commits:** this commit (app `index.html` + this changelog).
+
+**Why:** The Departments leaderboard showed a lone **"Finance"** department (1 player, 3 pts) — a legacy/stray label. The join form's department `<select>` only offers the official QNB list (**Group Finance**, etc.); there's no "Finance" option, so it can't be re-picked, and the board (`renderDept`) buckets players by whatever raw `dept` string they carry. The affected player's record lives in the production Supabase project (`fzybuasvhzhmkbhxbton`), which isn't reachable from here, so this is a frontend canonicalisation rather than a DB edit.
+
+**What changed** (frontend only, `index.html`):
+- New `DEPT_ALIAS` + `canonDept(d)` helper (placed by `fetchStandings`): trims and case-folds a department label and maps known legacy values onto the official list — currently `finance → Group Finance`. Unknown labels pass through unchanged; blank/`null`/`undefined` → `""`.
+- Applied at the data chokepoints so every view stays consistent: both `fetchStandings()` paths (RPC + bulk fallback — feeds the Departments board, People-row labels, and the rival picker) and the organizer XLSX/CSV export (`downloadReport`). No change to scoring, predictions, or any stored data — purely a display/aggregation normalisation.
+
+**Effect:** "Finance" no longer appears as its own department; that player's 3 pts now count under **Group Finance** (board, People label, and exports alike). To merge additional stray labels later, add a row to `DEPT_ALIAS`.
+
+**Verified (VM-sandbox, real `canonDept` + `renderDept` aggregation copied verbatim):**
+- `canonDept`: `Finance` / `finance` / `" Finance "` / `FINANCE` → `Group Finance`; `Group Finance` and `Group Risk` unchanged; `""`/`null`/`undefined` → `""`.
+- Aggregating a set with a `Finance` (3 pts) and a `Group Finance` (9 pts) player yields **no** standalone "Finance" bucket and a single **Group Finance** row (2 players, Σ12, avg 6).
+- `node --check` on the extracted inline script: clean.
+
+**DB:** none. No kv writes, no SQL, `wc:results` untouched.
+
+**Rollback (git):**
+
+    git revert <this-commit-sha>
+    git push -u origin claude/arab-teams-finished-matches-cjpji8
+
+---
+
 ## 2026-06-28 11:09 (Doha) — Knockouts filter: one tap jumps to the current round (▾ still picks any other)
 
 **Commits:** this commit (app `index.html` + this changelog).
