@@ -1911,8 +1911,8 @@ function queueSave(){saveChain=saveChain.then(()=>persistPlayer());}
 function stakeText(id){
   try{
     const m=(typeof FIXTURES!=="undefined")?FIXTURES.find(x=>x.id===id):null;
-    if(m&&m.kn)return "+"+koPts(m)+" on the line";
     const P=(state.player.predictions||{})[id]||{};
+    if(m&&m.kn)return (P.h!=null&&P.a!=null)?("+"+(koPts(m)+koBonus(m))+" on the line \u26a1"):("+"+koPts(m)+" on the line");
     return (P.h!=null&&P.a!=null)?"+5 on the line \u26a1":"+3 on the line";
   }catch(e){return "+3 on the line";}
 }
@@ -2556,7 +2556,8 @@ function ppPtsHTML(m,pk,r){
   if(!r)return dash;
   if(m.kn){
     if(r.w==null||!pk||!pk.w)return dash;
-    return pk.w===r.w?'<span style="color:var(--lime)">✓ +'+koPts(m)+'</span>':'<span style="color:#ff7b84">✗ +0</span>';
+    const tot=(pk.w===r.w?koPts(m):0)+(koScoreHit(pk,r)?koBonus(m):0);
+    return tot>0?'<span style="color:var(--lime)">✓ +'+tot+'</span>':'<span style="color:#ff7b84">✗ +0</span>';
   }
   if(r.h==null||!pk||!pk.o)return dash;
   const ro=r.h>r.a?"H":(r.h<r.a?"A":"D");
@@ -3417,8 +3418,14 @@ let LB_PREV={};
 
 /* ===== the reveal ritual ===== */
 function rvVerdict(m,p,r){
-  if(m.kn){const ok=p.w&&r.w&&p.w===r.w;
-    return ok?{pts:koPts(m),cls:"hit",label:"\u2713 +"+koPts(m)}:{pts:0,cls:"miss",label:"\u2717 +0"};}
+  if(m.kn){
+    const ok=!!(p.w&&r.w&&p.w===r.w);
+    const wpts=ok?koPts(m):0,bpts=koScoreHit(p,r)?koBonus(m):0,tot=wpts+bpts; /* winner ladder + independent final-score bonus, matching scoreFor */
+    if(tot<=0)return{pts:0,cls:"miss",label:"\u2717 +0"};
+    if(ok&&bpts)return{pts:tot,cls:"exact",label:"\u25ce +"+tot+" exact!"};
+    if(ok)return{pts:tot,cls:"hit",label:"\u2713 +"+tot};
+    return{pts:tot,cls:"hit",label:"\u25ce +"+tot+" score"};
+  }
   const ro=r.h>r.a?"H":r.h<r.a?"A":"D";
   const ex=p.h!=null&&p.a!=null&&Number(p.h)===r.h&&Number(p.a)===r.a;
   const oc=p.o===ro;const pts=(oc?3:0)+(ex?2:0);
@@ -3596,7 +3603,8 @@ function provFor(m,le,preds){
   if(le==null||le.hs==null||le.as==null)return null;
   if(m.kn){const mv=fxView(m);
     const lead=le.hs>le.as?mv.home.n:le.hs<le.as?mv.away.n:null;
-    return {pts:(lead&&p.w===lead)?koPts(m):0};}
+    const bp=(p.h!=null&&p.a!=null&&Number(p.h)===le.hs&&Number(p.a)===le.as)?koBonus(m):0;
+    return {pts:((lead&&p.w===lead)?koPts(m):0)+bp};}
   const ro=le.hs>le.as?"H":le.hs<le.as?"A":"D";
   return {pts:(p.o===ro?3:0)+((p.h!=null&&p.a!=null&&Number(p.h)===le.hs&&Number(p.a)===le.as)?2:0)};
 }
@@ -3638,7 +3646,7 @@ function renderDayBanner(){
     const r=state.results[m.id],p=state.player.predictions[m.id];
     const settled=m.kn?(r&&r.w!=null):(r&&r.h!=null);
     if(settled)got+=rvVerdict(m,p,r).pts;
-    else{left++;pot+=m.kn?koPts(m):((p.h!=null&&p.a!=null)?5:3);}
+    else{left++;pot+=m.kn?(koPts(m)+((p.h!=null&&p.a!=null)?koBonus(m):0)):((p.h!=null&&p.a!=null)?5:3);}
   });
   if(left>0&&got===0)el.innerHTML='Today: up to <b>+'+pot+'</b> riding on your '+left+' pick'+(left===1?'':'s');
   else if(left>0)el.innerHTML='Today so far: <b>+'+got+'</b> \u00b7 '+left+' still to play <small>up to +'+(got+pot)+' possible</small>';

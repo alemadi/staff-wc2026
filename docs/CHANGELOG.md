@@ -5,6 +5,28 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-06-28 — Scoring audit + fix: KO bonus was missing from 5 secondary point displays
+
+**Commits:** this commit (app `index.html` + this changelog).
+
+**What:** ran a full scoring audit — extracted the real functions from `index.html` and ran a **61-test suite** covering group (+3 result / +2 exact, 5 max), knockout (winner ladder + independent final-score bonus), the extra-time rule, champion (+25), tiebreakers, and every helper. The **authoritative scorer `scoreFor` (which drives the leaderboard) was correct.** But the knockout exact-score bonus had never been propagated to five *secondary* displays that compute points on their own, so each under-reported KO bonus points versus the leaderboard:
+
+- **`rvVerdict`** (reveal ritual + the day banner *"Today: +N — all settled"*) — counted winner points only; a nailed knockout scoreline didn't show, and the daily total disagreed with the leaderboard. Also made the streak / "perfect day" / "maverick" badges treat a bonus-only KO hit as a miss.
+- **`renderDayBanner` potential** (*"up to +N"*) — the KO ceiling omitted the bonus even when a score was entered (group already added its +2).
+- **`stakeText`** (the *"+N on the line"* float when you tap a pick) — KO ignored the bonus when a score was armed (group shows *+5 ⚡*).
+- **`ppPtsHTML`** (settled per-match points in the head-to-head / profile view) — KO showed *+winner* only; group included the exact bonus.
+- **`provFor`** (live provisional pulse) — KO didn't provisionally count the bonus when the live score matched the prediction (group did).
+
+All five now mirror `scoreFor` / the group logic: ladder/winner points **plus** the independent final-score bonus.
+
+**Verified:** 61/61 tests pass against the **extracted real functions** (not reimplementations), including `rvVerdict().pts === scoreFor().pts` and `ppPtsHTML` totals across R32/R16/QF/SF/third/Final, and that the extra-time interim (the 1–1 of a tie that ends 2–1 a.e.t.) scores **0 bonus everywhere**. `node --check` clean.
+
+**DB:** none. Leaderboard standings were already correct (`scoreFor` unchanged) — this aligns the reveal, day banner, stakes float, profile view, and live pulse with them.
+
+**Rollback:** `git revert <this commit>` (frontend-only; no DB/state change).
+
+---
+
 ## 2026-06-28 — Correction: knockout bonus is judged on the **final score** (not "90 or 120, either")
 
 **Commits:** this commit (app `index.html` + this changelog).
