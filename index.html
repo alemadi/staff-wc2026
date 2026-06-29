@@ -40,6 +40,7 @@
     --tiles-v:linear-gradient(180deg,var(--c-red) 0 33.34%,var(--c-green) 33.34% 66.67%,var(--c-blue) 66.67% 100%);
     --qatar:#8a1538;
     --gold:#b49759; --gold-bright:#e3d3a3; --gold-deep:#8a734a;
+    --gb:#e3d3a3; --gd:#e3d3a3; /* bright-gold aliases: chip text + light gradient stop (kept readable against dark) */
     --cream:#f4eee3; --muted:rgba(244,238,227,.62); --faint:rgba(244,238,227,.4);
     --line:rgba(244,238,227,.13); --line-2:rgba(244,238,227,.07);
     --glass:rgba(255,255,255,.06); --glass-2:rgba(255,255,255,.095);
@@ -1098,10 +1099,13 @@
   /* Office Honours — title chips */
   .title-chip{display:inline-flex;align-items:center;gap:3px;margin-left:6px;font-size:9px;font-weight:800;letter-spacing:.02em;color:#181106;background:linear-gradient(115deg,var(--gd),var(--gold));border-radius:6px;padding:1px 6px;vertical-align:middle}
   .title-chip i{font-style:normal}
+  .title-chip.tap{cursor:pointer}
   @media(max-width:430px){.lb-row .title-chip i{display:none}}
-  .title-chip.big{font-size:11px;padding:3px 9px;margin:0}
+  .title-chip.big{font-size:11px;padding:3px 9px;margin:0;flex:none}
   .me-honours{background:linear-gradient(120deg,rgba(180,151,89,.10),transparent 72%);border:1px solid rgba(180,151,89,.3);border-radius:13px;padding:11px 13px;margin-bottom:4px}
-  .me-honours .me-titles{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:7px}
+  .me-honours .me-titles{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+  .me-title-row{display:flex;align-items:center;gap:9px}
+  .me-title-desc{font-size:11.5px;color:var(--muted);line-height:1.35;min-width:0}
   .me-race{font-size:12px;color:var(--muted);line-height:1.5}
   .me-race b{color:var(--gb)}
 </style>
@@ -2576,14 +2580,18 @@ function moveHTML(d){
    the already-computed consensus() leaders (Trailblazer/Hot Hand/Perfectionist).
    No new data pull. Most players hold none; the scarcity is the point. */
 const TITLE_DEFS=[
-  {key:'frontrunner',emoji:'👑',label:'Frontrunner'},
-  {key:'oracle',emoji:'🔮',label:'Oracle'},
-  {key:'trailblazer',emoji:'🧭',label:'Trailblazer'},
-  {key:'hothand',emoji:'🔥',label:'Hot Hand'},
-  {key:'perfectionist',emoji:'💎',label:'Perfectionist'},
-  {key:'captain',emoji:'⭐',label:'Squad Captain'},
-  {key:'climber',emoji:'🚀',label:'Climber'}
+  {key:'frontrunner',emoji:'👑',label:'Frontrunner',desc:'Top of the leaderboard right now'},
+  {key:'oracle',emoji:'🔮',label:'Oracle',desc:'Most exact scores called in the pool'},
+  {key:'trailblazer',emoji:'🧭',label:'Trailblazer',desc:'Called the most upsets the office missed'},
+  {key:'hothand',emoji:'🔥',label:'Hot Hand',desc:'On the longest run of correct calls'},
+  {key:'perfectionist',emoji:'💎',label:'Perfectionist',desc:'Most perfect matchdays — every call right'},
+  {key:'captain',emoji:'⭐',label:'Squad Captain',desc:'Leading their department'},
+  {key:'climber',emoji:'🚀',label:'Climber',desc:'Biggest climb up the table since yesterday'}
 ];
+function titleDesc(key){const d=TITLE_DEFS.find(function(t){return t.key===key;});return d?d.desc:'';}
+/* Tap any earned title to learn what it means — the only explanation many players get on a phone,
+   where the leaderboard chip collapses to an emoji. */
+function explainTitle(e,key){if(e&&e.stopPropagation)e.stopPropagation();const d=TITLE_DEFS.find(function(t){return t.key===key;});if(d)toast(d.emoji+' '+d.label+' — '+d.desc);}
 let LB_HONOURS={};      /* slug -> {emoji,label,key} (top title only, by priority) */
 let HONOURS_FULL=null;  /* full holder map for the Me title-race line */
 function computeHonours(rows){
@@ -2613,14 +2621,14 @@ function computeHonours(rows){
   Object.keys(holders).forEach(function(k){if(k.indexOf('captain_')!==0)return;const h=holders[k];if(!map[h.slug])map[h.slug]={emoji:'⭐',label:'Squad Captain',key:'captain'};});
   LB_HONOURS=map;return map;
 }
-function titleChip(slug){const t=LB_HONOURS[slug];return t?'<span class="title-chip" title="'+esc(t.label)+'">'+t.emoji+'<i>'+esc(t.label)+'</i></span>':'';}
+function titleChip(slug){const t=LB_HONOURS[slug];if(!t)return '';const d=titleDesc(t.key);const k="explainTitle(event,'"+t.key+"')";return '<span class="title-chip tap" role="button" tabindex="0" title="'+esc(t.label+(d?' — '+d:''))+'" onclick="'+k+'" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();'+k+'}">'+t.emoji+'<i>'+esc(t.label)+'</i></span>';}
 function meHonours(s){
   if(!state.player||state.demo)return "";
   const full=HONOURS_FULL||{};
   const mine=[];
   Object.keys(full).forEach(function(k){const h=full[k];if(h.slug!==state.meSlug)return;const key=h._title||k;const def=TITLE_DEFS.find(function(t){return t.key===key;});if(def&&mine.indexOf(def)<0)mine.push(def);});
   let inner='';
-  if(mine.length)inner+='<div class="me-titles">'+mine.map(function(d){return '<span class="title-chip big">'+d.emoji+'<i>'+esc(d.label)+'</i></span>';}).join('')+'</div>';
+  if(mine.length)inner+='<div class="me-titles">'+mine.map(function(d){return '<div class="me-title-row"><span class="title-chip big">'+d.emoji+'<i>'+esc(d.label)+'</i></span><span class="me-title-desc">'+esc(d.desc)+'</span></div>';}).join('')+'</div>';
   const orc=full.oracle;
   if(orc){
     if(orc.slug===state.meSlug)inner+='<div class="me-race">🔮 You hold the <b>Oracle</b> — '+orc.value+' exact'+(orc.value===1?'':'s')+(orc.runnerUp!=null&&orc.value>orc.runnerUp?' ('+(orc.value-orc.runnerUp)+' clear)':'')+'</div>';
@@ -4697,6 +4705,7 @@ const FAQ_ITEMS=[
  {q:"I got the score right but only received 3 points?",a:"Exact-score points need both number boxes filled before kickoff. If one was empty, only your result pick counted."},
  {q:"When do results and points appear?",a:"Scores post and points update about 30 minutes after the final whistle \u2014 automatically. Next time you open the app, the morning reveal replays how your picks did."},
  {q:"What do the \u25b2\u25bc arrows mean?",a:"Your movement since yesterday\u2019s standings snapshot. Big jumps in week one are normal \u2014 everyone starts level."},
+ {q:"What are the titles next to names? (\ud83d\udc51 \ud83d\udd2e \ud83e\udded \u2026)",a:"Office honours \u2014 each one held by a single person at a time. Tap any title on the leaderboard to see what it means; here\u2019s the full set.\n\n\ud83d\udc51 Frontrunner \u2014 top of the leaderboard right now.\n\ud83d\udd2e Oracle \u2014 most exact scores called in the whole pool.\n\ud83e\udded Trailblazer \u2014 called the most upsets the office missed.\n\ud83d\udd25 Hot Hand \u2014 on the longest run of correct calls.\n\ud83d\udc8e Perfectionist \u2014 most perfect matchdays, every call right.\n\u2b50 Squad Captain \u2014 leading their department.\n\ud83d\ude80 Climber \u2014 the biggest jump up the table since yesterday.\n\nThey update automatically as the standings move, so they change hands through the tournament. Most players hold none \u2014 that\u2019s the point. Win one and it shows next to your name and on your Me card."},
  {q:"What\u2019s a rival?",a:"Pick anyone from the dropdown in your Me tab. During live matches the pulse bar shows both your provisional points, head to head."},
  {q:"How are ties broken?",a:"Tied points are broken by: most predictions made, then most exact scores, then most correct results, then earliest sign-up."},
  {q:"Is my Instagram handle visible to others?",a:"Sign-in only. Other players see your display name and department; handles are never shown on the leaderboard."},
