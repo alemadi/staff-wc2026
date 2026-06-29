@@ -5,6 +5,16 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-06-29 (Doha) — Banner now STAYS for a while (persistent through the knockouts)
+
+**Commits:** this commit (`index.html` + changelog). Frontend only.
+
+**Why:** the streak banner was one-time (✕ snoozed 48h; opening the explainer marked it permanently seen), so it vanished and felt lost. Now it **persists**: it shows on every visit (to joined players) until **`BANNER_UNTIL` = 2026-07-15** (through the knockouts), the **✕ only hides it ~8h** (it returns next visit), and the "See how streaks work ›" CTA **no longer dismisses it**. `BANNER_KEY` bumped `streak-v1`→`streak-v2` so it re-appears for everyone who'd already dismissed v1. To change how long it stays, edit `BANNER_UNTIL`; to change the close duration, edit `BANNER_SNOOZE`. `node --check` clean.
+
+**Rollback:** `git revert <this-commit-sha>` (frontend-only).
+
+---
+
 ## 2026-06-29 (Doha) — Discoverability: the always-visible rules line now links to the streak explainer
 
 **Commits:** this commit (`index.html` + changelog). Frontend only.

@@ -823,7 +823,7 @@
       <span class="xb-sub">Nail the exact final score in <b>back-to-back</b> knockout games and the bonus stacks — fast:</span>
       <div class="xb-chips" aria-hidden="true"><span class="xb-chip">+5<small>2 IN A ROW</small></span><span class="xb-chip">+15<small>3 IN A ROW</small></span><span class="xb-chip">+20<small>4+ EACH</small></span></div>
       <span class="xb-quiet">Knockouts only, going forward — your group points &amp; champion pick don’t change.</span><br>
-      <a class="xb-cta" href="javascript:void 0" onclick="openFaq('streak');bannerSeen();return false">See how streaks work ›</a>
+      <a class="xb-cta" href="javascript:void 0" onclick="openFaq('streak');return false">See how streaks work ›</a>
     </div>
     <button class="xb-x" onclick="dismissBanner()" aria-label="Dismiss announcement">✕</button>
   </div>
@@ -1619,18 +1619,21 @@ let toastT;
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2200);}
 function togglePts(btn){const t=document.getElementById("ptable");const on=t.classList.toggle("show");btn.textContent=on?"How do points work? ▴":"How do points work? ▾";}
 /* One-time dismissible announcement banner (knockout streak news). Bump the key to re-show a new banner. */
-const BANNER_KEY="wc:banner:streak-v1";      // value: "seen" (engaged → never again) | a dismissal timestamp (snoozed)
-const BANNER_SNOOZE=48*3600*1000;            // a reflexive ✕ only snoozes for 48h, so reach isn't lost on one tap
+/* The streak announcement now STAYS for a while: it shows every visit (to joined players) through the
+   knockouts, until BANNER_UNTIL. A ✕ only hides it for ~8h (it returns next visit); opening the
+   explainer no longer kills it. Bump BANNER_KEY to re-show it to everyone after a logic change. */
+const BANNER_KEY="wc:banner:streak-v2";
+const BANNER_SNOOZE=8*3600*1000;             // ✕ = brief snooze only, so it keeps coming back
+const BANNER_UNTIL=Date.parse("2026-07-15T00:00:00+03:00");  // keep showing through the knockouts; then it retires itself
 function setupBanner(){
   const b=document.getElementById("xbanner");if(!b)return;
-  if(!state.player)return;                   // only show to joined players — don't burn the one-time reach on the sign-in screen
+  if(!state.player)return;                    // joined players only (not the sign-in screen)
+  if(BANNER_UNTIL&&Date.now()>BANNER_UNTIL)return;  // announcement window has ended
   let v=null;try{v=localStorage.getItem(BANNER_KEY);}catch(e){}
-  if(v==="seen")return;                       // engaged with it (opened the explainer) → don't show again
-  if(v){const t=parseInt(v,10);if(t&&(Date.now()-t)<BANNER_SNOOZE)return;}  // still within snooze window
-  b.style.display="flex";
+  if(v){const t=parseInt(v,10);if(t&&(Date.now()-t)<BANNER_SNOOZE)return;}  // recently ✕'d → brief snooze
+  b.style.display="flex";                      // otherwise show it every visit
 }
-function dismissBanner(){const b=document.getElementById("xbanner");if(b)b.style.display="none";try{localStorage.setItem(BANNER_KEY,String(Date.now()));}catch(e){}}  // soft dismiss = snooze
-function bannerSeen(){const b=document.getElementById("xbanner");if(b)b.style.display="none";try{localStorage.setItem(BANNER_KEY,"seen");}catch(e){}}  // engaged → permanent
+function dismissBanner(){const b=document.getElementById("xbanner");if(b)b.style.display="none";try{localStorage.setItem(BANNER_KEY,String(Date.now()));}catch(e){}}  // ✕ = ~8h snooze; it returns
 
 function go(view){
   if((view==="matches"||view==="me")&&!state.player){toast("Join the pool to make picks \u26bd");view="join";}
