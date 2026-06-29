@@ -5,6 +5,24 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-06-29 (Doha) — Streak bonus made unmissable: persistent banner + on-card hint (frontend only)
+
+**Commits:** this commit (`index.html` + changelog). Frontend only — no DB/scoring/sync/lock change.
+
+**Why:** the exact-score streak bonus was easy to miss. The announcement banner could be ✕-dismissed (it only came back after an ~8h snooze), and on the knockout pick cards the streak was buried inside the collapsed "How the bonus works" help. So a player who skipped past it the first time might never learn the feature exists. The ask: make the streak prominent enough that nobody misses it.
+
+**What changed (`index.html`):**
+- **The streak banner is now permanent, not dismissible.** The ✕ became a **minimize** toggle (`–` / `›`): tapping it collapses the banner to a slim, always-present one-line pill ("🔥 The exact-score streak bonus — tap to see how it works ›") instead of hiding it. Tapping the pill re-opens the full banner. The minimized/expanded choice is remembered in `localStorage`, but the banner is **never fully hidden** for joined players during the knockouts — so it can't be missed on a later visit. Replaced the snooze logic (`BANNER_SNOOZE` + timestamp) with `applyBannerState()`, `toggleBanner()`, `bannerClick()`; bumped `BANNER_KEY` to `streak-v3` so it re-expands once for everyone.
+- **The banner now shows the player's *own* live streak.** New `fillStreakBanner()` reads `koStreakCurrent()` and adds a personal line — e.g. "You're on a ×2 exact-score streak — your next exact knockout score adds +15 🔥" — so the prompt feels current instead of a stale announcement. Refreshed on render and after results load.
+- **A visible streak hint on every pickable knockout card.** New `koStreakHintHTML()` renders a compact gold strip ("🔥 Streak bonus: exact scores in back-to-back knockouts stack +5 → +15 → +20 · how it works ›", plus the live ×N run when on one) right in the bonus area — pulled out of the hidden help so it's seen by default. Links to the streak FAQ.
+- **Announcement window extended** `BANNER_UNTIL` 2026-07-15 → 2026-07-20 so it stays through the whole knockouts, including the final.
+
+**Verified:** inline JS passes `node --check`. Banner default (no stored pref) renders expanded; minimize sets `.collapsed` + persists `min`; tapping the pill restores it. No scoring/lock/sync code touched — `koStreakBonus`/`koScoreHit`/SQL unchanged.
+
+**Rollback:** `git revert <this commit>` — frontend-only; an isolated CSS block, one banner-HTML rewrite, the banner JS helpers, and one `koStreakHintHTML()` insertion in `koMatchCard`.
+
+---
+
 ## 2026-06-29 (Doha) — Points table no longer slams shut while you scroll it (frontend only)
 
 **Commits:** this commit (`index.html` + changelog). Frontend only — no DB/scoring/sync/lock change.
