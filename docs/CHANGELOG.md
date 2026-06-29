@@ -5,6 +5,27 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-06-29 (Doha) — Social pack: "The Room", rival head-to-head, "you passed X", the room's title bets
+
+**Commits:** this commit (`index.html` + changelog). **Frontend only — no DB / scoring / sync / lock-logic change.** Every new surface reads only data the app already has and is strictly seal-safe (no pick is shown before its match seals; the champ aggregate is gated on `champLocked()`). All new state is localStorage-only.
+
+**Why:** a multi-agent design swarm (1 grounding pass → 8 social-design lenses → 3 perspective-diverse judges scoring 49 ideas → synthesis → adversarial seal/privacy critique → finalize) was run to make the game markedly more addictive by leaning hard into the *social* loop — peer rivalry, shared match-night moments, bragging, and FOMO tied to other people. The four highest-leverage, frontend-only, seal-safe wins were folded in. The biggest unlock: who-picked-what existed only inside the *organizer* panel — players never saw it — so the swarm's headline feature exposes it (seal-safely) to everyone.
+
+**What changed — `index.html`:**
+- **🏟 "The Room"** (new) — a third Leaderboard mode (`lbmode` gains a `data-m="room"` button; `renderLeaderboard` branches to `renderRoom`). New `renderRoom`/`renderRoomBody`/`roomMatches`/`roomSettled`/`roomHero`. Pick any **kicked-off** match (selector = `ppEligible()`); see the office split pre-result (via the existing `consText()` ≥5/≥8 floor — pure suspense, no names), then once **settled** the full per-player board (name · dept badge · pick · predicted exact · points), scored with the canonical `rvVerdict()`, sorted top-scorer-first, your row flagged **YOU**. A **🦸 Hero of the match** line spotlights the lone correct contrarian (≤30% of the room, winners only — never names who got it wrong), plus a "N of M scored · K nailed the exact score" tally.
+- **🎯 Rival head-to-head** — `rivalHTML` now appends `rivalH2H(rivalSlug)`: a *you edged / level / they edged* record over your **shared settled** matches plus the overall points delta. Opt-in (only the rival you chose), settled-only, framed as deltas — never "you lost".
+- **🏆 The room's title bets** — `champBetsLine()` mounts on the Me card after your own champion line. Aggregates `CONS.champMap` ("Brazil ×5 · Spain ×3 …"), **hard-gated on `champLocked()`** and suppressing any pick with fewer than 3 backers (k-anonymity).
+- **🫡 "You passed X"** — `welcomeDelta` now stores a compact `ranks` map in `wc:lastSeen` and adds a social line naming a colleague you overtook since your last visit. Standings-only (never raw picks); positive framing only (who *you* passed, never who passed you).
+- One consolidated CSS block at the end of `<style>` (`.room-*`, `.rv-h2h`, `.champ-bets`, `.delta-pop .dx`) — palette-locked (gold / cream / Qatar-maroon / host-green), no new hue, no infinite motion (the global reduced-motion reset covers the few transitions); reuses the existing `.pp-head`/`.pp-row` board styling.
+
+**Seal-safety (the cardinal rule):** every read of another player's `predictions[id]` goes through `ppEligible()`/`roomMatches()`; the per-player **name** table is strictly post-`roomSettled`; champ aggregation is blocked until `champLocked()`; no `@ig` on any cross-player surface; no `sbulkJSON`/`ppPlayers(true)` on a timer.
+
+**Verified:** `node --check` clean on the extracted inline script. Headless Chromium (Playwright) drove the real render functions with controlled fixtures — **25/25** checks pass, including the load-bearing BLOCKER test (a locked-but-unsettled match shows the aggregate split but leaks **zero** player names), no `@ig` on any cross-player surface, hero/tally correctness, rival H2H tallies, champ-bets ≥3 k-anon suppression, reduced-motion (no throw, no page errors), and zero page errors overall. An independent adversarial seal/privacy audit traced all seven seal rules: **no blocker, no major** (two minors, both pre-existing/cosmetic). Screenshot of The Room confirms the suspense→payoff layout.
+
+**Rollback:** `git revert <this commit>` — frontend-only; the additions are one isolated CSS block, a block of `room*`/`rivalH2H`/`champBetsLine` helpers, and small wiring edits in `renderLeaderboard`/`rivalHTML`/`renderMe`/`welcomeDelta` plus one `lbmode` button.
+
+---
+
 ## 2026-06-29 (Doha) — Banner: default to the slim strip + make the shrink obvious
 
 **Commits:** this commit (`index.html` + changelog). **Frontend only — no DB, no scoring change.**

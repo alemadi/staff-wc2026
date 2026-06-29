@@ -996,6 +996,54 @@
   .rv-big.pop{animation:rvbigpop .6s cubic-bezier(.34,1.7,.5,1)}
   @keyframes rvbigpop{0%{transform:scale(.6);opacity:0}55%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
   @media(prefers-reduced-motion:reduce){.rv-flip{transition:none}.rv-card.flipped .rv-stamp{animation:none}.rv-big.pop{animation:none}}
+
+  /* ===================================================================
+     SOCIAL PACK (swarm-designed) — "The Room" picks board, rival
+     head-to-head, the room's champ bets, and the "you passed X" delta
+     line. Palette-locked (gold / cream / Qatar-maroon / host-green); no
+     new hue, no infinite motion (the global reduced-motion reset covers
+     the few transitions). Reuses .pp-head/.pp-row from the picks board.
+     =================================================================== */
+  .room-intro{font-size:11.5px;color:var(--muted);line-height:1.5;background:var(--glass);border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin:0 0 10px}
+  .room-intro b{color:var(--cream)}
+  .room-sel{margin:0 0 12px}
+  .room-res{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px;padding:12px 14px;border-radius:14px;background:linear-gradient(110deg,rgba(180,151,89,.14),transparent 70%),var(--glass);border:1px solid rgba(180,151,89,.4);margin-bottom:10px}
+  .room-res .rh{font-size:9.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+  .room-res b{font-size:15px;color:var(--cream)}
+  .room-res .rw{font-size:11px;font-weight:700;color:var(--gold-bright)}
+  .room-res.live{border-color:rgba(138,21,56,.55);background:linear-gradient(110deg,rgba(138,21,56,.20),transparent 70%),var(--glass)}
+  .room-res.live .rh{color:var(--magenta-2)}
+  .room-cons{font-size:12px;color:var(--muted);line-height:1.5;padding:2px 2px 10px}
+  .room-cons .cmine{color:var(--gold-bright)}
+  .room-cons .c2{display:block;margin-top:4px;color:var(--magenta-2);font-weight:700;font-size:11px}
+  .room-hero{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;line-height:1.45;color:var(--cream);background:linear-gradient(110deg,rgba(180,151,89,.16),transparent 75%);border:1px solid rgba(180,151,89,.45);border-radius:13px;padding:11px 13px;margin:4px 0 10px}
+  .room-hero .hl{font-weight:800;color:var(--gold-bright)}
+  .room-hero.banker{border-color:rgba(61,220,151,.4);background:linear-gradient(110deg,rgba(61,220,151,.12),transparent 75%)}
+  .room-tally{font-size:11.5px;color:var(--muted);margin:2px 2px 8px}
+  .room-tally b{color:var(--cream)}
+  .room-row.mine{background:rgba(180,151,89,.10);border-radius:9px}
+  .room-row .pp-s.win{color:var(--ok)}
+  .room-row .pp-s.zero{color:var(--faint)}
+  .room-row.exact .pp-p{color:var(--gold-bright)}
+  .room-row .youtag{display:inline-block;margin-left:6px;font-size:8.5px;font-weight:800;letter-spacing:.1em;color:#181106;background:var(--gold);border-radius:4px;padding:1px 5px;vertical-align:middle}
+
+  .rv-h2h{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+  .rv-h2h .hl{font-size:9.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);text-align:center;margin-bottom:8px}
+  .rv-record{display:flex;justify-content:center;gap:10px;margin-bottom:7px}
+  .rv-record span{flex:1;max-width:96px;text-align:center;background:var(--glass);border:1px solid var(--line);border-radius:11px;padding:7px 4px}
+  .rv-record b{display:block;font-family:var(--font-d);font-size:22px;line-height:1}
+  .rv-record i{font-style:normal;font-size:9px;letter-spacing:.04em;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .rv-record .w b{color:var(--gold-bright)}
+  .rv-record .l b{color:var(--muted)}
+  .rv-record .d b{color:var(--cream)}
+  .rv-h2sub{font-size:11px;color:var(--muted);text-align:center;line-height:1.5}
+  .rv-h2sub b{color:var(--cream)}
+
+  .champ-bets{font-size:12px;color:var(--muted);line-height:1.7;background:var(--glass);border:1px solid var(--line);border-radius:12px;padding:10px 13px}
+  .champ-bets b{color:var(--gold-bright)}
+
+  .delta-pop .dx{font-size:11.5px;color:var(--gold-bright);margin-top:6px;font-weight:700;border-top:1px solid var(--line);padding-top:6px}
+  .delta-pop .dx b{color:var(--cream)}
 </style>
 </head>
 <body>
@@ -1176,7 +1224,7 @@
   <!-- LEADERBOARD -->
   <section class="view" id="view-leaderboard">
     <div class="sec-title"><h2>Leaderboard</h2><span class="live tag"><span class="pulse"></span> Live</span></div>
-    <div class="lbmode" id="lbmode"><button type="button" data-m="people" class="on">People</button><button type="button" data-m="dept">Departments</button></div>
+    <div class="lbmode" id="lbmode"><button type="button" data-m="people" class="on">People</button><button type="button" data-m="dept">Departments</button><button type="button" data-m="room">🏟 The Room</button></div>
     <div class="prize-strip">🥇 <b>Maldives trip</b> · 🥈 60,000 pts · 🥉 40,000 pts<span class="ps-note">QNB Life Rewards · prizes for the top three at the final whistle</span></div>
     <div id="demo-banner" class="demo-banner" style="display:none">🎬 Demo mode — sample players shown for presentation. Nothing here is saved.</div>
     <div id="lb-body"></div>
@@ -2412,6 +2460,7 @@ async function renderLeaderboard(){
   if(lm)lm.style.display=state.demo?"none":"flex";
   const rvSlug=state.demo?null:await getJSON("wc:rival",false);
   if(LB_MODE==="dept"&&!state.demo){await renderDept(body);return;}
+  if(LB_MODE==="room"&&!state.demo){await renderRoom(body);return;}
   let rows=[];
   if(state.demo){ /* demo: client-side scoring against demo results + demo players (never cached) */
     const players=await sbulkJSON("wc:player:");
@@ -2693,6 +2742,7 @@ async function renderMe(){
     rtmPanel(roadGap(st))+
     meNextPick()+
     meChampLine()+
+    '<div id="champ-bets-slot">'+champBetsLine()+'</div>'+
     meNeighbours(st,awaiting)+
     '<div class="me-seclbl">Achievements</div><div class="badges">'+badges.slice(0,5).map(b=>'<div class="badge '+(b.g?"gold":"")+'">'+b.t+'</div>').join("")+'</div>'+
     '<div class="me-fun" id="me-fun"'+(fun.length?'':' style="display:none"')+'>'+fun.map(function(t){return '<div>'+t+'</div>';}).join("")+'</div>'+
@@ -2700,6 +2750,7 @@ async function renderMe(){
     await rivalHTML(s,st);
   updateMeBadge();
   if(CONFIGURED&&!state.demo)consensus().then(function(c){
+    try{const cbs=document.getElementById("champ-bets-slot");if(cbs&&!cbs.innerHTML)cbs.innerHTML=champBetsLine();}catch(e){}
     const f=document.getElementById("me-fun");if(!f||!c.map||f.dataset.agree)return;
     const now=Date.now()+CLOCK_OFFSET;let agree=0,n=0;
     FIXTURES.forEach(function(m){
@@ -2739,10 +2790,12 @@ async function rivalHTML(s,st){
       const meRow=st.find(r=>r.slug===state.meSlug);
       const myPts=meRow?meRow.pts:s.pts;
       const rv=st[idx],diff=myPts-rv.pts;
+      const h2h=await rivalH2H(rs);
       inner='<div class="rv-t">\ud83c\udfaf Rival watch</div>'+
         '<div class="rv-line"><b>You '+myPts+'</b><span class="rv-vs">VS</span><b>'+rv.pts+' '+esc(rv.name)+'</b></div>'+
         '<div class="rv-meter"><i class="me" style="width:'+Math.round(myPts/Math.max(1,myPts+rv.pts)*100)+'%"></i><i class="them" style="width:'+(100-Math.round(myPts/Math.max(1,myPts+rv.pts)*100))+'%"></i></div>'+
         '<div class="rv-sub">'+(diff>0?("You lead by "+diff+" pt"+(diff===1?"":"s")):(diff<0?(esc(rv.name)+" leads by "+(-diff)+" pt"+(diff===-1?"":"s")):"Dead level"))+' \u00b7 they\u2019re #'+(idx+1)+'</div>'+
+        h2h+
         '<button class="rv-x" onclick="clearRival()">change rival</button>';
     }else inner=pickHTML;
   }else inner=pickHTML;
@@ -3510,17 +3563,34 @@ function confetti(){
 async function welcomeDelta(){
   try{
     const st=(await fetchStandings()).slice().sort(cmpSt);
-    let rank=null,pts=0;st.forEach((r,i)=>{if(r.slug===state.meSlug&&rank===null){rank=i+1;pts=r.pts;}});
+    let rank=null,pts=0;const ranks={};
+    st.forEach((r,i)=>{ranks[r.slug]=i+1;if(r.slug===state.meSlug&&rank===null){rank=i+1;pts=r.pts;}});
     if(rank===null)return;
     const last=await getJSON("wc:lastSeen",false);
-    await setJSON("wc:lastSeen",{pts:pts,rank:rank,t:Date.now()},false);
+    await setJSON("wc:lastSeen",{pts:pts,rank:rank,ranks:ranks,t:Date.now()},false);
     if(!last||typeof last.pts!=="number")return;
     const dp=pts-last.pts,dr=(typeof last.rank==="number")?(last.rank-rank):0;
     if(dp<=0&&dr<=0)return;
+    /* Social dimension (seal-safe \u2014 standings only): name a colleague you OVERTOOK since
+       last visit. Positive framing only \u2014 we never surface who passed you. */
+    let passedName=null,passedN=0;
+    if(last.ranks&&typeof last.rank==="number"){
+      const passed=[];
+      for(const slug in ranks){
+        if(slug===state.meSlug)continue;
+        const wasAhead=(typeof last.ranks[slug]==="number")&&last.ranks[slug]<last.rank;
+        if(wasAhead&&ranks[slug]>rank)passed.push(slug);
+      }
+      passedN=passed.length;
+      if(passedN){const row=st.find(r=>r.slug===passed[0]);passedName=row?row.name:null;}
+    }
+    const social=passedN&&passedName
+      ?('<div class="dx">\ud83e\udee1 You passed <b>'+esc(passedName)+'</b>'+(passedN>1?(' and '+(passedN-1)+' other'+(passedN-1===1?'':'s')):'')+'</div>')
+      :'';
     const pop=document.createElement("div");pop.className="delta-pop";
     pop.innerHTML='<div class="dt">Since your last visit</div>'+
       '<div class="dv">'+(dp>0?("+"+dp+" pts"):"")+(dp>0&&dr>0?" \u00b7 ":"")+(dr>0?("\u25b2 "+dr+" place"+(dr===1?"":"s")):"")+'</div>'+
-      '<div class="ds">'+(dr>0?("You\u2019re now #"+rank):"Keep climbing \u2014 #"+rank)+'</div>';
+      '<div class="ds">'+(dr>0?("You\u2019re now #"+rank):"Keep climbing \u2014 #"+rank)+'</div>'+social;
     document.body.appendChild(pop);
     requestAnimationFrame(()=>pop.classList.add("show"));
     setTimeout(()=>{pop.classList.remove("show");setTimeout(()=>pop.remove(),400);},6200);
@@ -3542,6 +3612,133 @@ async function renderDept(body){
       '<div class="lb-info"><div class="n">'+esc(x.d)+'</div><div class="d">'+x.n+' player'+(x.n===1?"":"s")+' \u00b7 \u03a3 '+x.sum+' pts</div></div>'+
       '<div class="lb-pts"><b>'+(Math.round(x.avg*10)/10)+'</b><span>avg</span></div></div>';});
   body.innerHTML=html;
+}
+
+/* ===== "The Room" — player-facing picks & consensus (swarm-designed, seal-safe) =====
+   The biggest untapped social surface: who in the office called what. Until now the
+   per-player picks board lived ONLY in the organizer panel. Cardinal seal rule —
+   it only ever reads picks for matches in ppEligible() (kickoff has passed), and the
+   per-player NAME table is shown ONLY once a match is SETTLED (result in). So the
+   suspense (the office split) appears at kickoff and the payoff (who nailed it) lands
+   at full time — a colleague's pick is never visible before it sealed. @ig is never
+   rendered here; every aggregate rides consensus()'s existing tot<5 / tot<8 k-anon floor. */
+let ROOM_SEL=null;
+function roomMatches(){return ppEligible();} /* (m.kn?koReady(m):true) && (lockedM(m)||results) */
+function roomSettled(m){const r=state.results[m.id];return !!(r&&(m.kn?r.w!=null:r.h!=null));}
+async function renderRoom(body){
+  const list=roomMatches();
+  if(!list.length){
+    body.innerHTML='<div class="empty"><div class="ic">🏟</div><b>The Room opens at kickoff</b><span>Once a match kicks off you’ll see how the whole office called it — and who nailed it.</span></div>';
+    return;
+  }
+  if(!ROOM_SEL||!list.some(m=>m.id===ROOM_SEL)){
+    const settled=list.filter(roomSettled);              /* default: most-recent settled, else most-recent eligible */
+    ROOM_SEL=(settled[0]||list[0]).id;
+  }
+  const opts=list.map(m=>{const v=fxView(m);
+    return '<option value="'+m.id+'"'+(m.id===ROOM_SEL?' selected':'')+'>'+(roomSettled(m)?'✓ ':'• ')+m.id.toUpperCase()+' · '+esc(v.home.n)+' v '+esc(v.away.n)+'</option>';}).join("");
+  body.innerHTML='<div class="room-intro">🏟 <b>The Room</b> — see how the whole office called each match. The split shows from kickoff; <b>who picked what</b> reveals once the result is in.</div>'+
+    '<select class="input org-pick room-sel" id="room-match" aria-label="Choose a match">'+opts+'</select>'+
+    '<div id="room-body"><div class="org-note">Loading the room…</div></div>';
+  const sel=document.getElementById("room-match");
+  if(sel)sel.addEventListener("change",function(e){ROOM_SEL=e.target.value;renderRoomBody();});
+  await renderRoomBody();
+}
+async function renderRoomBody(){
+  const host=document.getElementById("room-body");if(!host)return;
+  const m=FIXBYID[ROOM_SEL];if(!m){host.innerHTML="";return;}
+  if(!roomMatches().some(x=>x.id===m.id)){host.innerHTML='<div class="org-note">This match hasn’t kicked off yet.</div>';return;} /* hard seal guard */
+  const mv=fxView(m),settled=roomSettled(m),r=state.results[m.id]||null;
+  if(CONFIGURED&&!state.demo&&!CONS.map){try{await consensus();}catch(e){}}   /* lazy, cached 10min */
+  const myPk=(state.player&&state.player.predictions||{})[m.id]||null;
+  let html='';
+  if(settled){
+    html+='<div class="room-res"><span class="rh">FULL TIME</span><b>'+esc(mv.home.n)+' '+(r.h!=null?r.h:'')+'–'+(r.a!=null?r.a:'')+' '+esc(mv.away.n)+'</b>'+(m.kn&&r.w?'<span class="rw">'+esc(r.w)+' advance</span>':'')+'</div>';
+  }else{
+    html+='<div class="room-res live"><span class="rh">SEALED · awaiting result</span><b>'+esc(mv.home.n)+' v '+esc(mv.away.n)+'</b></div>';
+  }
+  const cline=(typeof consText==="function")?consText(m,myPk):"";   /* aggregate; safe pre-result via the tot<5/8 floor */
+  if(cline)html+='<div class="room-cons">'+cline+'</div>';
+  if(!settled){
+    html+='<div class="org-note">🔒 Who picked what unlocks at the final whistle. The office split above is live — the names land after full time.</div>';
+    host.innerHTML=html;return;
+  }
+  const players=await ppPlayers();   /* 60s cache, NO force, never on a timer */
+  const rows=players.map(p=>({p:p,pk:(p.predictions||{})[m.id]}))
+    .filter(x=>x.pk&&(x.pk.o||x.pk.w))
+    .map(x=>{const vd=rvVerdict(m,x.pk,r);return {p:x.p,pk:x.pk,pts:vd.pts,cls:vd.cls};})
+    .sort((a,b)=>b.pts-a.pts||(a.p.name||"").localeCompare(b.p.name||""));
+  if(!rows.length){host.innerHTML=html+'<div class="org-note">No one in the office had a pick on this match.</div>';return;}
+  const hero=roomHero(m,r,rows);if(hero)html+=hero;
+  const scored=rows.filter(x=>x.pts>0).length,exactN=rows.filter(x=>x.cls==="exact").length;
+  html+='<div class="room-tally"><b>'+scored+'</b> of '+rows.length+' scored'+(exactN?' · <b>'+exactN+'</b> nailed the exact score 🎯':'')+'</div>';
+  html+='<div class="pp-head"><span>Player</span><span>Pick</span><span>Exact</span><span>Pts</span></div>';
+  rows.forEach(x=>{
+    const me=x.p.slug===state.meSlug;
+    html+='<div class="pp-row room-row '+x.cls+(me?' mine':'')+'"><span class="pp-n">'+esc(x.p.name||x.p.slug)+(me?'<span class="youtag">YOU</span>':'')+'<small>'+esc(x.p.dept||"")+'</small></span>'+
+      '<span class="pp-p">'+esc(ppPickLabel(mv,m.kn,x.pk)||"—")+'</span>'+
+      '<span class="pp-e">'+ppExactHTML(x.pk)+'</span>'+
+      '<span class="pp-s '+(x.pts>0?'win':'zero')+'">'+(x.pts>0?'+'+x.pts:'+0')+'</span></div>';
+  });
+  host.innerHTML=html;
+}
+/* HERO of the match: a correct call that few in the room made (celebratory, winners only —
+   we never name who got it wrong; the table itself is the neutral scoreboard). */
+function roomHero(m,r,rows){
+  let correct;
+  if(m.kn){if(r.w==null)return "";correct=rows.filter(x=>x.pk.w===r.w);}
+  else{if(r.h==null)return "";const ro=r.h>r.a?"H":r.h<r.a?"A":"D";correct=rows.filter(x=>x.pk.o===ro);}
+  const tot=rows.length,n=correct.length;if(!tot||!n)return "";
+  const pct=Math.round(n/tot*100);
+  if(tot>=8&&pct<=30){
+    const names=correct.slice(0,3).map(x=>esc(x.p.name||x.p.slug));
+    const who=n===1?('<b>'+names[0]+'</b> was the only one who called it')
+      :(n<=3?names.map(s=>'<b>'+s+'</b>').join(', ')+' were the only ones who called it'
+            :'<b>'+n+'</b> brave souls ('+pct+'%) called it');
+    return '<div class="room-hero">🦸 <span class="hl">Hero'+(n===1?'':'es')+' of '+m.id.toUpperCase()+'</span> — '+who+'.</div>';
+  }
+  if(tot>=10&&pct>=85){
+    return '<div class="room-hero banker">🏦 The office banker landed — <b>'+pct+'%</b> of the room called this one right.</div>';
+  }
+  return "";
+}
+/* Rival head-to-head, SETTLED matches only, opt-in (only when YOU set a rival).
+   Framed as point deltas / a record — never "you lost". Reads both blobs once (cached). */
+async function rivalH2H(rivalSlug){
+  try{
+    if(!state.meSlug||!rivalSlug)return "";
+    const players=await ppPlayers();
+    const me=players.find(p=>p&&p.slug===state.meSlug),rv=players.find(p=>p&&p.slug===rivalSlug);
+    if(!me||!rv)return "";
+    const mp=me.predictions||{},rp=rv.predictions||{};
+    let win=0,loss=0,level=0,both=0,myPts=0,rvPts=0;
+    roomMatches().forEach(m=>{
+      if(!roomSettled(m))return;
+      const r=state.results[m.id],a=mp[m.id],b=rp[m.id];
+      if(!a||!(a.o||a.w)||!b||!(b.o||b.w))return;   /* both must have a sealed pick on this match */
+      both++;
+      const ap=rvVerdict(m,a,r).pts,bp=rvVerdict(m,b,r).pts;myPts+=ap;rvPts+=bp;
+      if(ap>bp)win++;else if(ap<bp)loss++;else level++;
+    });
+    if(!both)return "";
+    const diff=myPts-rvPts;
+    return '<div class="rv-h2h"><div class="hl">Head-to-head · settled matches</div>'+
+      '<div class="rv-record"><span class="w"><b>'+win+'</b><i>you edged</i></span><span class="d"><b>'+level+'</b><i>level</i></span><span class="l"><b>'+loss+'</b><i>they edged</i></span></div>'+
+      '<div class="rv-h2sub">Across <b>'+both+'</b> shared settled match'+(both===1?'':'es')+' · '+
+      (diff>0?('you’ve out-scored them by <b>+'+diff+'</b>'):(diff<0?('they’re <b>+'+(-diff)+'</b> up on these — reel them in'):'<b>dead level</b> on points'))+'</div></div>';
+  }catch(e){return "";}
+}
+/* The room's title bets — champ aggregate, HARD-gated on champLocked() (the Final is
+   the only seal champ has), with the <3 k-anon floor so a lone contrarian isn't outed. */
+function champBetsLine(){
+  try{
+    if(!champLocked()||state.demo)return "";
+    const cm=CONS&&CONS.champMap;if(!cm)return "";
+    const ents=Object.keys(cm).map(k=>[k,cm[k]]).filter(x=>x[1]>=3).sort((a,b)=>b[1]-a[1]);
+    if(!ents.length)return "";
+    const inner=ents.slice(0,6).map(x=>(FL[x[0]]?flagTag(FL[x[0]])+' ':'')+esc(x[0])+' <b>×'+x[1]+'</b>').join(' · ');
+    return '<div class="me-seclbl">The room’s title bets</div><div class="champ-bets">🏆 '+inner+'</div>';
+  }catch(e){return "";}
 }
 
 async function pickRival(){
