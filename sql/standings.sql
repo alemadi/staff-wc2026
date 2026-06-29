@@ -6,8 +6,15 @@
 -- Scoring mirrors scoreFor() in index.html exactly:
 --   Group: +3 correct outcome (requires an outcome pick), +2 exact-score
 --          bonus (also gated on the outcome pick, matching the JS guard).
---   Knockout (result has "w"): k1–k16 +4 · k17–k24 +5 · k25–k28 +6 ·
---          k29–k30 +8 · k31 third place +6 · k32 final +10.
+--   Knockout (result has "w"):
+--          winner ladder  — k1–k16 +4 · k17–k24 +5 · k25–k28 +6 ·
+--                           k29–k30 +8 · k31 third place +6 · k32 final +10.
+--          exact-score bonus (independent, on top of the winner points, judged
+--          on the FINAL score after extra time; penalties excluded) —
+--                           k1–k16 +4 · k17–k24 +5 · k25–k28 +6 ·
+--                           k29–k30 +7 · k31 third place +5 · k32 final +8.
+--          These mirror KO_PTS / KO_BONUS in index.html. The exact column
+--          counts knockout exacts too (a nailed KO scoreline), like scoreFor.
 --   Champion: +25 when wc:results._champ matches the pick.
 -- Verified equivalent to the JS scorer on a 300-player synthetic tournament
 -- (all fields, all knockout tiers, string/numeric scores, partial picks).
@@ -27,6 +34,7 @@ matches as materialized (
          e.value->>'w' as rw,
          case when (e.value->>'h') ~ '^[0-9]+$' then (e.value->>'h')::int end as rh,
          case when (e.value->>'a') ~ '^[0-9]+$' then (e.value->>'a')::int end as ra,
+         -- winner ladder points (KO_PTS)
          case
            when e.key !~ '^k[0-9]+$' then 0
            when substring(e.key from 2)::int between 17 and 24 then 5
@@ -35,7 +43,17 @@ matches as materialized (
            when substring(e.key from 2)::int = 31              then 6
            when substring(e.key from 2)::int = 32              then 10
            else 4
-         end as kpts
+         end as kpts,
+         -- independent exact-score bonus (KO_BONUS), on top of the winner points
+         case
+           when e.key !~ '^k[0-9]+$' then 0
+           when substring(e.key from 2)::int between 17 and 24 then 5
+           when substring(e.key from 2)::int between 25 and 28 then 6
+           when substring(e.key from 2)::int in (29,30)        then 7
+           when substring(e.key from 2)::int = 31              then 5
+           when substring(e.key from 2)::int = 32              then 8
+           else 4
+         end as kbonus
   from results_row, jsonb_each(results_row.r) e
   where left(e.key,1) <> '_'
     and ( (e.value->>'w') is not null
@@ -63,7 +81,8 @@ scored as (
   select pr.pslug,
     sum( case
       when m.rw is not null then                       -- knockout
-        case when pr.pw = m.rw then m.kpts else 0 end
+        ( case when pr.pw = m.rw then m.kpts else 0 end )
+        + ( case when pr.ph = m.rh and pr.pa = m.ra then m.kbonus else 0 end )
       when coalesce(pr.po,'') = '' then 0              -- group: outcome pick required
       else
         ( case when pr.po = (case when m.rh > m.ra then 'H'
@@ -72,9 +91,12 @@ scored as (
         +
         ( case when pr.ph = m.rh and pr.pa = m.ra then 2 else 0 end )
       end ) as base,
-    sum( case when m.rw is null and coalesce(pr.po,'') <> ''
-               and pr.ph = m.rh and pr.pa = m.ra
-         then 1 else 0 end ) as exact,
+    sum( case
+      when m.rw is not null then                       -- knockout exact (final score)
+        case when pr.ph = m.rh and pr.pa = m.ra then 1 else 0 end
+      when coalesce(pr.po,'') <> '' and pr.ph = m.rh and pr.pa = m.ra
+        then 1 else 0
+      end ) as exact,
     sum( case
       when m.rw is not null then
         case when pr.pw = m.rw then 1 else 0 end

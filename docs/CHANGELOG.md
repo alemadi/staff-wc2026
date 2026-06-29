@@ -5,6 +5,28 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-06-29 — Scoring + robot health check; sync stale `sql/standings.sql` to the live (correct) function
+
+**Commits:** this commit (`sql/standings.sql` + this changelog). **No DB change** — the live function is already correct.
+
+**Why:** ran a full health check on the scorer and the autoconfirm robot now that the group stage is complete (72/72 results in) and the knockouts have begun (first KO result `k1` is in).
+
+**Robot — healthy.** `wc-autoconfirm` cron is active (`*/10 * * * *`); the last dozen+ ticks all succeeded, the ESPN fetches are returning `200`, all 72 group results are confirmed (organizer never overwritten), and the daily rank snapshot rolled over correctly at Doha midnight. Nothing to change.
+
+**Scoring — live is correct, but the repo file had drifted.** The authoritative leaderboard is the server-side `standings()` RPC (the app calls it first; client `scoreFor` is only a fallback). The **deployed** function is correct: it awards the knockout winner ladder **plus** the independent exact-score bonus (`kbonus`) and counts KO exacts — matching `scoreFor` / `KO_PTS` / `KO_BONUS` in `index.html`. Verified live: `standings()` runs clean over all 667 players.
+
+But the repo's `sql/standings.sql` was last updated 2026-06-12 — **before** the entire KO exact-score-bonus saga — and never re-synced. It still had **no `kbonus`** at all (knockouts scored winner-points only) and excluded KO exacts from the `exact` column. Because the file header says *"Safe to re-run any time,"* anyone re-running it would have `CREATE OR REPLACE`d the live function and **silently stripped the KO exact-score bonus**, under-paying every player who nails a knockout scoreline (4–8 pts/tie) — a real risk now that KO results are landing.
+
+**What changed:** rewrote `sql/standings.sql` to match the verified-correct deployed function exactly — adds the `kbonus` ladder (k1–k16 +4 · k17–k24 +5 · k25–k28 +6 · k29–k30 +7 · k31 +5 · k32 +8), adds the KO bonus to the points sum, and counts KO exacts in the `exact` column. Header comment updated to document the bonus. Frontend untouched.
+
+**Verified:** the new repo file is byte-for-logic identical to `pg_get_functiondef('public.standings()')` on the live project (`fzybuasvhzhmkbhxbton`). `kpts`/`kbonus` tiers match `KO_PTS`/`KO_BONUS`; group +3/+2 gating, champion +25, and the `predicted` count are unchanged.
+
+**DB:** none — the live function already had this fix; this only brings the repo back in sync so a future re-run can't regress it.
+
+**Rollback:** `git revert <this commit>` restores the stale repo file (does not touch the live DB).
+
+---
+
 ## 2026-06-28 — Scoring audit + fix: KO bonus was missing from 5 secondary point displays
 
 **Commits:** this commit (app `index.html` + this changelog).
