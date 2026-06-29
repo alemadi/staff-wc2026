@@ -5,6 +5,21 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-06-29 (Doha) — 🚀 DEPLOYED to production (app → main/Pages + standings() → Supabase)
+
+**What:** the Maximum-Excitement feature is now LIVE. App pushed to `main` (GitHub Pages, staffchallenge26.com) and the new `standings()` applied to Supabase project `fzybuasvhzhmkbhxbton` via `CREATE OR REPLACE` (migration `max_excitement_standings`).
+
+**Deploy order (to minimise any window, since k1 was already settled):** pushed the app first, polled the live site until the new build served (~30s), then applied the SQL immediately.
+
+**Post-deploy verification (real production data):**
+- Live `standings()` now has the streak + new ladder (verified via `pg_get_functiondef`); returns all 667 players, max 176 pts (sane — only k1 played).
+- **End-to-end parity on REAL data:** top 30 players' live `standings()` pts/exact/correct === the app's `scoreFor()` recomputed from their actual prediction blobs (30/30 match). Plus the pre-deploy 400-player Postgres gold test + 4000-fuzz parity.
+- k1 (Canada, 0–1) is now scored under the new ladder (R32 advance +3, exact +3) on both cards and leaderboard.
+
+**Rollback (captured BEFORE deploy):** the exact prior live function is saved at `sql/rollback_pre_max_excitement_standings.sql` — paste it into Supabase to restore the old scoring; and `git revert` the app on `main`. (The live pre-deploy version was a custom one: old ladder 4/5/6/8/6/10, old bonus 4/5/6/7/5/8, exact bonus, no streak — NOT identical to any git blob, which is why it was snapshotted.)
+
+---
+
 ## 2026-06-29 (Doha) — Pre-deploy fix: reveal "THIS REVEAL" total now includes the streak bonus
 
 **Commits:** this commit (`index.html` + this changelog). Frontend display only — no scoring/DB change.
