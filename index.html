@@ -3645,13 +3645,15 @@ function revealFlip(){
   st.textContent=v.label;st.className="rv-stamp "+v.cls;
   const cn=document.getElementById("rv-cons");
   if(cn){const ct=consRevealText(m,r,v);if(ct)cn.textContent=ct;}
-  const from=RV.total;RV.total+=v.pts;
+  const sr=(m.kn&&v.cls==="exact")?koStreakRunAt(state.player.predictions,state.results,m.id):0;
+  const sb=streakBonusAt(sr);                 // exact-score streak bonus earned at this match (0 unless run>=2)
+  const from=RV.total;RV.total+=v.pts+sb;     // include streak so the headline total matches the leaderboard
   odo(document.getElementById("rv-odo"),from,RV.total,500);
   try{
     if(v.cls==="exact"){navigator.vibrate&&navigator.vibrate([10,40,10,40,30]);sndExact();}
     else if(v.cls==="hit"){navigator.vibrate&&navigator.vibrate([15,60,15]);sndCorrect();}
   }catch(e){}
-  if(m.kn&&v.cls==="exact"){const sr=koStreakRunAt(state.player.predictions,state.results,m.id);if(sr>=2)setTimeout(function(){streakMoment(sr);},RV.quick?250:450);}
+  if(sr>=2)setTimeout(function(){streakMoment(sr);},RV.quick?250:450);
   markRevealed(m.id);
   RV.timer=setTimeout(function(){RV.i++;renderRevealCard();},RV.quick?900:1500);
 }
@@ -3734,9 +3736,10 @@ function revealSummary(){
   let total=0,html='<div class="rv-sum">';
   RV.q.forEach(function(m){
     const p=state.player.predictions[m.id]||{},r=state.results[m.id],v=rvVerdict(m,p,r);
-    total+=v.pts;markRevealed(m.id);
+    const sb=(m.kn&&v.cls==="exact")?streakBonusAt(koStreakRunAt(state.player.predictions,state.results,m.id)):0;
+    total+=v.pts+sb;markRevealed(m.id);
     const mv=fxView(m);
-    html+='<div class="rv-row '+v.cls+'"><span>'+esc(mv.home.n+" v "+mv.away.n)+'</span><b>'+esc(v.label)+'</b></div>';
+    html+='<div class="rv-row '+v.cls+'"><span>'+esc(mv.home.n+" v "+mv.away.n)+'</span><b>'+esc(v.label)+(sb>0?' 🔥+'+sb:'')+'</b></div>';
   });
   html+='</div>';
   document.getElementById("rv-stage").innerHTML=html;

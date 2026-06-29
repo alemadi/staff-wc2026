@@ -5,6 +5,18 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-06-29 (Doha) — Pre-deploy fix: reveal "THIS REVEAL" total now includes the streak bonus
+
+**Commits:** this commit (`index.html` + this changelog). Frontend display only — no scoring/DB change.
+
+**What:** the 7-agent deploy-readiness verifier caught it: `rvVerdict` returns only advance + final-score bonus, so the reveal odometer / "+N · THIS REVEAL" headline (and the reduced-motion summary) summed those but **omitted the exact-score streak bonus** that `scoreFor` and `standings()` award. A player hitting a 2+ exact streak would see the "🔥 STREAK ×N +M" flash and a bigger rank-climb than the headline number explained. Leaderboard/prizes were never affected (JS and SQL still agreed) — purely a reveal-total display mismatch.
+
+**Fix:** `revealFlip` and `revealSummary` now add `streakBonusAt(koStreakRunAt(...))` to the running total for each exact knockout, so the headline is definitionally identical to the engine. Verified: per-match (`rvVerdict.pts` + streak) summed over a 5-match scenario (3-in-a-row, reset, restart) equals `scoreFor().pts` (47 = 47); 4000/4000 fuzz parity unchanged; `node --check` clean.
+
+**Rollback:** `git revert <this-commit-sha>` (frontend-only).
+
+---
+
 ## 2026-06-29 03:14 (Doha) — Design pass: streak announcement + celebratory moment (from the 10 UX/UI designer panel)
 
 **Commits:** this commit (`index.html` + this changelog). **Frontend only — no DB, no scoring change** (display surfaces only; `scoreFor`/`standings()` untouched; 4000/4000 parity re-verified).
