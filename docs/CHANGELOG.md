@@ -5,6 +5,26 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-06-29 (Doha) — Match-night digest: a "Tonight's verdict" recap on the Me card
+
+**Commits:** this commit (`index.html` + changelog). **Frontend only — no DB / scoring / sync / lock-logic change.** New state is `localStorage` only (`wc:digestSnap`).
+
+**Why:** the knockouts run match-night by match-night (R16 this weekend → Final 19 Jul), but the app had no *moment-after* summary that persists — the cinematic reveal plays once, then it's gone. This is the third of the three social features: a calm, shareable recap of the night that just finished, sitting at the top of the Me card so a player who opens the app the morning after immediately sees how their night went and how the office did.
+
+**What changed — `index.html`:**
+- **`lastFullNight()`** — the latest day (Qatar) where *every kicked-off fixture is settled* and at least one match finished, so the card only appears once the night is actually over (not mid-evening).
+- **`digestData()`** — your tally on that night from your own picks (`rvVerdict` per match: points, picks landed, exact scores) plus the public office aggregates from `CONS`: **top scorer** (`dayTop`, ≥5 pts), **perfect-card count** (`perfectByDay`), **office hit-rate** (`dayHit`, over ≥20 picks).
+- **`digestPassed(day, st)`** — who you overtook over the night, snapshot-based and **stable per night** (`wc:digestSnap`): compares current standings to a snapshot from an earlier night. Positive-framing only — it never names who passed *you*.
+- **`meDigest(s, st)`** renders the **🌙 Tonight's verdict** card (mounted in a `me-digest-slot` right under your headline stats; re-rendered when `consensus()` warms so the office lines fill in). **`shareDigest()`** builds a "TONIGHT'S VERDICT" share card via the existing `shareBrag()` kit. CSS: `.me-digest` / `.dg-*`.
+
+**Seal-safety:** "your night" is your own picks/results. The office lines are aggregates the leaderboard already implies and carry their own floors (top scorer shown only at ≥5 pts; hit-rate only over ≥20 picks; perfect-card *count*, not names). "You passed X" is standings movement, positive-framed — **never surfaces who overtook you** (verified: a render where the player drops a rank surfaces nobody). No raw pick of another player, no `@ig`, no champ surface.
+
+**Verified:** `node --check` clean. Headless Chromium — **28/28** checks against an injected deterministic schedule: `lastFullNight` picks the completed night and skips an unsettled later night + a future night; your-night points/picks/exacts are correct; the three office lines surface at threshold and are **suppressed below** it (top scorer <5, hit-rate <20 picks, perfect 0); the card still shows with cold/empty `CONS`; the passed-line is null on first view, stable within a night, names the overtaken colleague on a later night, and stays null when the player *drops*; `shareDigest` builds the right card; zero page errors. Screenshot confirms the card layout.
+
+**Rollback:** `git revert <this commit>` — frontend-only; the `lastFullNight`/`digestData`/`digestPassed`/`meDigest`/`shareDigest` helpers, one `renderMe` mount line + one consensus-warm re-render hook, and one CSS block. The only new state is the `wc:digestSnap` snapshot, which is inert once the code is gone.
+
+---
+
 ## 2026-06-29 (Doha) — Chase Board: pin up to 5 rivals (multi-rival ladder)
 
 **Commits:** this commit (`index.html` + changelog). **Frontend only — no DB / scoring / sync / lock-logic change.** New state is `localStorage` only (`wc:rivals`).

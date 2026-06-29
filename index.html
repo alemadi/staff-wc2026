@@ -1123,6 +1123,22 @@
   .cb-x:hover{color:var(--bad)}
   .cb-h2h{margin-top:10px}
   .cb-h2h-t{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);text-align:center;margin-bottom:2px}
+
+  /* Match-night digest — "Tonight's verdict" recap card */
+  .me-digest{border:1px solid rgba(180,151,89,.34);border-radius:16px;padding:14px 15px;margin-bottom:14px;background:linear-gradient(180deg,rgba(45,111,224,.10),rgba(10,10,12,.2))}
+  .dg-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .dg-l{min-width:0}
+  .dg-t{font-size:13px;font-weight:800;color:var(--cream)}
+  .dg-d{font-size:11px;font-weight:700;color:var(--faint);margin-top:1px}
+  .dg-pts{flex:none;text-align:right;line-height:1}
+  .dg-pts b{font-family:var(--font-d);font-size:30px;color:var(--gb)}
+  .dg-pts small{display:block;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+  .dg-sub{font-size:12px;color:var(--muted);margin-top:8px}
+  .dg-sub b{color:var(--cream)}
+  .dg-office{margin-top:9px;padding-top:9px;border-top:1px solid rgba(255,255,255,.07);display:flex;flex-direction:column;gap:5px}
+  .dg-li{font-size:11.5px;color:var(--muted)}
+  .dg-li b{color:var(--gb)}
+  .dg-share{margin:11px auto 0}
 </style>
 </head>
 <body>
@@ -2975,6 +2991,7 @@ async function renderMe(){
     meScarcity()+
     '<div class="me-stat"><div class="s hero"><b>'+s.pts+'</b><span>Points</span></div><div class="s"><b>'+(awaiting?"—":("#"+myRank))+'</b><span>Rank'+(total?(" of "+total):"")+'</span></div><div class="s"><b>'+pc+'</b><span>Predicted</span></div></div>'+
     '<div class="me-break">'+(awaiting?'You\u2019ve locked in <b>'+pc+'/'+predTotal()+'</b> picks. Points appear here once matches kick off.':'<b>'+s.correct+'</b> correct results &nbsp;·&nbsp; <b>'+s.exact+'</b> exact scores &nbsp;·&nbsp; <b>'+s.scored+'</b> matches scored')+'</div>'+
+    '<div id="me-digest-slot">'+meDigest(s,st)+'</div>'+
     rtmPanel(roadGap(st))+
     meNextPick()+
     meChampLine()+
@@ -2989,6 +3006,7 @@ async function renderMe(){
   updateMeBadge();
   if(CONFIGURED&&!state.demo)consensus().then(function(c){
     try{const cbs=document.getElementById("champ-bets-slot");if(cbs&&!cbs.innerHTML)cbs.innerHTML=champBetsLine();}catch(e){}
+    try{const ds=document.getElementById("me-digest-slot");if(ds)ds.innerHTML=meDigest(s,st);}catch(e){}
     try{computeHonours(st);const hs=document.getElementById("me-honours-slot");if(hs)hs.innerHTML=meHonours(s);}catch(e){}
     const f=document.getElementById("me-fun");if(!f||!c.map||f.dataset.agree)return;
     const now=Date.now()+CLOCK_OFFSET;let agree=0,n=0;
@@ -4048,6 +4066,108 @@ async function rivalH2H(rivalSlug){
       '<div class="rv-h2sub">Across <b>'+both+'</b> shared settled match'+(both===1?'':'es')+' · '+
       (diff>0?('you’ve out-scored them by <b>+'+diff+'</b>'):(diff<0?('they’re <b>+'+(-diff)+'</b> up on these — reel them in'):'<b>dead level</b> on points'))+'</div></div>';
   }catch(e){return "";}
+}
+
+/* ===== Match-night digest — a persistent "Tonight's verdict" recap on the Me
+   card, summarising the most recently *completed* match-night. Frontend only;
+   reads your own picks + the public CONS day-aggregates. Seal-safe: your night
+   is your own data; the office lines are aggregates the leaderboard already
+   implies (top scorer ≥5 pts, perfect-card count, hit-rate over ≥20 picks);
+   "you passed X" is positive-framed standings movement (never who passed you). */
+function lastFullNight(){
+  /* the latest day (YYYY-MM-DD, Qatar) where every kicked-off fixture is settled
+     and at least one match finished — i.e. the night is over, not mid-evening. */
+  try{
+    const now=Date.now()+CLOCK_OFFSET,days={};
+    FIXTURES.forEach(function(f){
+      const dk=dayKey(f.ko),r=state.results[f.id],d=days[dk]||(days[dk]={settled:0,kicked:0});
+      if(new Date(f.ko).getTime()<=now)d.kicked++;
+      if(r&&(f.kn?r.w!=null:r.h!=null))d.settled++;
+    });
+    let best=null;
+    for(const dk in days){const d=days[dk];
+      if(d.settled>=1&&d.settled===d.kicked&&(best===null||dk>best))best=dk;}
+    return best;
+  }catch(e){return null;}
+}
+function digestData(){
+  /* pure: your tally on the completed night + the public office aggregates.
+     null when there is no completed night yet. */
+  try{
+    if(!state.player)return null;
+    const day=lastFullNight();if(!day)return null;
+    const pr=state.player.predictions||{};
+    let myPts=0,picks=0,hits=0,exacts=0;const fixes=[];
+    FIXTURES.forEach(function(f){
+      if(dayKey(f.ko)!==day)return;const r=state.results[f.id];
+      if(!r||(f.kn?r.w==null:r.h==null))return;fixes.push(f);
+      const v=pr[f.id];if(!v||!(v.o||v.w))return;
+      const vd=rvVerdict(f,v,r);picks++;if(vd.pts>0){myPts+=vd.pts;hits++;}
+      if(vd.cls==="exact")exacts++;
+    });
+    if(!fixes.length)return null;
+    fixes.sort(function(a,b){return new Date(a.ko)-new Date(b.ko);});
+    const label=fWk.format(new Date(fixes[fixes.length-1].ko));
+    let top=null,perfect=0,hitRate=null;
+    if(!state.demo&&CONS){
+      if(CONS.dayTop&&CONS.dayTop[day]&&CONS.dayTop[day].pts>=5)top=CONS.dayTop[day];
+      if(CONS.perfectByDay&&CONS.perfectByDay[day])perfect=CONS.perfectByDay[day];
+      const dh=CONS.dayHit&&CONS.dayHit[day];if(dh&&dh.tot>=20)hitRate=Math.round(dh.hit/dh.tot*100);
+    }
+    return {day:day,label:label,myPts:myPts,picks:picks,hits:hits,exacts:exacts,top:top,perfect:perfect,hitRate:hitRate,n:fixes.length};
+  }catch(e){return null;}
+}
+/* who you overtook over this night — snapshot-based, stable per night. Compares
+   current standings to a snapshot from an earlier night; never names who passed
+   you. Stores one snapshot per night in localStorage (wc:digestSnap). */
+function digestPassed(day,st){
+  try{
+    if(!st||!st.length||!state.meSlug)return null;
+    const sorted=st.slice().sort(cmpSt);const ranks={};let myRank=null;
+    sorted.forEach(function(r,i){if(ranks[r.slug]==null)ranks[r.slug]=i+1;if(r.slug===state.meSlug&&myRank===null)myRank=i+1;});
+    if(myRank===null)return null;
+    let snap=null;try{snap=JSON.parse(localStorage.getItem("wc:digestSnap")||"null");}catch(e){}
+    if(snap&&snap.day===day)return snap.name?{name:snap.name,n:snap.n}:null; /* already settled for this night */
+    let name=null,n=0;
+    if(snap&&snap.day&&snap.day<day&&snap.ranks&&typeof snap.rank==="number"){
+      const passed=[];
+      for(const slug in ranks){if(slug===state.meSlug)continue;
+        const was=snap.ranks[slug];if(typeof was==="number"&&was<snap.rank&&ranks[slug]>myRank)passed.push(slug);}
+      n=passed.length;
+      if(n){const row=sorted.find(function(r){return r.slug===passed[0];});name=row?row.name:null;}
+    }
+    try{localStorage.setItem("wc:digestSnap",JSON.stringify({day:day,rank:myRank,ranks:ranks,name:name,n:n}));}catch(e){}
+    return name?{name:name,n:n}:null;
+  }catch(e){return null;}
+}
+function meDigest(s,st){
+  try{
+    const d=digestData();if(!d)return "";
+    const pa=digestPassed(d.day,st);
+    let office='';
+    if(d.top)office+='<div class="dg-li">🥇 Top scorer: '+(d.top.slug===state.meSlug?'<b>you</b> 👑':esc(d.top.name))+' <b>+'+d.top.pts+'</b></div>';
+    if(d.perfect>=1)office+='<div class="dg-li">💎 <b>'+d.perfect+'</b> perfect card'+(d.perfect===1?'':'s')+' on the night</div>';
+    if(d.hitRate!=null)office+='<div class="dg-li">📊 Office hit-rate <b>'+d.hitRate+'%</b></div>';
+    if(pa&&pa.n)office+='<div class="dg-li">🫡 You passed <b>'+esc(pa.name)+'</b>'+(pa.n>1?(' and '+(pa.n-1)+' other'+(pa.n-1===1?'':'s')):'')+'</div>';
+    const sub=d.picks?('<b>'+d.hits+'</b>/'+d.picks+' picks landed'+(d.exacts?(' · <b>'+d.exacts+'</b> exact'):'')):('No picks on tonight’s tie'+(d.n===1?'':'s'));
+    return '<div class="me-seclbl">Match-night</div><div class="me-digest">'+
+      '<div class="dg-top"><div class="dg-l"><div class="dg-t">🌙 Tonight’s verdict</div><div class="dg-d">'+esc(d.label)+'</div></div>'+
+      '<div class="dg-pts"><b>+'+d.myPts+'</b><small>your night</small></div></div>'+
+      '<div class="dg-sub">'+sub+'</div>'+
+      (office?'<div class="dg-office">'+office+'</div>':'')+
+      '<button class="btn btn-ghost btn-sm dg-share" onclick="shareDigest()">📤 Share tonight</button>'+
+    '</div>';
+  }catch(e){return "";}
+}
+async function shareDigest(){
+  try{
+    const d=digestData();if(!d){toast("No completed match-night yet");return;}
+    const l1=d.label+(d.picks?(' · '+d.hits+'/'+d.picks+' landed'+(d.exacts?(' · '+d.exacts+' exact'):'')):'');
+    const l2=d.top?('Top scorer: '+(d.top.slug===state.meSlug?'you 👑':d.top.name)+' +'+d.top.pts)
+            :(d.perfect?(d.perfect+' perfect card'+(d.perfect===1?'':'s')+' tonight'):'');
+    shareBrag({emoji:"🌙",badge:"TONIGHT’S VERDICT",big:"+"+d.myPts,bigLabel:"MY NIGHT",
+      line1:l1,line2:l2,accent:[45,111,224],file:"match-night",shareText:"My match-night verdict — "+d.label});
+  }catch(e){toast("Couldn’t build the card");}
 }
 /* The room's title bets — champ aggregate, HARD-gated on champLocked() (the Final is
    the only seal champ has), with the <3 k-anon floor so a lone contrarian isn't outed. */
