@@ -1803,7 +1803,7 @@ function dayKey(iso){return fDayKey.format(new Date(iso));}
 function locked(iso){return new Date(iso).getTime()<=Date.now()+CLOCK_OFFSET;}
 function lockTs(m){const off=(m.round==="MD1")?0:LOCK_HRS*3600*1000;return new Date(m.ko).getTime()-off;}
 function lockedM(m){return lockTs(m)<=Date.now()+CLOCK_OFFSET;}
-function isLive(m){if(state.results[m.id])return false;const t=new Date(m.ko).getTime(),n=Date.now()+CLOCK_OFFSET;return n>=t&&n-t<150*60000;}
+function isLive(m){if(state.results[m.id])return false;if(m.kn&&!koReady(m))return false;/* a knockout tie can't be live while its teams are still placeholder slots */const t=new Date(m.ko).getTime(),n=Date.now()+CLOCK_OFFSET;return n>=t&&n-t<150*60000;}
 function fmtLeft(ms){
   if(ms<=0)return "locking…";
   const mins=Math.floor(ms/60000),d=Math.floor(mins/1440),h=Math.floor((mins%1440)/60),mm=mins%60;
