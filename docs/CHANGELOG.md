@@ -30,6 +30,111 @@ Both computed the identical target — the first fixture with `ko > now` — so 
 
 ---
 
+## 2026-06-29 (Doha) — Pre-deploy fix: reveal "THIS REVEAL" total now includes the streak bonus
+
+**Commits:** this commit (`index.html` + this changelog). Frontend display only — no scoring/DB change.
+
+**What:** the 7-agent deploy-readiness verifier caught it: `rvVerdict` returns only advance + final-score bonus, so the reveal odometer / "+N · THIS REVEAL" headline (and the reduced-motion summary) summed those but **omitted the exact-score streak bonus** that `scoreFor` and `standings()` award. A player hitting a 2+ exact streak would see the "🔥 STREAK ×N +M" flash and a bigger rank-climb than the headline number explained. Leaderboard/prizes were never affected (JS and SQL still agreed) — purely a reveal-total display mismatch.
+
+**Fix:** `revealFlip` and `revealSummary` now add `streakBonusAt(koStreakRunAt(...))` to the running total for each exact knockout, so the headline is definitionally identical to the engine. Verified: per-match (`rvVerdict.pts` + streak) summed over a 5-match scenario (3-in-a-row, reset, restart) equals `scoreFor().pts` (47 = 47); 4000/4000 fuzz parity unchanged; `node --check` clean.
+
+**Rollback:** `git revert <this-commit-sha>` (frontend-only).
+
+---
+
+## 2026-06-29 03:14 (Doha) — Design pass: streak announcement + celebratory moment (from the 10 UX/UI designer panel)
+
+**Commits:** this commit (`index.html` + this changelog). **Frontend only — no DB, no scoring change** (display surfaces only; `scoreFor`/`standings()` untouched; 4000/4000 parity re-verified).
+
+**What:** implemented the design panel's solutions (they scored the prior version 6.0/10, punchiness 4.6). All additive.
+- **Redesigned banner** — Anton hook headline "Knockout scores now SNOWBALL", the bonuses as gold **chips** (+5 / +15 / +20 with "2/3/4+ in a row" labels), tightened copy, demoted reassurance to a quiet line, a deep-link CTA, a **rise** entrance + a flame **flicker** (both `prefers-reduced-motion` safe), and a larger 30×30 ✕ with `role="status"`.
+- **Banner reach fixes** — `setupBanner()` now only shows to **joined players** (no longer burns the one-time exposure on the sign-in screen) and re-runs after join; a reflexive ✕ now **snoozes 48h** instead of silencing forever; opening the explainer marks it permanently seen (`bannerSeen()`).
+- **Deep-link FAQ** — `openFaq('streak')` opens the FAQ scrolled to and expanding the streak answer.
+- **Celebratory streak MOMENT** — when an exact-score run extends to 2/3/4+ during the reveal, a full-screen "🔥 STREAK ×N · +N" flash fires with escalating confetti/haptics (reduced-motion safe, `role="status"`). New display helpers `koStreakRunAt` / `koStreakCurrent` / `streakBonusAt` / `streakMoment` (mirror the engine; unit-tested).
+- **Me-tab badge** — "🔥 Exact-streak ×N" when a player is on a live run.
+- **Shareable streak** — the share card's feature line leads with "On a N-game exact streak 🔥" when applicable.
+- **Naming clash resolved** — the pre-existing correct-results streak is relabelled ("N correct in a row" / "Hot hand … correct in a row" / "Longest run") so it doesn't collide with the new exact-score streak.
+- **Points table** — the 🔥 streak rows render as an ascending ladder (numbers grow) to show the snowball; the rules one-liner now quantifies it (**+5→+20**); the per-knockout-card "How the bonus works" pill gains a streak line.
+
+**Verified:** `node --check` clean; 4000/4000 JS↔SQL fuzz parity unchanged (display-only); streak display helpers unit-tested (3-in-a-row, miss-reset, gap, tier bonuses); banner re-rendered in headless Chromium.
+
+**Rollback:** `git revert <this-commit-sha>` (frontend-only; no DB/state change).
+
+---
+
+## 2026-06-28 22:15 (Doha) — Review fixes: leaderboard-crash guard, FAQ numbers, empty-champion guard (from a 25-reviewer panel)
+
+**Commits:** this commit (`index.html` + `sql/standings.sql` + this changelog). **Re-deploy the SQL** (see DB).
+
+**Context:** a three-panel review (10 engineers, 10 UX/UI designers, 5 football fans) of the Maximum-Excitement feature. Verdict: **ship-with-fixes** (coders avg 8.1/10, fans excitement 8.2/10, no blocker). Two objective bugs + one safe guard fixed here; design polish and the streak-policy question are tracked as follow-ups.
+
+**Fixed:**
+- **`standings()` leaderboard-crash guard (HIGH):** the `ko` CTE int-cast `substring(m.id from 2)::int` had no `^k[0-9]+$` guard, so a single malformed knockout key in `wc:results` (+ any player's pred for it) would throw and abort the leaderboard for **all 660**. Added `and m.id ~ '^k[0-9]+$'` to the `ko` CTE WHERE (mirrors the JS `/^k[0-9]+$/` filter). Verified: with the guard, a planted `kx` key no longer crashes `standings()`.
+- **Stale FAQ numbers (HIGH):** the main-authored FAQ "Knockouts — how does the score bonus work?" still said the old "+4 … rising to +8" and contradicted the live points table / per-card label. Corrected to **"+3 … rising to +14"** (matches `KO_BONUS`).
+- **Empty-string champion guard:** `standings()` champion predicate now uses `nullif(...)` both sides, so an empty `_champ` awards 0 (matches JS). Prevents a 25-pt card-vs-leaderboard split from a hand-edited backup.
+- **Bracket-header drift (RND_HEAD):** the bracket-tree column headers showed the OLD advance ladder (+4/+5/+6/+8/+10); now **derived from `KO_PTS`** (renders +3/+6/+9/+14/+22) so they can never drift from the engine again. (Caught by the push committee's devil's-advocate.)
+- **FAQ tie-break:** "How are ties broken?" still said rules were "announced before the knockouts begin" — but they've started and the tie-break is already published. Now states the live rule (most predictions → most exact → most correct → earliest sign-up), matching the rules block and the `cmpSt` ranking code.
+
+**Decision process:** a 7-member push committee (+ chair) voted **GO-WITH-CONDITIONS** (3 GO / 0 NO-GO / 3 conditional). The two display fixes above were its assistant-owned pre-push conditions; the streak skip-to-bridge fix is a sanctioned **fast-follow** (not a blocker — both engines agree so cards==leaderboard, and it can't fire until ~3 settled KO results with a gap); the streak tail stays **uncapped** per the organiser's max-excitement mandate.
+
+**Verified:** re-extract + `node --check` clean; 4000/4000 JS fuzz parity; real Postgres `standings()` == `scoreFor()` over 400 players (full parity, no regression); edge test — malformed key + empty champ no longer crash and score correctly (pts 6); full disclosure-parity read — every user-facing number (banner, rules line, terms, points table, FAQ, bracket headers) matches the engine constants.
+
+**Follow-ups (not blockers, tracked):** streak skip-to-bridge exploit + runaway-tail cap (a scoring-policy decision), `restoreBackup()` input sanitization, a committed JS↔SQL parity CI harness, a celebratory in-app streak moment, and banner reach/punchiness polish.
+
+**DB (organiser action required):** re-paste `sql/standings.sql` into the Supabase SQL editor and Run (safe, `CREATE OR REPLACE`).
+
+**Rollback (git + SQL):**
+
+    git revert <this-commit-sha>
+    git push -u origin claude/group-stage-prediction-6502w4
+    git show <this-commit-sha>^:sql/standings.sql   # re-paste this previous version into Supabase
+
+---
+
+## 2026-06-28 18:00 (Doha) — Feature: "Maximum Excitement" knockout scoring (steeper ladder + exact-score bonus + exact-score STREAK + announcement banner)
+
+**Commits:** merge of `origin/main` (adopting its final-score bonus model, bracket tree, "Road to the Final", clarity pill, watch live-knockouts) **plus** this re-application of the Max-Excitement scoring on top. Touches `index.html`, `sql/standings.sql`, this changelog. **Requires an organiser SQL deploy** (see DB).
+
+**What:** Knockouts get much more dramatic. All changes are **knockouts only, going forward** — group-stage and the locked champion pick are untouched. Exact-score is judged on the **final score** (after extra time if played; penalties excluded), consistent with `koScoreHit`.
+
+| Round | Advance (was→now) | Exact final-score bonus (was→now) |
+|---|---|---|
+| R32 | 4 → **3** | 4 → **3** |
+| R16 | 5 → **6** | 5 → **4** |
+| QF | 6 → **9** | 6 → **6** |
+| SF | 8 → **14** | 7 → **9** |
+| Third | 6 → **8** | 5 → **5** |
+| Final | 10 → **22** | 8 → **14** |
+
+Plus a NEW **exact-score STREAK** (knockouts only): nail the exact final score in **consecutive knockout matches you predicted** (chronological by k-id) and the per-match bonus snowballs — **1st in a run +0 · 2nd +5 · 3rd +15 · 4th-and-onward +20 each**. Any non-exact predicted knockout match resets the run. No knockout has kicked off yet, so the streak window is the whole bracket — automatically "only going forward."
+
+**Decision:** Group (**+3 / +2**) and **Champion +25** are **unchanged** (purely additive rollout; nothing already locked is devalued).
+
+**What changed** (`index.html`, on top of main):
+- `KO_PTS` → `{R32:3,R16:6,QF:9,SF:14,third:8,final:22}`, `koPts` fallback `||3`; `KO_BONUS` → `{R32:3,R16:4,QF:6,SF:9,third:5,final:14}`.
+- New `koStreakBonus(preds,results)` — chronological gaps-and-islands over settled knockout matches the player engaged with; uses main's `koScoreHit` so "exact" matches the bonus exactly; awards 0/5/15/20 by position in each consecutive run. Wired into `scoreFor` before champion.
+- Copy synced to the new numbers **and to "final score" wording**: points table (`#ptable`, with a streak group), rules one-liner (`.rules`), the long terms paragraph, and the FAQ ("How do points work?" + new "🔥 exact-score streak" + "does this change my group/champion?" → no). Main's final-score explainer FAQ + "How the bonus works" pill kept as-is.
+- **Dismissible announcement banner** (`.xbanner` under the header): one-time "New for the knockouts — Exact-Score Streaks" notice with a "How it works ›" link to the FAQ; `setupBanner()`/`dismissBanner()` persist dismissal in `localStorage` (`wc:banner:streak-v1`).
+
+**What changed** (`sql/standings.sql`): advance/bonus CASE ladders updated; new `ko`/`ko_streak`/`streak_bonus` CTEs implement the streak via window-function gaps-and-islands; champion stays +25; comments say "final score." `CREATE OR REPLACE`, signature unchanged, grant re-applied.
+
+**Verified:**
+- **app ↔ SQL parity:** all 32 advance+bonus tiers match; canonical streaks (2/3/4/5-in-a-row, resets, isolated hits) correct in the real merged `scoreFor`; **4000/4000 random tournaments** agree between `scoreFor` and an independent translation of the SQL.
+- **real Postgres:** loaded `sql/standings.sql` into a throwaway PG 16 cluster, ran `standings()` over **400 synthetic players** (29 knockouts settled, streak-heavy) — **identical points to the merged `scoreFor()` for every player** (max 294).
+- `node --check` on the extracted inline script: clean.
+- **10-judge panel** on the design: mean **7.6/10**, all 10 in 6–9, unanimous "ship the +20" (4th-and-onward tier).
+
+**DB (organiser action required):** paste `sql/standings.sql` into the Supabase SQL editor and Run (safe, `CREATE OR REPLACE`, no DROP). Do it **before the first knockout result is entered** so leaderboard and cards agree from match 1. Until then it returns identical points to the old function (group + champion only).
+
+**Rollback (git + SQL):**
+
+    git revert <this-merge-commit-sha> -m 1
+    git push -u origin claude/group-stage-prediction-6502w4
+    # then re-paste the PREVIOUS sql/standings.sql into Supabase:
+    git show <this-merge-commit-sha>^1:sql/standings.sql   # copy output into the Supabase SQL editor and Run
+
+---
+
 ## 2026-06-28 — Scoring audit + fix: KO bonus was missing from 5 secondary point displays
 
 **Commits:** this commit (app `index.html` + this changelog).
