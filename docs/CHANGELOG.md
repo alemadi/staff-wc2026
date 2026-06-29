@@ -61,6 +61,49 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-06-29 (Doha) — Fix: points-table streak rows were squashed by a CSS class collision
+
+**Commits:** this commit (`index.html` + changelog). Frontend/CSS only.
+
+**What:** the new streak rows used `class="prow sk …"`, but `.sk` is the pre-existing **skeleton-loader** class (shimmer animation + `height:14px`) — so the three streak rows were squeezed to 14px with a shimmer band (caught in a screenshot). Removed the colliding `sk`/`sk1`/`sk2`/`sk3` classes (the bold numbers are already gold via the base `.ptable .prow b` rule) and bumped `.ptable .prow` padding 3px→5px with `line-height:1.35` for comfortable, uniform spacing. The streak rows now render like every other row. `node --check` clean.
+
+**Rollback:** `git revert <this-commit-sha>` (frontend-only).
+
+---
+
+## 2026-06-29 (Doha) — Clarity & declutter pass (11-lens reader swarm + synthesis + critic)
+
+**Commits:** this commit (`index.html` + changelog). Frontend/copy only — no scoring or DB change; `node --check` clean and 4000/4000 JS↔SQL fuzz parity unchanged.
+
+**Why:** a swarm of 11 reader/expert lenses (newcomer, non-native English, 3-sec skimmer, plain-language, information architect, confusion-hunter, density, UX writer, football-literacy, consistency, critic) audited every explanation surface; synthesis + an adversarial critic produced a reconciled spec. Goal: say each rule once, in plain words, with one name per concept — clearer **and** less cluttered.
+
+**What changed (copy/structure only):**
+- **Points table** = single source of truth. Group header → "(now finished)"; knockouts header trimmed (caveats moved to the card pill); added a **column legend** ("faint = exact-score bonus / bold = go through") so the two numbers per row aren't distinguished by weight alone; every knockout row now reads uniformly "· +N exact score"; streak rows say per-game vs one-time consistently with a **reset footer**; champion row past-tense "locked". (Reverted an ascending-font "ladder" on the streak rows that overflowed/overlapped.)
+- **Rules line** (always visible): plainer ("right result", "exact score", "+3 to +22 (more each round)"), dropped the edge-case tie-break, kept the 🔥 streak tease linking to the FAQ.
+- **Per-card pill**: plain "full time / after extra time" (not 90/120), added the 1–1-won-on-penalties case, kept the worked example, trimmed to a one-line streak teaser + link; second note → just "Predict the final score".
+- **FAQ**: rewrote "How do points work?", "score bonus work", the streak entry, and "does this change…" as scannable, plain-language answers (enabled `white-space:pre-line` so line breaks/bullets render); **merged 3 near-identical contact entries into 1** (14 → 12 entries).
+- **Terms paragraph**: collapsed the 4th full restatement of every point value into a one-line summary that points to the table (kills the worst drift risk); legal/operational text kept.
+- **Banner**: plain heading "New: the exact-score streak", literal sub, chips relabelled "ON YOUR 2ND / ON YOUR 3RD / 4TH ON, EACH" (one-time vs each), quiet line confirms champion (+25) unchanged.
+- **Reveal label**: knockout exact-score-only result keeps the ◎ glyph and now reads "exact score" (critic fix — preserves ◎ = any exact hit).
+- **Me badges**: generic correct-pick streak → ✅; the prize-relevant one → "🔥 Exact-score streak ×N".
+- **Consistency**: one name per concept across all surfaces ("exact score", "exact-score streak", "pick who goes through", round names spelled out, "+N" notation, ranges use "to" not "→"); retired snowball/back-to-back/going forward/nail/90-min/120-min from user-facing copy (only dev code-comments retain a couple).
+
+**Verified:** `node --check` clean; 4000/4000 fuzz parity unchanged; rendered the banner, rules line, points table and a FAQ answer in headless Chromium (caught + fixed the streak-row overlap before shipping).
+
+**Rollback:** `git revert <this-commit-sha>` (frontend-only).
+
+---
+
+## 2026-06-29 (Doha) — Banner now STAYS for a while (persistent through the knockouts)
+
+**Commits:** this commit (`index.html` + changelog). Frontend only.
+
+**Why:** the streak banner was one-time (✕ snoozed 48h; opening the explainer marked it permanently seen), so it vanished and felt lost. Now it **persists**: it shows on every visit (to joined players) until **`BANNER_UNTIL` = 2026-07-15** (through the knockouts), the **✕ only hides it ~8h** (it returns next visit), and the "See how streaks work ›" CTA **no longer dismisses it**. `BANNER_KEY` bumped `streak-v1`→`streak-v2` so it re-appears for everyone who'd already dismissed v1. To change how long it stays, edit `BANNER_UNTIL`; to change the close duration, edit `BANNER_SNOOZE`. `node --check` clean.
+
+**Rollback:** `git revert <this-commit-sha>` (frontend-only).
+
+---
+
 ## 2026-06-29 (Doha) — Discoverability: the always-visible rules line now links to the streak explainer
 
 **Commits:** this commit (`index.html` + changelog). Frontend only.
