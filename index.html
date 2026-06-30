@@ -5215,7 +5215,36 @@ function bindSwipeGestures(){
   });
   c.addEventListener("pointercancel",()=>{drag=false;c.style.transition="transform .25s";c.style.transform="";if(gl)gl.style.opacity=0;if(gr)gr.style.opacity=0;});
 }
+/* Live sync — the robot confirms results into the shared DB on its own, so an
+   open app must pick them up without a manual reload. Poll the shared results +
+   knockout teams; when they change, refresh state, bust the standings cache and
+   re-render the current view. A matches re-render is skipped while a score input
+   is focused, so a half-typed prediction is never wiped. */
+let SHARED_SIG=null;
+async function refreshShared(){
+  if(!CONFIGURED||!state.player||document.hidden)return;
+  let r,kt;
+  try{r=await getJSON("wc:results",true);}catch(e){return;}
+  if(r==null)return;
+  try{kt=await getJSON("wc:kteams",true);}catch(e){}
+  kt=kt||{};
+  const sig=JSON.stringify(r)+"|"+JSON.stringify(kt);
+  if(sig===SHARED_SIG)return;            /* nothing changed since last poll */
+  SHARED_SIG=sig;
+  state.results=r;state.kteams=kt;
+  bustStandings();
+  const v=state.view;
+  if(v==="matches"){
+    const a=document.activeElement;
+    if(!(a&&a.classList&&a.classList.contains("scorein")))renderMatches();
+  }
+  else if(v==="bracket")renderBracket();
+  else if(v==="leaderboard")renderLeaderboard();
+  else if(v==="me")renderMe();
+  try{renderPulse();}catch(e){}
+}
 function liveTick(){
+  refreshShared();
   const now=Date.now()+CLOCK_OFFSET;
   const active=FIXTURES.some(m=>{const k=new Date(m.ko).getTime();return now>k-15*60e3&&now<k+150*60e3;});
   if(active)fetchLive();
@@ -5314,6 +5343,7 @@ function liveTick(){
 (async function init(){
   state.results=await getJSON("wc:results",true)||{};
   state.kteams=await getJSON("wc:kteams",true)||{};
+  SHARED_SIG=JSON.stringify(state.results)+"|"+JSON.stringify(state.kteams);
   state.org=false; /* org actions are server-verified per call — unlock fresh each load */
   const me=await getJSON("wc:me",false);
   if(me){const p=await getJSON("wc:player:"+me,true);if(p){state.player=p;state.meSlug=me;}}
@@ -5328,7 +5358,7 @@ function liveTick(){
   setupBanner();
   renderPulse();setInterval(renderPulse,30000);
   fetchLive();setInterval(liveTick,60000);
-  document.addEventListener("visibilitychange",function(){if(!document.hidden&&LIVEF.on)fetchLive();});
+  document.addEventListener("visibilitychange",function(){if(!document.hidden){refreshShared();if(LIVEF.on)fetchLive();}});
   if(!CONFIGURED){const w=document.getElementById("cfg-warn");if(w)w.style.display="block";}
   syncClock();setInterval(syncClock,600000);
   tickCountdown();setInterval(tickCountdown,1000);

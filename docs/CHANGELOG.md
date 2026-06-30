@@ -5,6 +5,25 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-06-30 (Doha) — Open app now auto-refreshes results & standings (no reload)
+
+**Commits:** this commit (`index.html` + changelog). **Frontend only — no DB / scoring / sync / lock-logic change.** Seal-safe; read-only polling.
+
+**Why:** the robot confirms results into the shared DB on its own (k1–k4 are in, penalty shootouts and all), but the app only loaded `wc:results` **once at startup** and never re-polled — so a phone left open never showed a match flipping to full-time, the new points, or the leaderboard moving until you manually reloaded. That read as "scores aren't updating automatically" even though the data was current server-side.
+
+**What changed — `index.html`:**
+- **`refreshShared()`** — polls the shared `wc:results` + `wc:kteams` (fresh, server-side reads) on the existing 60s `liveTick`, and immediately when the tab regains focus (`visibilitychange`). A lightweight signature compares against the last poll, so it only acts when something actually changed. On a change it updates `state`, busts the standings cache, and re-renders the **current** view (matches / bracket / leaderboard / me) in place — no scroll jump.
+- **Input-safe:** a matches re-render is skipped while a score input (`.scorein`) is focused, so a half-typed prediction is never wiped; it refreshes on the next poll once you're done.
+- `SHARED_SIG` is seeded at init from the first load so the first poll is a no-op.
+
+**Seal-safety:** read-only polling of the same shared keys the app already reads; no new writes, no scoring/lock/sync change.
+
+**Verified:** `node --check` clean. Logic: only re-renders on an actual results/teams change; skips while typing a score; paused while the tab is hidden; leaderboard re-pulls fresh standings (cache busted) so points move as results land.
+
+**Rollback:** `git revert <this commit>` — frontend-only; the `refreshShared` helper, its `liveTick`/`visibilitychange` hooks, and the `SHARED_SIG` seed line.
+
+---
+
 ## 2026-06-30 (Doha) — Show your predicted score on LIVE knockout cards
 
 **Commits:** this commit (`index.html` + changelog). **Frontend only — no DB / scoring / sync / lock-logic change.** Seal-safe; display only.
