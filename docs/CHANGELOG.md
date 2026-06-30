@@ -5,6 +5,18 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-06-30 (Doha) — Predictions legend: lead with knockouts, drop the finished group-stage scoring
+
+**Commits:** this commit (`index.html` + changelog). **Frontend only — no DB / scoring / sync / lock-logic change.** Seal-safe; copy only.
+
+**Why:** the one-line scoring legend under the Predictions progress bar still led with **"+3 right result · +2 exact score"** — group-stage scoring that no longer applies now that the group stage is finished (11–27 June) and the Round of 32 is underway. It was the first thing a player read, and it described a phase that's over.
+
+**What changed — `index.html`:** the `.rules` legend now leads with the live phase — **"+4 to +10 who goes through · more each round · + exact score on top · 🔥 streak +5 to +20 · 🏆 champion +25"**. The streak link (`openFaq('streak')`) and champion +25 are unchanged. The full **"How do points work?"** table directly below is untouched — it still documents the group stage (now finished) and every knockout round, so nothing is lost, only re-ordered for the current phase.
+
+**Rollback:** `git revert <this commit>` — frontend-only, one line.
+
+---
+
 ## 2026-06-30 (Doha) — Show your predicted score on LIVE knockout cards
 
 **Commits:** this commit (`index.html` + changelog). **Frontend only — no DB / scoring / sync / lock-logic change.** Seal-safe; display only.
