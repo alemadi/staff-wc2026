@@ -1385,6 +1385,25 @@
   .dept-cup .dc-bar .b{background:rgba(138,21,56,.7)}
   .dept-cup .dc-stake{font-size:12px;color:var(--muted);text-align:center;line-height:1.5}
   .dept-cup .dc-stake b{color:var(--gold-bright)}
+
+  /* ===================================================================
+     MATCHNIGHT pass — room live (frontend-only, palette-locked,
+     reduced-motion-gated). Live score+clock header and aggregate-only
+     "as it stands" tally in The Room; names stay sealed until full time.
+     Static styling only — the heartbeat rides existing pulses.
+     =================================================================== */
+  .room-res.live #room-live-score{font-family:var(--font-d);font-weight:400;font-size:17px;letter-spacing:.04em;color:var(--gold-bright);vertical-align:-1px}
+  .room-res.live #room-live-clock{color:var(--magenta-2);font-variant-numeric:tabular-nums}
+  .room-asis{font-size:12.5px;line-height:1.55;color:var(--muted);padding:11px 13px;margin:2px 0 8px;border-radius:13px;border:1px solid rgba(180,151,89,.35);background:linear-gradient(110deg,rgba(180,151,89,.10),transparent 75%),var(--glass)}
+  .room-asis .asis-line{color:var(--gold);font-weight:700}
+  .room-asis .asis-line b{color:var(--gold-bright)}
+  .room-asis .asis-line .cash b{color:var(--ok)}
+  .room-asis .asis-line .sweat b{color:var(--bad)}
+  .room-asis .asis-line.ex{color:var(--muted);font-weight:600;margin-top:3px}
+  .room-asis .mine-live{margin-top:6px;padding-top:6px;border-top:1px solid var(--line);color:var(--gold-bright);font-weight:700}
+  .room-asis .mine-live.sweat-me{color:var(--cream)}
+  .room-refresh{display:block;width:100%;margin:0 0 10px;padding:7px 10px;border-radius:10px;border:1px solid var(--line);background:var(--glass);color:var(--faint);font-size:11px;font-weight:700;font-family:var(--font-b);cursor:pointer;transition:color .2s,border-color .2s}
+  .room-refresh:hover{color:var(--gold-bright);border-color:rgba(180,151,89,.4)}
 </style>
 </head>
 <body>
@@ -4339,8 +4358,9 @@ async function renderRoom(body){
     return;
   }
   if(!ROOM_SEL||!list.some(m=>m.id===ROOM_SEL)){
-    const settled=list.filter(roomSettled);              /* default: most-recent settled, else most-recent eligible */
-    ROOM_SEL=(settled[0]||list[0]).id;
+    const liveM=list.find(m=>isLive(m)&&!roomSettled(m)); /* MATCHNIGHT F1.1: a live tie owns the room */
+    const settled=list.filter(roomSettled);              /* else: most-recent settled, else most-recent eligible */
+    ROOM_SEL=(liveM||settled[0]||list[0]).id;
   }
   const opts=list.map(m=>{const v=fxView(m);
     return '<option value="'+m.id+'"'+(m.id===ROOM_SEL?' selected':'')+'>'+(roomSettled(m)?'✓ ':'• ')+m.id.toUpperCase()+' · '+esc(v.home.n)+' v '+esc(v.away.n)+'</option>';}).join("");
@@ -4381,6 +4401,40 @@ function roomConsensus(m,players,myPk){
 /* Suspense split bar from the SAME floored counts roomConsensus computed — renders only
    when the text line itself passed the k-anon floor. Aggregates only, never names. */
 function roomBarHTML(segs){return '<div class="room-bar">'+segs.filter(function(s){return s.pct>0;}).map(function(s){return '<i class="'+s.k+(s.mine?' mine':'')+'" style="width:'+s.pct+'%"></i>';}).join('')+'</div>';}
+/* MATCHNIGHT F1.3 — "as it stands" while a locked knockout tie is in play. AGGREGATES ONLY:
+   counts ride the same tot<8 k-anon floor as roomConsensus; the only pick ever named is YOURS.
+   Reads the already-pulled players array — never a second fetch. */
+function roomAsIs(m,mv,players,myPk){
+  if(!m.kn||!isLive(m)||typeof liveFor!=="function")return "";
+  const le=liveFor(mv);
+  if(!le||le.state!=="in"||le.hs==null)return "";
+  const lead=le.hs>le.as?mv.home.n:(le.as>le.hs?mv.away.n:null);
+  let cash=0,sweat=0,exNow=0,tot=0;
+  players.forEach(function(p){const v=(p.predictions||{})[m.id];if(!v||!v.w)return;
+    if(v.w!==mv.home.n&&v.w!==mv.away.n)return;tot++;
+    if(lead){if(v.w===lead)cash++;else sweat++;}
+    if(v.h!=null&&v.a!=null&&Number(v.h)===le.hs&&Number(v.a)===le.as&&(!lead||v.w===lead))exNow++;});
+  let html='';
+  if(tot>=8){                                           /* same floor as roomConsensus */
+    if(lead){
+      html+='<div class="asis-line">⚖️ As it stands: <span class="cash"><b>'+cash+'</b> colleagues cashing +'+koPts(m)+'</span> · <span class="sweat"><b>'+sweat+'</b> sweating</span></div>';
+      if(exNow>0)html+='<div class="asis-line ex">🎯 <b>'+exNow+'</b> would land the exact score</div>';
+    }else{
+      html+='<div class="asis-line">⚖️ Level — nobody’s through yet'+(exNow>0?' · <b>'+exNow+'</b> holding the exact '+le.hs+'–'+le.as:'')+'</div>';
+    }
+  }
+  if(myPk&&myPk.w&&lead){                               /* YOUR line — own pick, always allowed */
+    if(myPk.w===lead){
+      const exMe=myPk.h!=null&&myPk.a!=null&&Number(myPk.h)===le.hs&&Number(myPk.a)===le.as;
+      html+='<div class="mine-live">✅ You’re cashing +'+koPts(m)+' as it stands'+(exMe?' · and the exact-score bonus 🎯':'')+'</div>';
+    }else if(myPk.w===mv.home.n||myPk.w===mv.away.n){
+      html+='<div class="mine-live sweat-me">😬 You need '+esc(myPk.w)+' to turn it around</div>';
+    }
+  }
+  if(!html)return "";
+  return '<div class="room-asis">'+html+'</div>'+
+    '<button class="room-refresh" onclick="renderRoomBody()">↻ updated at the whistle — tap to refresh the board</button>';
+}
 /* Windowed table — at 670 players a settled knockout can have 600+ rows. Show the
    top scorers + your row + your immediate neighbours, with a one-tap "show all". */
 function roomTable(rows,mv,m){
@@ -4420,11 +4474,17 @@ async function renderRoomBody(){
   if(settled){
     html+='<div class="room-res land"><span class="rh">FULL TIME</span><b>'+esc(mv.home.n)+' '+(r.h!=null?r.h:'')+'–'+(r.a!=null?r.a:'')+' '+esc(mv.away.n)+'</b>'+(m.kn&&r.w?'<span class="rw">'+esc(r.w)+' advance</span>':'')+'</div>';
   }else{
-    html+='<div class="room-res live"><span class="rh">SEALED · awaiting result</span><b>'+esc(mv.home.n)+' v '+esc(mv.away.n)+'</b></div>';
+    /* MATCHNIGHT F1.2 — live score + clock header (locked ⇒ seal-safe; ids let liveTick patch text cheaply) */
+    const le0=(isLive(m)&&typeof liveFor==="function")?liveFor(mv):null;
+    if(le0&&le0.state==="in"&&le0.hs!=null)
+      html+='<div class="room-res live"><span class="rh">🔴 LIVE</span><b>'+esc(mv.home.n)+' <span id="room-live-score">'+le0.hs+'–'+le0.as+'</span> '+esc(mv.away.n)+'</b><span class="rw" id="room-live-clock">'+esc(le0.clock||"LIVE")+'</span></div>';
+    else
+      html+='<div class="room-res live"><span class="rh">SEALED · awaiting result</span><b>'+esc(mv.home.n)+' v '+esc(mv.away.n)+'</b></div>';
   }
   const cons=roomConsensus(m,players,myPk);   /* aggregate from the single pull; safe pre-result via the tot<5/8 floor */
   if(cons&&cons.html)html+='<div class="room-cons">'+cons.html+((!settled&&cons.segs)?roomBarHTML(cons.segs):'')+'</div>';
   if(!settled){
+    html+=roomAsIs(m,mv,players,myPk);   /* MATCHNIGHT F1.3 — aggregate "as it stands" tally; NO names pre-settle */
     html+='<div class="org-note">🔒 Who picked what unlocks at the final whistle. The office split above is live — the names land after full time.</div>';
     host.innerHTML=html;return;
   }
@@ -5755,6 +5815,19 @@ function liveTick(){
   const active=FIXTURES.some(m=>{const k=new Date(m.ko).getTime();return now>k-15*60e3&&now<k+150*60e3;});
   if(active)fetchLive();
   if(active&&state.view==="leaderboard"&&LB_MODE==="people"&&!state.demo)renderLeaderboard(); /* board heartbeat: only while a match is live, so odo count-up fires when results land — never replays the board on quiet weeks (60s cadence, cached) */
+  /* MATCHNIGHT F1.5 — Room heartbeat: patch score/clock textContent from the LIVE cache only.
+     NEVER renderRoomBody() from here — that would bulk-pull the players blob on a timer. */
+  if(active&&state.view==="leaderboard"&&LB_MODE==="room"&&ROOM_SEL&&typeof liveFor==="function"){
+    const rm=FIXBYID[ROOM_SEL];
+    if(rm&&isLive(rm)){
+      const rle=liveFor(fxView(rm));
+      if(rle&&rle.state==="in"&&rle.hs!=null){
+        const rs=document.getElementById("room-live-score"),rc=document.getElementById("room-live-clock");
+        if(rs)rs.textContent=rle.hs+"–"+rle.as;
+        if(rc)rc.textContent=rle.clock||"LIVE";
+      }
+    }
+  }
 }
 
 /* Collapse the progress panel to a slim bar once it sticks. Two rules keep this from feeling broken:
