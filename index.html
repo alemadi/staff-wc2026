@@ -344,7 +344,6 @@
   .lb-row{display:flex;align-items:center;gap:12px;background:var(--glass);border:1px solid var(--line);border-radius:15px;padding:11px 14px;margin-bottom:9px;animation:rise .45s both;transition:.2s}
   .lb-gap{text-align:center;color:var(--faint);font-weight:800;letter-spacing:4px;padding:2px 0 8px}
   .lb-more{display:block;width:100%;margin:6px 0 2px;padding:13px;border-radius:13px;border:1px solid var(--line);background:transparent;color:var(--gold);font:inherit;font-size:13px;font-weight:800;cursor:pointer}
-  .lb-row.me{border-color:var(--gold);background:linear-gradient(100deg,rgba(180,151,89,.14),var(--glass));box-shadow:0 0 0 1px rgba(180,151,89,.25)}
   .lb-row .rank{font-family:var(--font-d);font-size:19px;color:var(--muted);min-width:26px;text-align:center}
   .lb-row.me .rank{color:var(--gold)}
   .lb-info{flex:1;min-width:0}
@@ -1237,6 +1236,110 @@
   .gcard:nth-child(4){animation-delay:.12s}
   .gcard:nth-child(5){animation-delay:.15s}
   .gcard:nth-child(6){animation-delay:.18s}
+
+  /* ===================================================================
+     SHOWTIME pass — leaderboard & room (frontend-only, palette-locked,
+     reduced-motion-gated). Podium crown + honour chips, room split bar,
+     honest Live tag, rank-move pop, settled theatre, find-me spine,
+     dept tribal frame, chip shine, RTM runway, broadcast ticker,
+     prize gleam, podium skeleton.
+     =================================================================== */
+  /* L1 — podium throne for #1 */
+  .pod-crown{font-size:20px;line-height:1;animation:crownDrop .6s cubic-bezier(.34,1.56,.64,1) .35s both;filter:drop-shadow(0 4px 8px rgba(0,0,0,.6))}
+  @keyframes crownDrop{from{opacity:0;transform:translateY(-14px) rotate(-14deg)}to{opacity:1;transform:none}}
+  @media(prefers-reduced-motion:reduce){.pod-crown{animation:none}}
+  .pod.first .stand{position:relative}
+  .pod.first .stand::before{content:"";position:absolute;inset:auto -18px -8px;top:-34px;background:radial-gradient(closest-side,rgba(180,151,89,.22),transparent 70%);pointer-events:none}
+  .pod .pname .title-chip i{display:none} /* emoji-only chip keeps the name ellipsis honest */
+  /* L2 — the Room's pre-result suspense bar (floored aggregates only) */
+  .room-bar{height:9px;border-radius:99px;overflow:hidden;display:flex;gap:2px;margin:6px 0 10px;background:rgba(255,255,255,.05)}
+  .room-bar i{display:block;height:100%;transition:width .7s cubic-bezier(.2,.8,.2,1)}
+  .room-bar .h{background:linear-gradient(90deg,var(--gold-deep),var(--gold-bright))}
+  .room-bar .d{background:rgba(244,238,227,.25)}
+  .room-bar .a{background:rgba(138,21,56,.75)}
+  .room-bar i.mine{box-shadow:inset 0 0 0 1.5px var(--gold-bright)}
+  /* L4 — rank-move kinetics (climbers only, one-shot) */
+  .rmove.up{animation:moveup .5s cubic-bezier(.34,1.56,.64,1) both}
+  @keyframes moveup{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  /* L5 — room settled theatre (reuses resultslide/resultpop/rise) */
+  .room-res.land{animation:resultslide .4s cubic-bezier(.34,1.6,.5,1) both}
+  .room-res.land .rw{animation:resultpop .5s cubic-bezier(.34,1.8,.5,1) both}
+  .room-hero{animation:rise .45s .15s both}
+  /* L6 — find-me anchoring */
+  .lb-row.me{border-left:3px solid var(--gold)}
+  .lb-gap span{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:800}
+  /* L7 — department league tribal frame */
+  .lb-row.lead{border-color:rgba(180,151,89,.5);background:linear-gradient(100deg,rgba(180,151,89,.16),var(--glass));box-shadow:0 0 22px -12px rgba(180,151,89,.6)}
+  .lb-row.dept-top .avatar{width:44px;height:44px}
+  /* L8 — honour-chip shine (frontrunner only, one-shot) */
+  .title-chip.shine{position:relative;overflow:hidden}
+  .title-chip.shine::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.5) 50%,transparent 60%);transform:translateX(-120%);animation:chipshine 1.2s .8s 1 both}
+  @keyframes chipshine{to{transform:translateX(120%)}}
+  @media(prefers-reduced-motion:reduce){.title-chip.shine::after{content:none}}
+  /* L9 — RTM runway inside the strip */
+  .rtm-strip{flex-wrap:wrap}
+  .rtm-strip .rtm-track{width:100%;flex:none;margin:4px 2px 1px}
+  /* L10 — ticker → broadcast bar */
+  .lb-tick{cursor:pointer}
+  .lb-tick .tk-lab{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.14em;color:#181106;background:linear-gradient(115deg,var(--gd),var(--gold));border-radius:5px;padding:2px 6px;margin-right:8px;vertical-align:1px}
+  /* L11 — prize-strip gleam (reuses chipshine, declared once above) */
+  .prize-strip b{position:relative;overflow:hidden;display:inline-block;padding:0 2px}
+  .prize-strip b::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.45) 50%,transparent 60%);transform:translateX(-130%);animation:chipshine 1.4s .6s 1 both}
+  @media(prefers-reduced-motion:reduce){.prize-strip b::after{content:none}}
+  /* L12 — podium skeleton (no board jump when the podium paints) */
+  .sk-pod{align-items:end;margin:8px 0 6px}
+  .sk-pod .sk.av{margin:0 auto}
+  /* ===================================================================
+     SHOWTIME pass — me card & reveal (frontend-only, palette-locked,
+     reduced-motion-gated). Rank-tiered collectible me card + foil sheen,
+     reveal depth-flip/charge/fuse/streak heat, near-miss warmth, richer
+     confetti, sealed reveal chip.
+     =================================================================== */
+  /* R1 — rank-tiered collectible card (metals from cream/gold-deep only) */
+  .mecard[data-tier="t1"]{border-color:var(--gold);box-shadow:0 0 34px -12px rgba(180,151,89,.65),0 20px 60px -30px rgba(0,0,0,.8)}
+  .mecard[data-tier="t2"]{border-color:rgba(244,238,227,.5);box-shadow:0 0 28px -14px rgba(244,238,227,.4),0 20px 60px -30px rgba(0,0,0,.8)}
+  .mecard[data-tier="t3"]{border-color:rgba(138,115,74,.75);box-shadow:0 0 28px -14px rgba(138,115,74,.55),0 20px 60px -30px rgba(0,0,0,.8)}
+  .mecard[data-tier="elite"]{border-color:rgba(180,151,89,.45)}
+  .me-tier{position:absolute;top:12px;right:12px;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--gold-bright);border:1px solid rgba(180,151,89,.5);background:rgba(180,151,89,.1);border-radius:6px;padding:3px 7px;pointer-events:none;z-index:1}
+  .mecard[data-tier="t2"] .me-tier{color:var(--cream);border-color:rgba(244,238,227,.4);background:rgba(244,238,227,.06)}
+  .mecard[data-tier="t3"] .me-tier{color:var(--gold-deep);border-color:rgba(138,115,74,.6);background:rgba(138,115,74,.12)}
+  .mecard[data-tier] .me-reveal{margin-top:24px} /* clear the corner tier pill when both are present */
+  /* R2 — one-shot foil sheen sweep on the me card */
+  .mecard .foil{position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 42%,rgba(227,211,163,.15) 50%,transparent 58%);transform:translateX(-130%);animation:foilsweep 1.6s .5s 1 both}
+  @keyframes foilsweep{to{transform:translateX(130%)}}
+  @media(prefers-reduced-motion:reduce){.mecard .foil{content:none;display:none}}
+  /* R3 — reveal flip: depth lunge toward the camera + charge-up beat */
+  .rv-card.flipped .rv-flip{animation:flip3d .78s cubic-bezier(.45,.05,.2,1) both;transform:rotateY(180deg);transition:none}
+  @keyframes flip3d{0%{transform:rotateY(0)}50%{transform:rotateY(90deg) translateZ(70px) scale(1.05)}100%{transform:rotateY(180deg)}}
+  .rv-quick.rv-card.flipped .rv-flip{animation-duration:.42s}
+  .rv-front.charge::after{content:"";position:absolute;inset:0;border-radius:24px;box-shadow:inset 0 0 0 1px rgba(180,151,89,.35);animation:rvcharge 1.35s ease-in both;pointer-events:none}
+  @keyframes rvcharge{from{box-shadow:inset 0 0 0 1px rgba(180,151,89,.2)}to{box-shadow:inset 0 0 24px 2px rgba(180,151,89,.45)}}
+  @media(prefers-reduced-motion:reduce){.rv-card.flipped .rv-flip{animation:none}.rv-front.charge::after{animation:none}}
+  /* R4 — fixture identity on the reveal front + de-collided pick text */
+  .rv-tm{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:14px}
+  .rv-tm .fl-img{width:40px;height:auto;border-radius:6px;box-shadow:0 4px 10px rgba(0,0,0,.45)}
+  .rv-tm i{font-family:var(--font-d);font-style:normal;color:var(--faint);font-size:14px}
+  .rv-mypick{font-size:15px;font-weight:800;color:var(--muted);margin-top:6px}
+  /* R6 — streak-tier reveal heat (scales the gold flash with the run) */
+  .rv-card.sr2.exactfx{animation:rvgold .7s ease}
+  .rv-card.sr3.exactfx .rv-face,.rv-card.sr4.exactfx .rv-face{border-color:var(--gold)}
+  .rv-card.sr3.exactfx{animation:rvgold3 .8s ease}
+  @keyframes rvgold3{30%{box-shadow:0 0 60px rgba(180,151,89,.8)}}
+  .rv-card.sr4.exactfx{animation:rvgold4 .9s ease}
+  @keyframes rvgold4{25%,65%{box-shadow:0 0 80px rgba(227,211,163,.9)}}
+  /* R7 — near-miss warmth inside the existing cons line */
+  .rv-cons b{color:var(--cream);font-weight:800}
+  /* R8 — welcomeDelta drama scaling */
+  .delta-pop.big .dv{font-size:34px}
+  /* R10 — reveal chip = sealed pack: one-shot shimmer + RM fallback ring */
+  .me-reveal{overflow:hidden}
+  .me-reveal::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 42%,rgba(227,211,163,.18) 50%,transparent 58%);transform:translateX(-130%);animation:foilsweep 1.4s .4s 1 both}
+  @media(prefers-reduced-motion:reduce){.me-reveal{animation:none;box-shadow:0 0 0 2px rgba(180,151,89,.5)}.me-reveal::after{content:none}}
+  /* R11 — tap-to-reveal drain bar (matches the 1400ms auto-flip; hidden in quick mode) */
+  .rv-fuse{position:absolute;left:24px;right:24px;bottom:16px;height:3px;border-radius:2px;background:rgba(180,151,89,.25);overflow:hidden}
+  .rv-fuse::after{content:"";display:block;height:100%;background:linear-gradient(90deg,var(--gold-deep),var(--gold-bright));animation:fuse 1.4s linear both}
+  @keyframes fuse{from{width:100%}to{width:0}}
+  @media(prefers-reduced-motion:reduce){.rv-fuse{display:none}}
 </style>
 </head>
 <body>
@@ -1416,7 +1519,7 @@
 
   <!-- LEADERBOARD -->
   <section class="view" id="view-leaderboard">
-    <div class="sec-title"><h2>Leaderboard</h2><span class="live tag"><span class="pulse"></span> Live</span></div>
+    <div class="sec-title"><h2>Leaderboard</h2><span class="live tag" id="lb-live"><span class="pulse"></span> Live</span></div>
     <div class="lbmode" id="lbmode"><button type="button" data-m="people" class="on">People</button><button type="button" data-m="dept">Departments</button><button type="button" data-m="room">🏟 The Room<i class="tnew" id="room-new" style="display:none">NEW</i></button></div>
     <div class="prize-strip">🥇 <b>Maldives trip</b> · 🥈 60,000 pts · 🥉 40,000 pts<span class="ps-note">QNB Life Rewards · prizes for the top three at the final whistle</span></div>
     <div id="demo-banner" class="demo-banner" style="display:none">🎬 Demo mode — sample players shown for presentation. Nothing here is saved.</div>
@@ -2564,12 +2667,12 @@ function koMatchCard(m,idx){
     if(win&&p.w){
       const gotW=(p.w===win)?koPts(m):0;
       const gotB=koScoreHit(p,res)?koBonus(m):0;
-      const sc=(p.h!=null&&p.a!=null)?(' <span style="color:var(--faint)">('+p.h+'–'+p.a+')</span>'):'';
+      const sc=(p.h!=null&&p.a!=null)?(' <span style="color:var(--faint);white-space:nowrap">('+p.h+'–'+p.a+')</span>'):'';
       picks='<div class="result-line '+(gotW?"win":"lose")+'">'+(gotW?"✓ ":"✗ ")+esc(lab)+sc+' <span style="color:var(--faint)">· '+esc(win)+' through</span><span class="pts">+'+(gotW+gotB)+' pts</span>'+(gotB?'<span class="exact-chip">✨ EXACT</span>':'')+'</div>';
     }else if(win){
       picks='<div class="result-line"><span class="locked-tag">'+esc(win)+' through</span> <span style="color:var(--muted)">No pick</span></div>';
     }else{
-      picks='<div class="result-line">'+(isLive(m)?'<span class="live-pill"><span class="pulse"></span>LIVE</span>':'<span class="locked-tag">Locked</span>')+' <span style="color:var(--muted)">'+esc(lab)+(p.w&&p.h!=null&&p.a!=null?' <span style="color:var(--faint)">('+p.h+'–'+p.a+')</span>':'')+'</span></div>';
+      picks='<div class="result-line">'+(isLive(m)?'<span class="live-pill"><span class="pulse"></span>LIVE</span>':'<span class="locked-tag">Locked</span>')+' <span style="color:var(--muted)">'+esc(lab)+(p.w&&p.h!=null&&p.a!=null?' <span style="color:var(--faint);white-space:nowrap">('+p.h+'–'+p.a+')</span>':'')+'</span></div>';
       if(!isLive(m)&&p.w)picks+='<div class="kn-note stakeline">⏳ kicks off '+fmtTime(m.ko)+' · <b>+'+(koPts(m)+((p.h!=null&&p.a!=null)?koBonus(m):0))+'</b> on the line</div>';
     }
     picks+='<div class="cons" data-cons="'+m.id+'"></div>';
@@ -2708,7 +2811,7 @@ function confettiBurst(){
     const dpr=window.devicePixelRatio||1,W=innerWidth,H=innerHeight;
     cv.width=W*dpr;cv.height=H*dpr;const cx=cv.getContext("2d");cx.scale(dpr,dpr);
     const COLS=["#e3d3a3","#b49759","#ef3340","#2ea84f","#2d6fe0","#f4eee3"],P=[];
-    for(let i=0;i<110;i++)P.push({x:W/2+(Math.random()-.5)*60,y:H*.62,vx:(Math.random()-.5)*9,vy:-(5+Math.random()*8),s:4+Math.random()*5,r:Math.random()*Math.PI,vr:(Math.random()-.5)*.3,c:COLS[i%COLS.length],life:1});
+    for(let i=0;i<110;i++)P.push({x:W/2+(Math.random()-.5)*60,y:H*.62,vx:(Math.random()-.5)*9,vy:-(5+Math.random()*8),s:4+Math.random()*5,r:Math.random()*Math.PI,vr:(Math.random()-.5)*.3,st:i%4===0,c:i%4===0?(i%8?"#e3d3a3":"#b49759"):COLS[i%COLS.length],life:1}); /* every 4th piece: thin gold streamer */
     let prev=performance.now();
     (function frame(t){
       const dt=Math.min((t-prev)/16.7,2);prev=t;cx.clearRect(0,0,W,H);
@@ -2717,7 +2820,7 @@ function confettiBurst(){
         p.vy+=.28*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.r+=p.vr*dt;p.life-=.008*dt;
         if(p.life<=0||p.y>H+20)continue;alive=true;
         cx.save();cx.globalAlpha=Math.max(p.life,0);cx.translate(p.x,p.y);cx.rotate(p.r);
-        cx.fillStyle=p.c;cx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.62);cx.restore();
+        cx.fillStyle=p.c;if(p.st)cx.fillRect(-1.25,-6,2.5,12);else cx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.62);cx.restore();
       }
       if(alive)requestAnimationFrame(frame);else cv.remove();
     })(prev);
@@ -2818,7 +2921,7 @@ function computeHonours(rows){
   Object.keys(holders).forEach(function(k){if(k.indexOf('captain_')!==0)return;const h=holders[k];if(!map[h.slug])map[h.slug]={emoji:'⭐',label:'Squad Captain',key:'captain'};});
   LB_HONOURS=map;return map;
 }
-function titleChip(slug){const t=LB_HONOURS[slug];if(!t)return '';const d=titleDesc(t.key);const k="explainTitle(event,'"+t.key+"')";return '<span class="title-chip tap" role="button" tabindex="0" title="'+esc(t.label+(d?' — '+d:''))+'" onclick="'+k+'" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();'+k+'}">'+t.emoji+'<i>'+esc(t.label)+'</i></span>';}
+function titleChip(slug){const t=LB_HONOURS[slug];if(!t)return '';const d=titleDesc(t.key);const k="explainTitle(event,'"+t.key+"')";return '<span class="title-chip tap'+(t.key==="frontrunner"?" shine":"")+'" role="button" tabindex="0" title="'+esc(t.label+(d?' — '+d:''))+'" onclick="'+k+'" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();'+k+'}">'+t.emoji+'<i>'+esc(t.label)+'</i></span>';}
 function meHonours(s){
   if(!state.player||state.demo)return "";
   const full=HONOURS_FULL||{};
@@ -2844,7 +2947,9 @@ function lbMore(){LB_SHOWN+=200;renderLeaderboard();}
 async function renderLeaderboard(){
   const body=document.getElementById("lb-body");
   document.getElementById("demo-banner").style.display=state.demo?"flex":"none";
-  body.innerHTML='<div class="sk-wrap">'+Array(6).fill('<div class="sk-row"><div class="sk r"></div><div class="sk av"></div><div class="sk nm"></div><div class="sk pt"></div></div>').join('')+'</div>';
+  const lbl=document.getElementById("lb-live");   /* honest Live tag: pulse only while a match is actually live */
+  if(lbl)lbl.innerHTML=FIXTURES.some(isLive)?'<span class="pulse"></span> Live':'Standings';
+  body.innerHTML='<div class="sk-wrap">'+((state.demo||LB_MODE==="people")?'<div class="podium sk-pod"><div class="sk av"></div><div class="sk av"></div><div class="sk av"></div></div>':'')+Array(6).fill('<div class="sk-row"><div class="sk r"></div><div class="sk av"></div><div class="sk nm"></div><div class="sk pt"></div></div>').join('')+'</div>';
   const lm=document.getElementById("lbmode");
   if(lm)lm.style.display=state.demo?"none":"flex";
   const rvSlug=state.demo?null:await getJSON("wc:rival",false);
@@ -2875,7 +2980,7 @@ async function renderLeaderboard(){
   if(rows.length>=3){
     const ord=[rows[1],rows[0],rows[2]],cls=["second","first","third"],med=["🥈","🥇","🥉"];
     html+='<div class="podium">';
-    ord.forEach((r,i)=>{html+='<div class="pod '+cls[i]+'" style="animation-delay:'+(i*0.08)+'s"><div class="medal">'+med[i]+'</div><div class="avatar av">'+avatarFill(r.name)+'</div><div class="pname">'+esc(r.name)+'</div><div class="stand"><div class="ppts">'+r.pts+'<small> PTS</small></div></div></div>';});
+    ord.forEach((r,i)=>{html+='<div class="pod '+cls[i]+'" style="animation-delay:'+(i*0.08)+'s"><div class="medal">'+med[i]+'</div>'+(cls[i]==="first"?'<div class="pod-crown">👑</div>':'')+'<div class="avatar av">'+avatarFill(r.name)+'</div><div class="pname">'+esc(r.name)+(r.me?'<span class="youtag">YOU</span>':'')+titleChip(r.slug)+'</div><div class="stand"><div class="ppts"><span class="ptsn" data-pslug="'+r.slug+'">'+r.pts+'</span><small> PTS</small></div></div></div>';});
     html+='</div>';
   }
   if(state.player&&!state.demo)html+=rtmStrip(roadGap(rows));
@@ -2883,15 +2988,16 @@ async function renderLeaderboard(){
   const lim=Math.min(rows.length,LB_SHOWN);
   for(let i=0;i<lim;i++)html+=lbRowHTML(rows[i],i,PT);
   const meIdx=rows.findIndex(r=>r.me);
-  if(meIdx>=lim)html+='<div class="lb-gap">⋯</div>'+lbRowHTML(rows[meIdx],lim,PT);
+  if(meIdx>=lim)html+='<div class="lb-gap"><span>⋯ you’re here ↓</span></div>'+lbRowHTML(rows[meIdx],lim,PT);
   if(rows.length>lim)html+='<button class="lb-more" onclick="lbMore()">Show more · '+(rows.length-lim)+' below</button>';
   body.innerHTML=html;
   if(!state.player)body.insertAdjacentHTML("beforeend",'<button class="btn btn-primary" style="margin:16px auto 4px;display:flex" onclick="go(\'join\')">Join the pool \u26bd</button>');
   body.insertAdjacentHTML("beforeend",'<div id="ff-lb" class="ff" style="margin-top:14px"></div>');
   mountFact(document.getElementById("ff-lb"),"lb");
   rows.forEach(function(r){
-    const sp=body.querySelector('.ptsn[data-pslug="'+r.slug+'"]');
-    if(sp&&LB_PREV[r.slug]!=null&&LB_PREV[r.slug]!==r.pts)odo(sp,LB_PREV[r.slug],r.pts,600);
+    body.querySelectorAll('.ptsn[data-pslug="'+r.slug+'"]').forEach(function(sp){ /* all: podium number + list row share a slug */
+      if(LB_PREV[r.slug]!=null&&LB_PREV[r.slug]!==r.pts)odo(sp,LB_PREV[r.slug],r.pts,600);
+    });
     LB_PREV[r.slug]=r.pts;
   });
   startLbTicker(rows);
@@ -2900,7 +3006,7 @@ async function renderLeaderboard(){
 /* ===== fun-stat ticker (leaderboard) =====
    Rotating one-liners built from data already in hand: the standings rows +
    the ranksnap deltas, then enriched once the consensus pull resolves. */
-let TICK_T=null;
+let TICK_T=null,TICK_I=0; /* rotation index survives re-renders — consensus refresh doesn't restart at fact 0 */
 function startLbTicker(rows){
   clearInterval(TICK_T);
   const el=document.getElementById("lb-tick");
@@ -2927,13 +3033,13 @@ function startLbTicker(rows){
     if(c.perfectN>=1)facts.push('\ud83d\udd2e <b>'+c.perfectN+'</b> colleague'+(c.perfectN===1?'':'s')+' still perfect \u2014 not a single miss');
   }).catch(function(){});
   if(!facts.length)return;
-  let i=0;
   const show=function(){
     if(!document.body.contains(el)){clearInterval(TICK_T);return;}
     el.classList.remove("on");
-    setTimeout(function(){el.innerHTML=facts[i%facts.length];el.classList.add("on");i++;},250);
+    setTimeout(function(){el.innerHTML='<i class="tk-lab">OFFICE PULSE</i>'+facts[TICK_I%facts.length];el.classList.add("on");TICK_I++;},250);
   };
   el.style.display="block";show();
+  el.onclick=function(){if(facts.length>1)show();};   /* tap advances — same rotate fn, no second interval */
   TICK_T=setInterval(function(){if(facts.length>1)show();},6000);
 }
 
@@ -3106,8 +3212,9 @@ function rtmPanel(g){
 }
 function rtmStrip(g){
   if(!g||g.allZero)return "";
-  if(g.leader)return '<div class="rtm-strip"><span class="pl">🏝️</span><span>You lead — the Maldives is <b>yours to lose</b></span>'+(g.leadOver!=null&&g.nextName?'<span class="nx"><b>+'+g.leadOver+'</b> on '+esc(g.nextName)+'</span>':'')+'</div>';
-  return '<div class="rtm-strip"><span class="pl">✈️</span><span><b>'+g.ptsToFirst+'</b> pts from the Maldives · '+ord(g.rank)+'</span>'+(g.ptsToNext>0?('<span class="nx">↑ <b>'+g.ptsToNext+'</b> to pass '+esc(g.nextName)+'</span>'):('<span class="nx">level with '+esc(g.nextName)+'</span>'))+'</div>';
+  if(g.leader)return '<div class="rtm-strip"><span class="pl">🏝️</span><span>You lead — the Maldives is <b>yours to lose</b></span>'+(g.leadOver!=null&&g.nextName?'<span class="nx"><b>+'+g.leadOver+'</b> on '+esc(g.nextName)+'</span>':'')+rtmTrack(100,92)+'</div>';
+  const pct=rtmPlanePct(g);   /* runway under the text row — same helpers as rtmPanel */
+  return '<div class="rtm-strip"><span class="pl">✈️</span><span><b>'+g.ptsToFirst+'</b> pts from the Maldives · '+ord(g.rank)+'</span>'+(g.ptsToNext>0?('<span class="nx">↑ <b>'+g.ptsToNext+'</b> to pass '+esc(g.nextName)+'</span>'):('<span class="nx">level with '+esc(g.nextName)+'</span>'))+rtmTrack(pct,pct)+'</div>';
 }
 async function renderMe(){
   if(!state.player){go("join");return;}
@@ -3152,9 +3259,15 @@ async function renderMe(){
   const awaiting=s.scored===0;
   const medal=(!awaiting&&myRank!=="—"&&myRank<=3)?["🥇","🥈","🥉"][myRank-1]:null;
   const rankPill=medal?'<div class="me-rankpill">'+medal+' '+ordinal(myRank)+' place'+(total?(' of '+total):'')+'</div>':'';
+  /* rank-tiered collectible frame (standings-only, so seal-safe) */
+  let tier="";if(!awaiting&&myRank!=="—"&&total)tier=myRank===1?"t1":myRank===2?"t2":myRank===3?"t3":(myRank<=Math.ceil(total*.1)?"elite":"base");
+  const tierTxt=tier==="t1"?"GOLD · №1":tier==="t2"?"SILVER · №2":tier==="t3"?"BRONZE · №3":tier==="elite"?"TOP 10%":"";
+  const mc0=document.getElementById("mecard");
+  if(mc0){if(tier)mc0.dataset.tier=tier;else mc0.removeAttribute("data-tier");}
   document.getElementById("mecard").innerHTML=
     meRevealChip()+
-    '<div class="avatar av">'+avatarFill(state.player.name)+'</div><h3>'+esc(state.player.name)+'</h3>'+
+    (tierTxt?'<div class="me-tier">'+tierTxt+'</div>':'')+
+    '<div class="avatar av" onclick="foilReplay()">'+avatarFill(state.player.name)+'</div><h3>'+esc(state.player.name)+'</h3>'+
     '<div class="role">'+esc(state.player.dept)+'</div>'+(state.player.ig?'<div class="mail">@'+esc(state.player.ig)+'</div>':'')+
     rankPill+
     '<div id="me-honours-slot">'+meHonours(s)+'</div>'+
@@ -3201,8 +3314,11 @@ async function renderMe(){
   const mc=document.getElementById("mecard");
   if(mc)mc.insertAdjacentHTML("beforeend",
     '<div class="me-set"><span>Sounds</span><button class="sndtog'+(sndOn()?" on":"")+'" onclick="toggleSnd(this)">'+(sndOn()?"On":"Off")+'</button></div>'+
-    '<div class="me-set me-faq" onclick="openFaq()"><span>How it works \u00b7 FAQ</span><b>\u203a</b></div>');
+    '<div class="me-set me-faq" onclick="openFaq()"><span>How it works \u00b7 FAQ</span><b>\u203a</b></div>'+
+    '<i class="foil"></i>');
 }
+/* replay the one-shot foil sheen (cheap: re-add the node) */
+function foilReplay(){try{const mc=document.getElementById("mecard");if(!mc)return;const o=mc.querySelector(".foil");if(o)o.remove();mc.insertAdjacentHTML("beforeend",'<i class="foil"></i>');}catch(e){}}
 
 async function rivalHTML(s,st){
   const rs=await getJSON("wc:rival",false);
@@ -4020,13 +4136,13 @@ function confetti(){
     const cols=["#e3d3a3","#b49759","#ef3340","#2ea84f","#f4eee3"];
     const P=[];for(let i=0;i<90;i++)P.push({x:c.width/2+(Math.random()-0.5)*120,y:-20-Math.random()*40,
       vx:(Math.random()-0.5)*7,vy:2+Math.random()*4,r:3+Math.random()*5,a:Math.random()*Math.PI,
-      va:(Math.random()-0.5)*0.3,col:cols[i%cols.length]});
+      va:(Math.random()-0.5)*0.3,st:i%4===0,col:i%4===0?(i%8?"#e3d3a3":"#b49759"):cols[i%cols.length]}); /* every 4th piece: thin gold streamer */
     const t0=Date.now();
     (function frame(){
       const t=Date.now()-t0;x.clearRect(0,0,c.width,c.height);
       P.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.08;p.a+=p.va;
         x.save();x.translate(p.x,p.y);x.rotate(p.a);x.fillStyle=p.col;
-        x.globalAlpha=Math.max(0,1-t/1900);x.fillRect(-p.r,-p.r/2,p.r*2,p.r);x.restore();});
+        x.globalAlpha=Math.max(0,1-t/1900);if(p.st)x.fillRect(-1.5,-7,3,14);else x.fillRect(-p.r,-p.r/2,p.r*2,p.r);x.restore();});
       if(t<2000)requestAnimationFrame(frame);else c.remove();
     })();
   }catch(e){}
@@ -4059,14 +4175,16 @@ async function welcomeDelta(){
     const social=passedN&&passedName
       ?('<div class="dx">\ud83e\udee1 You passed <b>'+esc(passedName)+'</b>'+(passedN>1?(' and '+(passedN-1)+' other'+(passedN-1===1?'':'s')):'')+'</div>')
       :'';
-    const pop=document.createElement("div");pop.className="delta-pop";
+    const big=dr>=3||dp>=8; /* big-night drama scaling */
+    const pop=document.createElement("div");pop.className="delta-pop"+(big?" big":"");
     pop.innerHTML='<div class="dt">Since your last visit</div>'+
-      '<div class="dv">'+(dp>0?("+"+dp+" pts"):"")+(dp>0&&dr>0?" \u00b7 ":"")+(dr>0?("\u25b2 "+dr+" place"+(dr===1?"":"s")):"")+'</div>'+
+      '<div class="dv">'+(dp>0?('+<span id="dp-n">'+dp+'</span> pts'):"")+(dp>0&&dr>0?" \u00b7 ":"")+(dr>0?("\u25b2 "+dr+" place"+(dr===1?"":"s")):"")+'</div>'+
       '<div class="ds">'+(dr>0?("You\u2019re now #"+rank):"Keep climbing \u2014 #"+rank)+'</div>'+social;
     document.body.appendChild(pop);
     requestAnimationFrame(()=>pop.classList.add("show"));
+    if(dp>0){try{odo(document.getElementById("dp-n"),0,dp,700);}catch(e){}}
     setTimeout(()=>{pop.classList.remove("show");setTimeout(()=>pop.remove(),400);},6200);
-    if(dp>0)confetti();
+    if(dp>0){if(big&&!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches))confettiBurst();else confetti();}
   }catch(e){}
 }
 
@@ -4098,9 +4216,12 @@ async function renderDept(body){
   let html='<div class="dept-note">\ud83c\udfe2 <b>Department leagues</b> \u2014 your squad vs the rest of the bank. Ranked by <b>average points per player</b> (fair across squad sizes); ties broken by total. Squads need '+DEPT_MIN+'+ players to rank.</div>';
   lg.ranked.forEach((x,i)=>{
     const mine=x.d===myDept;
-    html+='<div class="lb-row dept-row'+(mine?' me':'')+'" style="animation-delay:'+Math.min(i*0.03,0.4)+'s"><div class="rank">'+(i<3?med[i]:(i+1))+'</div>'+
+    let gap='';   /* rows 1-3: avg gap subline (display only \u2014 ranking math untouched) */
+    if(i===0&&lg.ranked[1]){const d=Math.round((x.avg-lg.ranked[1].avg)*10)/10;if(d>0)gap='<div class="lb-stats"><span>\u25b2 <b>'+d.toFixed(1)+'</b> avg clear of '+esc(lg.ranked[1].d)+'</span></div>';}
+    else if(i>0&&i<3){const up=lg.ranked[i-1],d=Math.round((up.avg-x.avg)*10)/10;gap='<div class="lb-stats"><span>'+(d>0?('\u25b2 <b>'+d.toFixed(1)+'</b> avg to catch '+esc(up.d)):('level on avg with '+esc(up.d)))+'</span></div>';}
+    html+='<div class="lb-row dept-row'+(mine?' me':'')+(i===0?' lead':'')+(i<3?' dept-top':'')+'" style="animation-delay:'+Math.min(i*0.03,0.4)+'s"><div class="rank">'+(i<3?med[i]:(i+1))+'</div>'+
       '<div class="avatar deptbadge">'+deptAvatarFill(x.d)+'</div>'+
-      '<div class="lb-info"><div class="n">'+esc(x.d)+(mine?'<span class="youtag">YOUR SQUAD</span>':'')+'</div><div class="d">'+x.n+' players \u00b7 \u03a3 '+x.sum+' pts</div></div>'+
+      '<div class="lb-info"><div class="n">'+esc(x.d)+(mine?'<span class="youtag">YOUR SQUAD</span>':'')+'</div><div class="d">'+x.n+' players \u00b7 \u03a3 '+x.sum+' pts</div>'+gap+'</div>'+
       '<div class="lb-pts"><b>'+(Math.round(x.avg*10)/10)+'</b><span>avg</span></div></div>';});
   if(lg.small.length)html+='<div class="dept-note" style="margin-top:12px">Not yet ranked (under '+DEPT_MIN+' players): '+lg.small.map(x=>esc(x.d)+' ('+x.n+')').join(' \u00b7 ')+'</div>';
   body.innerHTML=html;
@@ -4147,21 +4268,25 @@ function roomConsensus(m,players,myPk){
   if(m.kn){
     let hN=0,aN=0;
     players.forEach(function(p){const v=(p.predictions||{})[m.id];if(!v||!v.w)return;if(v.w===mv.home.n)hN++;else if(v.w===mv.away.n)aN++;});
-    const tot=hN+aN;if(tot<8)return "";
+    const tot=hN+aN;if(tot<8)return null;
     const hp=Math.round(hN/tot*100);
     let line='🏟 '+tot+' colleagues called it: '+seg(mv.home.n,hp,myPk&&myPk.w===mv.home.n)+' · '+seg(mv.away.n,100-hp,myPk&&myPk.w===mv.away.n);
     if(res&&res.w){const rN=res.w===mv.home.n?hN:(res.w===mv.away.n?aN:0),rp=Math.round(rN/tot*100);
       if(rp<=25)line+='<span class="c2">🧨 Upset — only '+rp+'% of the office saw it coming</span>';}
-    return line;
+    return {html:line,segs:[{k:'h',pct:hp,mine:!!(myPk&&myPk.w===mv.home.n)},{k:'a',pct:100-hp,mine:!!(myPk&&myPk.w===mv.away.n)}]};
   }
   let H=0,D=0,A=0;
   players.forEach(function(p){const v=(p.predictions||{})[m.id];if(!v||!v.o)return;if(v.o==="H")H++;else if(v.o==="D")D++;else if(v.o==="A")A++;});
-  const tot=H+D+A;if(tot<5)return "";
-  let line='🏟 '+tot+' colleagues called it: '+seg(mv.home.n,Math.round(H/tot*100),myPk&&myPk.o==="H")+' · '+seg("Draw",Math.round(D/tot*100),myPk&&myPk.o==="D")+' · '+seg(mv.away.n,Math.round(A/tot*100),myPk&&myPk.o==="A");
+  const tot=H+D+A;if(tot<5)return null;
+  const hp=Math.round(H/tot*100),dp=Math.round(D/tot*100),ap=Math.round(A/tot*100);
+  let line='🏟 '+tot+' colleagues called it: '+seg(mv.home.n,hp,myPk&&myPk.o==="H")+' · '+seg("Draw",dp,myPk&&myPk.o==="D")+' · '+seg(mv.away.n,ap,myPk&&myPk.o==="A");
   if(res&&res.h!=null){const ro=res.h>res.a?"H":(res.h<res.a?"A":"D"),rp=Math.round((ro==="H"?H:(ro==="D"?D:A))/tot*100);
     if(rp<=25)line+='<span class="c2">🧨 Upset — only '+rp+'% of the office called it</span>';}
-  return line;
+  return {html:line,segs:[{k:'h',pct:hp,mine:!!(myPk&&myPk.o==="H")},{k:'d',pct:dp,mine:!!(myPk&&myPk.o==="D")},{k:'a',pct:ap,mine:!!(myPk&&myPk.o==="A")}]};
 }
+/* Suspense split bar from the SAME floored counts roomConsensus computed — renders only
+   when the text line itself passed the k-anon floor. Aggregates only, never names. */
+function roomBarHTML(segs){return '<div class="room-bar">'+segs.filter(function(s){return s.pct>0;}).map(function(s){return '<i class="'+s.k+(s.mine?' mine':'')+'" style="width:'+s.pct+'%"></i>';}).join('')+'</div>';}
 /* Windowed table — at 670 players a settled knockout can have 600+ rows. Show the
    top scorers + your row + your immediate neighbours, with a one-tap "show all". */
 function roomTable(rows,mv,m){
@@ -4175,12 +4300,13 @@ function roomTable(rows,mv,m){
     idxs=Object.keys(set).map(Number).sort(function(a,b){return a-b;});
   }
   let html='<div class="pp-head"><span>Player</span><span>Pick</span><span>Exact</span><span>Pts</span></div>';
-  let prev=-1;
+  let rk=0,pv=null;const rks=rows.map(function(x,i){if(pv===null||x.pts!==pv){rk=i+1;pv=x.pts;}return rk;}); /* tie-aware: same pts ⇒ same rank */
+  let prev=-1,vk=0;
   idxs.forEach(function(i){
     if(i>prev+1)html+='<div class="lb-gap">⋯</div>';
     prev=i;
     const x=rows[i],me=x.p.slug===state.meSlug;
-    html+='<div class="pp-row room-row '+x.cls+(me?' mine':'')+'"><span class="pp-n"><i class="rr">'+(i+1)+'</i>'+esc(x.p.name||x.p.slug)+(me?'<span class="youtag">YOU</span>':'')+'<small>'+esc(x.p.dept||"")+'</small></span>'+
+    html+='<div class="pp-row room-row '+x.cls+(me?' mine':'')+'" style="animation:rise .35s both;animation-delay:'+Math.min((vk++)*0.025,0.4)+'s"><span class="pp-n"><i class="rr">'+rks[i]+'</i>'+esc(x.p.name||x.p.slug)+(me?'<span class="youtag">YOU</span>':'')+'<small>'+esc(x.p.dept||"")+'</small></span>'+
       '<span class="pp-p">'+esc(ppPickLabel(mv,m.kn,x.pk)||"—")+'</span>'+
       '<span class="pp-e">'+ppExactHTML(x.pk)+'</span>'+
       '<span class="pp-s '+(x.pts>0?'win':'zero')+'">'+(x.pts>0?'+'+x.pts:'+0')+'</span></div>';
@@ -4198,12 +4324,12 @@ async function renderRoomBody(){
   const players=(CONFIGURED&&!state.demo)?await ppPlayers():[];   /* ONE ~1MB pull, 60s cache, never on a timer */
   let html='';
   if(settled){
-    html+='<div class="room-res"><span class="rh">FULL TIME</span><b>'+esc(mv.home.n)+' '+(r.h!=null?r.h:'')+'–'+(r.a!=null?r.a:'')+' '+esc(mv.away.n)+'</b>'+(m.kn&&r.w?'<span class="rw">'+esc(r.w)+' advance</span>':'')+'</div>';
+    html+='<div class="room-res land"><span class="rh">FULL TIME</span><b>'+esc(mv.home.n)+' '+(r.h!=null?r.h:'')+'–'+(r.a!=null?r.a:'')+' '+esc(mv.away.n)+'</b>'+(m.kn&&r.w?'<span class="rw">'+esc(r.w)+' advance</span>':'')+'</div>';
   }else{
     html+='<div class="room-res live"><span class="rh">SEALED · awaiting result</span><b>'+esc(mv.home.n)+' v '+esc(mv.away.n)+'</b></div>';
   }
-  const cline=roomConsensus(m,players,myPk);   /* aggregate from the single pull; safe pre-result via the tot<5/8 floor */
-  if(cline)html+='<div class="room-cons">'+cline+'</div>';
+  const cons=roomConsensus(m,players,myPk);   /* aggregate from the single pull; safe pre-result via the tot<5/8 floor */
+  if(cons&&cons.html)html+='<div class="room-cons">'+cons.html+((!settled&&cons.segs)?roomBarHTML(cons.segs):'')+'</div>';
   if(!settled){
     html+='<div class="org-note">🔒 Who picked what unlocks at the final whistle. The office split above is live — the names land after full time.</div>';
     host.innerHTML=html;return;
@@ -4325,15 +4451,21 @@ async function shareCard(){
     let g=x.createRadialGradient(W/2,180,40,W/2,180,760);
     g.addColorStop(0,"rgba(180,151,89,.30)");g.addColorStop(1,"rgba(180,151,89,0)");
     x.fillStyle=g;x.fillRect(0,0,W,H);
+    cardFrame(x,W,H);
     x.fillStyle="#ef3340";x.fillRect(0,0,W/3,12);x.fillStyle="#2ea84f";x.fillRect(W/3,0,W/3,12);x.fillStyle="#2d6fe0";x.fillRect(W/3*2,0,W/3+2,12);
     x.textAlign="center";
     x.fillStyle="#b49759";x.font="800 32px 'Hanken Grotesk',sans-serif";
     x.fillText("S T A F F   C H A L L E N G E   \u00b7   W C 2 6",W/2,96);
     drawCardTrophy(x,W/2,150,210);
     x.fillStyle="#f4eee3";x.font="800 56px 'Hanken Grotesk',sans-serif";
-    x.fillText(state.player.name,W/2,470);
+    x.fillText(state.player.name,W/2,400);
     x.fillStyle="rgba(244,238,227,.55)";x.font="600 30px 'Hanken Grotesk',sans-serif";
-    x.fillText((state.player.dept||"")+(state.player.ig?("  \u00b7  @"+state.player.ig):""),W/2,516);
+    x.fillText((state.player.dept||"")+(state.player.ig?("  \u00b7  @"+state.player.ig):""),W/2,446);
+    if(rank){const pt="#"+rank+" IN THE OFFICE";x.font="800 26px 'Hanken Grotesk',sans-serif"; /* rank pill fills the old dead band */
+      const pw=x.measureText(pt).width+56;
+      x.fillStyle="rgba(180,151,89,.12)";roundRect(x,W/2-pw/2,474,pw,52,26);x.fill();
+      x.strokeStyle="rgba(180,151,89,.75)";x.lineWidth=2;roundRect(x,W/2-pw/2,474,pw,52,26);x.stroke();
+      x.fillStyle="#e3d3a3";x.fillText(pt,W/2,509);}
     const grd=x.createLinearGradient(0,560,0,860);grd.addColorStop(0,"#e3d3a3");grd.addColorStop(.55,"#b49759");grd.addColorStop(1,"#8a734a");
     x.fillStyle=grd;x.font="400 250px Anton,'Arial Narrow',sans-serif";
     x.fillText(rank?("#"+rank):"\u2013",W/2,810);
@@ -4343,6 +4475,7 @@ async function shareCard(){
     stats.forEach((p,i)=>{const cx=W/2+(i-1)*300;
       x.fillStyle="rgba(0,0,0,.4)";roundRect(x,cx-125,930,250,170,22);x.fill();
       x.strokeStyle="rgba(244,238,227,.14)";x.lineWidth=2;roundRect(x,cx-125,930,250,170,22);x.stroke();
+      x.fillStyle="rgba(180,151,89,.8)";x.fillRect(cx-103,930,206,2); /* gold top hairline — echoes .me-stat */
       x.fillStyle="#e3d3a3";x.font="400 84px Anton,'Arial Narrow',sans-serif";x.fillText(String(p[0]),cx,1018);
       x.fillStyle="rgba(244,238,227,.5)";x.font="700 22px 'Hanken Grotesk',sans-serif";x.fillText(p[1],cx,1066);});
     const exr=koStreakCurrent(state.player.predictions,state.results);
@@ -4395,6 +4528,7 @@ async function shareSquad(){
     let g=x.createRadialGradient(W/2,210,40,W/2,210,800);
     g.addColorStop(0,"rgba(180,151,89,.30)");g.addColorStop(1,"rgba(180,151,89,0)");
     x.fillStyle=g;x.fillRect(0,0,W,H);
+    cardFrame(x,W,H);
     x.fillStyle="#ef3340";x.fillRect(0,0,W/3,12);x.fillStyle="#2ea84f";x.fillRect(W/3,0,W/3,12);x.fillStyle="#2d6fe0";x.fillRect(W/3*2,0,W/3+2,12);
     x.textAlign="center";
     x.fillStyle="#b49759";x.font="800 32px 'Hanken Grotesk',sans-serif";
@@ -4412,6 +4546,7 @@ async function shareSquad(){
     stats.forEach((p,i)=>{const cx=W/2+(i-1)*300;
       x.fillStyle="rgba(0,0,0,.4)";roundRect(x,cx-125,858,250,170,22);x.fill();
       x.strokeStyle="rgba(244,238,227,.14)";x.lineWidth=2;roundRect(x,cx-125,858,250,170,22);x.stroke();
+      x.fillStyle="rgba(180,151,89,.8)";x.fillRect(cx-103,858,206,2); /* gold top hairline — echoes .me-stat */
       x.fillStyle="#e3d3a3";x.font="400 76px Anton,'Arial Narrow',sans-serif";x.fillText(String(p[0]),cx,946);
       x.fillStyle="rgba(244,238,227,.5)";x.font="700 22px 'Hanken Grotesk',sans-serif";x.fillText(p[1],cx,994);});
     const line=idx===0?"Top squad in the bank 🏆":("Chasing "+lg.ranked[idx-1].d);
@@ -4451,6 +4586,7 @@ async function shareBrag(o){
     let g=x.createRadialGradient(W/2,300,40,W/2,300,840);
     g.addColorStop(0,"rgba("+acc[0]+","+acc[1]+","+acc[2]+",.34)");g.addColorStop(1,"rgba("+acc[0]+","+acc[1]+","+acc[2]+",0)");
     x.fillStyle=g;x.fillRect(0,0,W,H);
+    cardFrame(x,W,H);
     x.fillStyle="#ef3340";x.fillRect(0,0,W/3,12);x.fillStyle="#2ea84f";x.fillRect(W/3,0,W/3,12);x.fillStyle="#2d6fe0";x.fillRect(W/3*2,0,W/3+2,12);
     x.textAlign="center";
     x.fillStyle="#b49759";x.font="800 32px 'Hanken Grotesk',sans-serif";
@@ -4595,6 +4731,15 @@ function meBrags(st){
   return '<div class="me-seclbl">Brag-worthy 📤</div><div class="me-brags">'+chips.join("")+'</div>';
 }
 function roundRect(x,a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath();}
+/* shared premium finish for every share canvas: corner vignette + gold inset frame + inner hairline */
+function cardFrame(x,W,H){
+  const vg=x.createRadialGradient(W/2,H/2,H*.32,W/2,H/2,H*.64);
+  vg.addColorStop(0,"rgba(0,0,0,0)");vg.addColorStop(1,"rgba(0,0,0,.38)");
+  x.fillStyle=vg;x.fillRect(0,0,W,H);
+  const fg=x.createLinearGradient(0,40,0,H-40);fg.addColorStop(0,"#e3d3a3");fg.addColorStop(1,"#8a734a");
+  x.strokeStyle=fg;x.lineWidth=3;roundRect(x,40,40,W-80,H-80,28);x.stroke();
+  x.save();x.globalAlpha=.25;x.lineWidth=1;roundRect(x,52,52,W-104,H-104,22);x.stroke();x.restore();
+}
 function drawCardTrophy(x,cx,cy,s){
   const u=s/140;
   const gold=x.createLinearGradient(cx-70*u,cy,cx+70*u,cy+140*u);
@@ -5125,10 +5270,12 @@ function renderRevealCard(){
   document.getElementById("rv-stage").innerHTML=
     '<div class="rv-card'+(RV.quick?' rv-quick':'')+'" id="rv-card" onclick="revealFlip()">'+
       '<div class="rv-flip">'+
-        '<div class="rv-face rv-front">'+
+        '<div class="rv-face rv-front'+(RV.quick?'':' charge')+'">'+
           '<div class="rv-lab">'+esc(RLABEL[m.round]||m.round)+'</div>'+
-          '<div class="rv-sec">YOUR PICK</div><div class="rv-pick">'+esc(pick)+'</div>'+
+          ((mv.home.f||mv.away.f)?'<div class="rv-tm">'+mv.home.f+'<i>vs</i>'+mv.away.f+'</div>':'')+
+          '<div class="rv-sec">YOUR PICK</div><div class="rv-mypick">'+esc(pick)+'</div>'+
           '<div class="rv-tap">tap to reveal \u21bb</div>'+
+          (RV.quick?'':'<i class="rv-fuse"></i>')+
         '</div>'+
         '<div class="rv-face rv-back">'+
           '<div class="rv-lab">'+esc(RLABEL[m.round]||m.round)+'</div>'+
@@ -5146,12 +5293,23 @@ function revealFlip(){
   try{sndFlip();}catch(e){} /* card-whoosh as it turns */
   const m=RV.q[RV.i],p=state.player.predictions[m.id]||{},r=state.results[m.id];
   const v=rvVerdict(m,p,r);
+  const sr=(m.kn&&v.cls==="exact")?koStreakRunAt(state.player.predictions,state.results,m.id):0;
+  if(sr>=2)card.classList.add("sr"+Math.min(sr,4)); /* streak-tier heat scales the gold flash */
   card.classList.add("flipped",v.cls+"fx");
   const st=document.getElementById("rv-stamp");
   st.textContent=v.label;st.className="rv-stamp "+v.cls;
   const cn=document.getElementById("rv-cons");
-  if(cn){const ct=consRevealText(m,r,v);if(ct)cn.textContent=ct;}
-  const sr=(m.kn&&v.cls==="exact")?koStreakRunAt(state.player.predictions,state.results,m.id):0;
+  if(cn){
+    let ct=consRevealText(m,r,v)||"";ct=ct?esc(ct):"";
+    /* honest near-miss warmth — own pick + official result only (post-settle, seal-safe) */
+    if(v.cls==="miss"&&!m.kn&&r&&r.h!=null){
+      let nm="";
+      if(p.h!=null&&p.a!=null&&Math.abs(Number(p.h)-r.h)+Math.abs(Number(p.a)-r.a)===1)nm="So close — "+p.h+"–"+p.a+" vs "+r.h+"–"+r.a+".";
+      else if((p.o==="H"||p.o==="A")&&r.h===r.a)nm="A draw stole it.";
+      if(nm)ct="<b>"+nm+"</b>"+(ct?" "+ct:"");
+    }
+    if(ct)cn.innerHTML=ct;
+  }
   const sb=streakBonusAt(sr);                 // exact-score streak bonus earned at this match (0 unless run>=2)
   const from=RV.total;RV.total+=v.pts+sb;     // include streak so the headline total matches the leaderboard
   odo(document.getElementById("rv-odo"),from,RV.total,500);
@@ -5180,14 +5338,20 @@ async function revealFinale(){
     '<div class="rv-done"><div class="rv-sec">THIS REVEAL</div>'+
     '<div class="rv-big pop">+<span id="rv-bign">'+RV.total+'</span></div>'+
     (dr>0?'<div class="rv-climb">\u25b2 '+dr+' place'+(dr===1?"":"s")+(rank?' \u00b7 now #'+rank:'')+'</div>'
-        :(rank?'<div class="rv-sub">#'+rank+' overall</div>':''))+'<div class="rv-of" id="rv-of"></div></div>';
+        :(rank?'<div class="rv-sub">#'+rank+' overall</div>':''))+
+    (RV.total===0?'<div class="rv-sub">Tough night \u2014 your run\u2019s still alive. Next round, new points.</div>':'')+
+    '<div class="rv-of" id="rv-of"></div></div>';
   fillRevealOffice();
   try{var _bn=document.getElementById("rv-bign");if(_bn){_bn.textContent="0";odo(_bn,0,RV.total,750);}}catch(e){} /* count up the reveal total */
   try{sndFinale();}catch(e){} /* triumphant flourish */
   document.getElementById("rv-foot").innerHTML=
     '<button class="sw-b" onclick="shareCard()">Share this</button>'+
     '<button class="sw-b sw-done-b" onclick="closeReveal()">Done</button>';
-  if(dr>0||RV.total>0)confetti();
+  if(RV.total>0){ /* +0 nights keep confetti suppressed — never fake a celebration */
+    confetti();
+    if(!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches))confettiBurst();
+    try{navigator.vibrate&&navigator.vibrate([10,40,10,40,60]);}catch(e){}
+  }
 }
 function revealOfficeLines(){
   if(state.demo||!CONS.map)return [];
@@ -5239,6 +5403,8 @@ function fillRevealOffice(){
   const of=document.getElementById("rv-of");if(!of)return;
   const ls=revealOfficeLines();
   if(ls.length)of.innerHTML=ls.map(function(t){return '<div>'+t+'</div>';}).join("");
+  else{const f=ffShuffle()[0]; /* never leave the office panel blank — fall back to trivia */
+    of.innerHTML='<div class="ff show" style="text-align:left"><span class="ff-lab">'+(FF_ICON[f.c]||"💡")+' Did you know?</span><span class="ff-tx">'+esc(f.t)+'</span></div>';}
 }
 function revealSummary(){
   clearTimeout(RV.timer);
@@ -5478,6 +5644,7 @@ function liveTick(){
   const now=Date.now()+CLOCK_OFFSET;
   const active=FIXTURES.some(m=>{const k=new Date(m.ko).getTime();return now>k-15*60e3&&now<k+150*60e3;});
   if(active)fetchLive();
+  if(active&&state.view==="leaderboard"&&LB_MODE==="people"&&!state.demo)renderLeaderboard(); /* board heartbeat: only while a match is live, so odo count-up fires when results land — never replays the board on quiet weeks (60s cadence, cached) */
 }
 
 /* Collapse the progress panel to a slim bar once it sticks. Two rules keep this from feeling broken:
