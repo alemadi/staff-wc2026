@@ -5,6 +5,26 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-07-02 (Doha) — WAVE B "Quarter-final Power-Ups" — FULLY BUILT, DORMANT, AWAITING ORGANIZER LAUNCH
+
+**Commits:** this commit (`index.html` + `sql/standings.sql` + `sql/protect.sql` + changelog). **⚠️ NOT LIVE:** repo-only — the live Supabase functions are UNCHANGED. Mechanics are double-gated: (1) they only score on k≥25 results (none exist pre-QF — every scoring path verified bit-identical to today's math), and (2) the revised SQL isn't applied until the launch runbook below is executed on organizer sign-off. Merging this branch publishes only the ANNOUNCEMENT layer (banner, spotlight, points-table section, display-only kit panel, arm rows that stay hidden until QF pairings exist via `koReady`).
+
+**The mechanics (evidence-led, no-gambling):** ⚡ **Captain's Armband** — one per round (QF/SF/Final; third-place excluded), arm before that match locks, its advance+exact points double (streak/champion never doubled), unused expires with the round. 🛡 **Streak Shield** — automatic, once per player, QF-onward only: the first streak-breaking miss is forgiven (run survives; no retro-rescue of R32/R16 misses). 🦅 **Upset Bonus** — flat +2 for a correct lower-ranked winner (k≥25), from a published FIFA-ranking table (`wc_rank` in SQL ↔ `PU_RANK` in JS, cross-referenced, organizer-editable before launch; full table published in the FAQ).
+
+**Parity is the contract:** one agent wrote BOTH scoring halves; a 25-case vector file (`scratchpad/wave-b-vectors.json`) covering armband hit/miss/exact/expiry/k31-hack, shield once-only/no-retro/run-continues, upset both directions/tie/never-doubled, combos, and 3 today's-math regression cases passes against **the real extracted `scoreFor`** AND against **the revised `standings()` on a local Postgres 16** (throwaway cluster; live DB untouched). An adversarial line-by-line JS↔SQL walk found parity CLEAN; its three findings are **fixed in this commit**: `reconcilePicks` now adopts server-canonical chips (a lock-rejected arm can't survive locally), `save_picks` treats an absent chips key as "keep stored" (a stale tab can no longer silently wipe an armband) while explicit disarm still works, and brag cards are chips-aware so they match the Room's powered figures. Vectors re-run green after the fixes.
+
+**Storage/guard:** player blob gains optional `chips:{qf,sf,fin}` through the existing `save_picks`; new `wc_chip_valid` + per-round merge in `protect.sql` (locked set/move/removal all revert to stored; out-of-range ids dropped; k31 never armable). `standings()` is now SECURITY DEFINER (read-only, pinned search_path) so anon can read the RLS-walled rank/schedule tables at launch.
+
+**UI (all preview-verified, 0 page errors, `?powerups` demo flag for review):** arm row + ⚡ tag on QF/SF/Final cards; Me "Power-up Kit" panel (slots + shield status); "From the Quarter-finals" points-table tier + five fairness commitments; banner/spotlight announcement (`WHATSNEW_VER` bump); Room pre-settle "⚡ N armed the band" (≥8 floor) + post-settle ⚡ rows with doubled points; "⚡ DOUBLED" / "🦅 +2 upset" / "🛡 shield spent — streak alive" on settle surfaces; TV mode hides arm controls.
+
+**LAUNCH RUNBOOK (execute only on organizer go; target: announce ≥48h before first QF lock Thu 9 Jul):**
+1. Merge branch → main (announcement live; mechanics still dormant — no k≥25 results exist).
+2. Snapshot `select * from standings()` → file. Paste revised `sql/protect.sql` then `sql/standings.sql` into the Supabase SQL editor; re-run the 25 vectors via the SQL harness (synthetic rows in a rolled-back transaction); diff live standings vs the snapshot — **must be byte-identical** (zero drift pre-QF).
+3. Confirm/adjust the `wc_rank` seed (marked ORGANIZER-EDITABLE) before QF kickoff.
+**Rollback:** `git revert <this commit>`; DB: re-run previous `standings.sql`/`protect.sql` (`git show <prev>:sql/...`) — chips fields are additive and simply ignored by the old functions.
+
+---
+
 ## 2026-07-02 (Doha) — "MATCHNIGHT" social pass: the Room goes LIVE, a derby for everyone, the office story card, TV mode
 
 **Commits:** this commit + two WIP checkpoints (`index.html` + changelog). **Frontend only — no DB / scoring / sync / lock-logic change.** Seal-safe; all new styling static (no new animation). New state: none (localStorage untouched; `?tv` is a URL flag).
