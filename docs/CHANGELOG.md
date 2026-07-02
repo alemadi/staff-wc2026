@@ -5,6 +5,26 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-07-02 (Doha) — "MATCHNIGHT" social pass: the Room goes LIVE, a derby for everyone, the office story card, TV mode
+
+**Commits:** this commit + two WIP checkpoints (`index.html` + changelog). **Frontend only — no DB / scoring / sync / lock-logic change.** Seal-safe; all new styling static (no new animation). New state: none (localStorage untouched; `?tv` is a URL flag).
+
+**Why:** the engagement research's social follow-through — shared *moments*, not just personal stats. Four features: (1) the Room becomes a live second screen during matches, (2) every player gets an automatic rivalry, (3) a group-identity share card anyone can post without self-promotion, (4) a kiosk board for office screens.
+
+**What changed — `index.html`** (two `MATCHNIGHT pass` CSS blocks + render edits):
+- **🔴 The Room · LIVE (`roomAsIs` + live header + selector default).** During a live tie (picks locked = seal-safe) the Room shows the live score + clock, the office split, an **"as it stands"** tally — "13 colleagues cashing +4 · 8 sweating · 3 would land the exact score" (same ≥8 k-anon floor) — and YOUR line (cashing / need-a-turnaround / exact-watch). **Names stay sealed until full time — aggregates only.** `liveTick` patches only the score/clock text from the LIVE cache (never a blob pull on the timer); one PP_CACHE-backed re-render fires on the SEALED→LIVE transition; a tap-to-refresh button re-renders on demand. Selector defaults to the live match.
+- **⚔️ Derby of the Day (`derbyInfo`/`meDerby` + board tag).** Standings-only auto-rivalry: you vs the colleague directly above (below for #1) — Me-card panel with the gap, tonight's first whistle, and a tie-aware overnight status line; the opponent's row wears a ⚔️ DERBY tag on the board (chosen rival wins if both apply).
+- **🏟️ Office story card (`bragOffice`).** A collective share card with **no individual named** — "NOBODY SAW IT COMING · 5/20" / "RARE AIR" / "THE OFFICE CALLED IT" — offered on settled Room matches (≥8 pickers) to *everyone*, including the zero-point crowd who'd never self-brag. `shareBrag` gained `foot`/`cta` overrides for nameless cards.
+- **📺 TV mode (`?tv` + `tvLoop`).** A kiosk board for office screens: hides personal chrome, scales up, cycles People → Departments → Room every 22s (Room = live match else latest settled; blob pull rides the 60s PP_CACHE ⇒ ≤1 pull/min per kiosk), suppresses boot popups, pauses 90s on touch, **self-heals if a passer-by taps anything** (join CTA hidden; view drift auto-returns to the board).
+
+**Review fixes folded in (adversarial pass findings):** kiosk stranding (join CTA hidden + tvLoop self-heal — re-verified headless: back on board within one cycle after a forced `go('join')`); `meDerby` overnight deltas now use tie-aware ranks like the board (no contradictory arrows around point ties); the Room upgrades itself once when its match kicks off mid-view; brag exact-counts use `Number()` coercion matching every scoring path.
+
+**Verified:** `node --check` clean; headless Chromium **34/34 asserts, 0 page errors** across live-Room (counts exact vs stub math; **seal assert: 0 of 20 stub names in the pre-settle DOM**; liveTick patched score with zero extra blob pulls), derby (correct opponent + single board tag), WE card (offered at 0 points; download fallback clean with `navigator.share` absent), TV mode (cycles, popups suppressed, reduced-motion clean), plus the fix re-check. Screenshots on all surfaces.
+
+**Rollback:** `git revert` of this commit + the two WIP checkpoints — frontend-only; removes the two MATCHNIGHT CSS blocks, `roomAsIs`/`derbyInfo`/`meDerby`/`bragOffice`/`tvMode`/`tvLoop`, and the isolated hooks in `renderRoom(Body)`/`liveTick`/`renderMe`/`lbRowHTML`/`renderLeaderboard`/`init`/`shareBrag`.
+
+---
+
 ## 2026-07-02 (Doha) — "CROWD" engagement pass (Wave A — frontend-only, evidence-led)
 
 **Commits:** this commit (`index.html` + changelog). **Frontend only — no DB / scoring / sync / lock-logic change.** Seal-safe throughout; every new element is static (no new animation) so reduced-motion is unaffected. New state: none.

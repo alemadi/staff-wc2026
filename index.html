@@ -1421,7 +1421,7 @@
   .derbytag{margin-left:6px;font-size:8.5px;font-weight:800;letter-spacing:.5px;color:var(--gold-bright);background:rgba(138,21,56,.28);border:1px solid rgba(138,21,56,.6);padding:1px 6px;border-radius:5px;vertical-align:1px}
   /* F4 — ?tv kiosk board: hide personal chrome, widen, scale for distance */
   body.tv{zoom:1.22}
-  body.tv nav.bottom,body.tv footer.app,body.tv .userchip,body.tv #jumpnext,body.tv #xbanner,body.tv #xb-spacer,body.tv .sq-share,body.tv .nb-brag,body.tv .room-brag{display:none!important}
+  body.tv nav.bottom,body.tv footer.app,body.tv .userchip,body.tv #jumpnext,body.tv #xbanner,body.tv #xb-spacer,body.tv .sq-share,body.tv .nb-brag,body.tv .room-brag,body.tv #lb-body .btn-primary,body.tv .lb-more{display:none!important} /* kiosk: no join CTA / expanders a passer-by can strand the screen on */
   body.tv .wrap{max-width:1100px;padding-bottom:28px}
   .tv-tag{display:none;position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);right:12px;z-index:49;background:rgba(180,151,89,.14);border:1px solid var(--gold);border-radius:6px;padding:4px 10px;font-size:10px;font-weight:800;letter-spacing:.14em;color:var(--gold-bright);pointer-events:none}
   body.tv .tv-tag{display:block}
@@ -3286,10 +3286,12 @@ async function meDerby(st){
   if(!d)return "";
   let oppD=null,meD=null;
   try{const snap=await rankSnap();
-    if(snap&&snap.ranks){ /* same prev-minus-now delta convention as renderLeaderboard */
+    if(snap&&snap.ranks){ /* same prev-minus-now delta convention as renderLeaderboard — TIE-AWARE ranks, not raw indexes */
+      let rank=0,prevR=null;const rk={};
+      st.forEach(function(r,i){if(prevR===null||cmpSt(r,prevR)!==0){rank=i+1;prevR=r;}rk[r.slug]=rank;});
       const po=snap.ranks[d.opp.slug],pm=snap.ranks[state.meSlug];
-      if(po!=null)oppD=po-(d.above?d.meIdx:d.meIdx+2);
-      if(pm!=null)meD=pm-(d.meIdx+1);
+      if(po!=null&&rk[d.opp.slug]!=null)oppD=po-rk[d.opp.slug];
+      if(pm!=null&&rk[state.meSlug]!=null)meD=pm-rk[state.meSlug];
     }}catch(e){}
   const now=Date.now()+CLOCK_OFFSET;
   const up=FIXTURES.filter(function(f){return new Date(f.ko).getTime()>now;}).sort(function(a,b){return new Date(a.ko)-new Date(b.ko);});
@@ -4855,8 +4857,8 @@ async function bragCall(){
     const mv=fxView(m),players=await ppPlayers();
     let tot=0,gotIt=0,exactC=0;
     const exOK=r.h!=null&&r.a!=null;
-    if(m.kn){players.forEach(p=>{const v=(p.predictions||{})[m.id];if(!v||!v.w)return;tot++;if(v.w===r.w)gotIt++;if(exOK&&v.h===r.h&&v.a===r.a)exactC++;});}
-    else{const ro=r.h>r.a?"H":(r.h<r.a?"A":"D");players.forEach(p=>{const v=(p.predictions||{})[m.id];if(!v||!v.o)return;tot++;if(v.o===ro)gotIt++;if(exOK&&v.h===r.h&&v.a===r.a)exactC++;});}
+    if(m.kn){players.forEach(p=>{const v=(p.predictions||{})[m.id];if(!v||!v.w)return;tot++;if(v.w===r.w)gotIt++;if(exOK&&Number(v.h)===Number(r.h)&&Number(v.a)===Number(r.a))exactC++;});}
+    else{const ro=r.h>r.a?"H":(r.h<r.a?"A":"D");players.forEach(p=>{const v=(p.predictions||{})[m.id];if(!v||!v.o)return;tot++;if(v.o===ro)gotIt++;if(exOK&&Number(v.h)===Number(r.h)&&Number(v.a)===Number(r.a))exactC++;});}
     const pct=tot?Math.round(gotIt/tot*100):100;
     const matchLbl=mv.home.n+" "+(r.h!=null?r.h:"")+"–"+(r.a!=null?r.a:"")+" "+mv.away.n;
     const exact=vd.cls==="exact";
@@ -4883,8 +4885,8 @@ async function bragOffice(){
     const mv=fxView(m),players=await ppPlayers();
     let tot=0,gotIt=0,exactC=0;
     const exOK=r.h!=null&&r.a!=null;
-    if(m.kn){players.forEach(p=>{const v=(p.predictions||{})[m.id];if(!v||!v.w)return;tot++;if(v.w===r.w)gotIt++;if(exOK&&v.h===r.h&&v.a===r.a)exactC++;});}
-    else{const ro=r.h>r.a?"H":(r.h<r.a?"A":"D");players.forEach(p=>{const v=(p.predictions||{})[m.id];if(!v||!v.o)return;tot++;if(v.o===ro)gotIt++;if(exOK&&v.h===r.h&&v.a===r.a)exactC++;});}
+    if(m.kn){players.forEach(p=>{const v=(p.predictions||{})[m.id];if(!v||!v.w)return;tot++;if(v.w===r.w)gotIt++;if(exOK&&Number(v.h)===Number(r.h)&&Number(v.a)===Number(r.a))exactC++;});}
+    else{const ro=r.h>r.a?"H":(r.h<r.a?"A":"D");players.forEach(p=>{const v=(p.predictions||{})[m.id];if(!v||!v.o)return;tot++;if(v.o===ro)gotIt++;if(exOK&&Number(v.h)===Number(r.h)&&Number(v.a)===Number(r.a))exactC++;});}
     if(tot<8){toast("Not enough office calls on this one yet");return;}
     const pct=Math.round(gotIt/tot*100);
     const matchLbl=mv.home.n+" "+(r.h!=null?r.h:"")+"–"+(r.a!=null?r.a:"")+" "+mv.away.n;
@@ -5905,7 +5907,9 @@ function liveTick(){
   if(active)fetchLive();
   if(active&&state.view==="leaderboard"&&LB_MODE==="people"&&!state.demo)renderLeaderboard(); /* board heartbeat: only while a match is live, so odo count-up fires when results land — never replays the board on quiet weeks (60s cadence, cached) */
   /* MATCHNIGHT F1.5 — Room heartbeat: patch score/clock textContent from the LIVE cache only.
-     NEVER renderRoomBody() from here — that would bulk-pull the players blob on a timer. */
+     NEVER renderRoomBody() on the steady tick — that would bulk-pull the players blob on a timer.
+     ONE exception: the SEALED→LIVE transition (score exists but the live header doesn't yet)
+     re-renders ONCE per match — PP_CACHE-backed, so it costs at most one cached read. */
   if(active&&state.view==="leaderboard"&&LB_MODE==="room"&&ROOM_SEL&&typeof liveFor==="function"){
     const rm=FIXBYID[ROOM_SEL];
     if(rm&&isLive(rm)){
@@ -5914,6 +5918,7 @@ function liveTick(){
         const rs=document.getElementById("room-live-score"),rc=document.getElementById("room-live-clock");
         if(rs)rs.textContent=rle.hs+"–"+rle.as;
         if(rc)rc.textContent=rle.clock||"LIVE";
+        if(!rs&&window.__roomLiveUp!==rm.id){window.__roomLiveUp=rm.id;try{renderRoomBody();}catch(e){}}
       }
     }
   }
@@ -6021,7 +6026,8 @@ function tvLoop(){
      60s PP_CACHE, so ONE kiosk device costs ≤1 pull/min — acceptable. */
   TV_T=setInterval(function(){
     if(Date.now()<TV_HOLD)return;                     /* someone's at the screen — hold, resume after 90s */
-    if(state.view!=="leaderboard"||state.demo)return;
+    if(state.demo)return;
+    if(state.view!=="leaderboard"){go("leaderboard");return;} /* self-heal: a stray tap can never strand the kiosk */
     i=(i+1)%seq.length;LB_MODE=seq[i];
     if(LB_MODE==="room"){                             /* the live match owns the room, else latest settled */
       const list=roomMatches(),liveM=list.find(function(m){return isLive(m)&&!roomSettled(m);}),done=list.filter(roomSettled);
