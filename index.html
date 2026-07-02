@@ -438,7 +438,7 @@
   .input{flex:1;background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:12px;color:var(--cream);padding:12px 14px;font-family:var(--font-b);font-size:16px;font-weight:600}
   button,select,input,.switch{touch-action:manipulation}
   .input:focus{outline:none;border-color:var(--gold)}
-  select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23e7c879'%3E%3Cpath d='M2 4l4 4 4-4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+  select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23e3d3a3'%3E%3Cpath d='M2 4l4 4 4-4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
   .switch-row{display:flex;align-items:center;gap:12px;background:var(--glass);border:1px solid var(--line);border-radius:14px;padding:13px 15px;margin-bottom:13px}
   .switch-row .txt{flex:1}
   .switch-row .txt b{font-size:13px;font-weight:800;display:block}
@@ -1108,6 +1108,55 @@
   .me-title-desc{font-size:11.5px;color:var(--muted);line-height:1.35;min-width:0}
   .me-race{font-size:12px;color:var(--muted);line-height:1.5}
   .me-race b{color:var(--gb)}
+
+  /* ===================================================================
+     SHOWTIME pass — shell & join (frontend-only, palette-locked,
+     reduced-motion-gated). Countdown split-flap + final-hour urgency,
+     rank-aware userchip, join CTA pending/sheen, nav snap, toast accents,
+     departures hairline, banner chip cascade, micro-contrast fixes.
+     =================================================================== */
+  /* S1 — countdown: one-shot flap on the digit that changed + <1h urgency */
+  .cd-unit.tick b{animation:cdflap .3s both}
+  @keyframes cdflap{from{transform:rotateX(78deg);opacity:.2}to{transform:rotateX(0);opacity:1}}
+  @media(prefers-reduced-motion:reduce){.cd-unit.tick b{animation:none}}
+  .countdown.imminent{border-color:rgba(138,21,56,.5);box-shadow:0 0 14px -4px rgba(138,21,56,.45)}
+  .countdown.imminent .cd-unit b{background:linear-gradient(var(--magenta-2),var(--qatar));-webkit-background-clip:text;background-clip:text}
+  /* S2 — userchip rank halo (reuses goldRingPulse; header is the one focal glow) */
+  .avatar.champ{animation:goldRingPulse 2.8s ease-in-out infinite}
+  @media(prefers-reduced-motion:reduce){.avatar.champ{animation:none;box-shadow:0 0 0 2px var(--gold)}}
+  .avatar.podium{box-shadow:0 0 0 2px var(--gold)}
+  /* S3/S4 — join CTA pending state + gold sheen (single element, static screen) */
+  #join-cta:disabled{opacity:.72;cursor:progress;transform:none}
+  #join-cta{position:relative;overflow:hidden}
+  #join-cta::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 38%,rgba(227,211,163,.32) 50%,transparent 62%);animation:ctasheen 4.5s linear infinite}
+  @keyframes ctasheen{0%,72%{transform:translateX(-130%)}100%{transform:translateX(130%)}}
+  @media(prefers-reduced-motion:reduce){#join-cta::after{animation:none;content:none}}
+  /* S5 — bottom nav: legible inactive tabs + tab-switch snap */
+  .navbtn{color:var(--muted)}
+  .navbtn.on::before{animation:navin .25s cubic-bezier(.34,1.56,.64,1) both}
+  @keyframes navin{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+  .navbtn.on svg{transform:scale(1.08)}
+  /* S6 — toast: 3px intent accent (warning/info no longer identical) + spring in */
+  #toast{transition:opacity .3s,transform .35s cubic-bezier(.34,1.56,.64,1)}
+  #toast.success{border-left:3px solid var(--ok)}
+  #toast.error{border-left:3px solid var(--bad)}
+  #toast.warning{border-left:3px solid var(--gold)}
+  #toast.info{border-left:3px solid var(--gold-deep)}
+  /* S7 — departures board: signature gold hairline + legibility lift */
+  .dep{position:relative}
+  .dep::before{content:"";position:absolute;top:0;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,var(--gold-deep) 20%,var(--gold-bright) 50%,var(--gold-deep) 80%,transparent);opacity:.7}
+  .dep-st{color:var(--muted)}
+  .dep-sub{color:var(--muted)}
+  .dep-ft{color:var(--muted)}
+  /* S8 — micro-contrast */
+  .mark .wc em{color:var(--muted)}
+  .cd-unit span{color:var(--muted)}
+  /* S9 — banner chips cascade in (one-shot, reuses badgeIn) + collapsed-strip affordance */
+  .xbanner:not(.mini) .xb-chip{animation:badgeIn .4s cubic-bezier(.34,.8,.64,1) backwards}
+  .xbanner:not(.mini) .xb-chip:nth-child(1){animation-delay:.05s}
+  .xbanner:not(.mini) .xb-chip:nth-child(2){animation-delay:.14s}
+  .xbanner:not(.mini) .xb-chip:nth-child(3){animation-delay:.23s}
+  .xbanner.mini{border-left:3px solid var(--gold)}
 </style>
 </head>
 <body>
@@ -1841,6 +1890,7 @@ async function fetchStandings(){
         predicted:Object.values(p.predictions||{}).filter(x=>x.o||x.w).length};});
   }
   STAND_CACHE={t:Date.now(),rows};
+  try{updateChip();}catch(e){} /* header chip can now show the live rank badge */
   return rows;
 }
 
@@ -2089,6 +2139,9 @@ function rollBoard(){
 }
 
 async function joinNow(){
+  const cta=document.getElementById("join-cta");
+  if(cta){cta.disabled=true;cta.setAttribute("aria-busy","true");cta.dataset.lbl=cta.textContent;cta.textContent="Joining… ⚽";}
+  try{
   let ig=document.getElementById("j-ig").value
     .replace(/[\u200B-\u200F\u202A-\u202E\u2060\uFEFF]/g,"")
     .replace(/[\u0660-\u0669]/g,function(d){return String.fromCharCode(d.charCodeAt(0)-0x0660+48);})
@@ -2137,6 +2190,9 @@ async function joinNow(){
   state.filter=defaultRound();
   go("matches");
   setupBanner();   // now that they're a player, surface the streak announcement
+  }finally{
+    if(cta){cta.disabled=false;cta.removeAttribute("aria-busy");if(cta.dataset.lbl){cta.textContent=cta.dataset.lbl;delete cta.dataset.lbl;}}
+  }
 }
 async function signOut(){
   if(!confirm("Sign out? Your predictions stay saved — sign back in with the same handle to resume."))return;
@@ -2149,10 +2205,22 @@ async function signOut(){
 }
 function updateChip(){
   if(!state.player)return;
-  document.getElementById("chip-av").innerHTML=avatarFill(state.player.name);
+  const av=document.getElementById("chip-av");
+  av.innerHTML=avatarFill(state.player.name);
+  av.classList.remove("champ","podium");
   document.getElementById("chip-name").textContent=state.player.name;
   const ptsEl=document.getElementById("chip-pts");
-  const nv=scoreFor(state.player.predictions,state.results,state.player.champ).pts+" PTS";
+  let nv=scoreFor(state.player.predictions,state.results,state.player.champ).pts+" PTS";
+  /* live rank badge — cache-only (never triggers a fetch); tie-aware, same idiom as the board */
+  if(STAND_CACHE.rows){
+    const st=STAND_CACHE.rows.slice().sort((a,b)=>cmpSt(a,b)||(a.name||"").localeCompare(b.name||""));
+    let rank=0,prev=null,me=null;
+    st.forEach((r,i)=>{if(prev===null||cmpSt(r,prev)!==0){rank=i+1;prev=r;}if(me===null&&r.slug===state.meSlug)me=rank;});
+    if(me!=null){
+      nv=(me<=3?["🥇","🥈","🥉"][me-1]+" ":"")+nv+" · #"+me;
+      if(me===1)av.classList.add("champ");else if(me<=3)av.classList.add("podium");
+    }
+  }
   if(ptsEl){if(ptsEl.textContent&&ptsEl.textContent!=="0 PTS"&&ptsEl.textContent!==nv){ptsEl.classList.remove("pop");void ptsEl.offsetWidth;ptsEl.classList.add("pop");}ptsEl.textContent=nv;}
   updateMeBadge();
 }
@@ -3726,7 +3794,7 @@ function tickCountdown(){
   const now=Date.now();
   const next=FIXTURES.filter(m=>new Date(m.ko).getTime()>now).sort((a,b)=>new Date(a.ko)-new Date(b.ko))[0];
   const wrap=document.getElementById("cd-clock"),lab=document.getElementById("cd-match");
-  if(!next){if(lab.__nm!=="over"){lab.__nm="over";lab.textContent="Tournament underway";wrap.innerHTML="";}return;}
+  if(!next){if(lab.__nm!=="over"){lab.__nm="over";lab.textContent="Tournament underway";wrap.innerHTML="";wrap.__cd=null;document.getElementById("countdown").classList.remove("imminent");}return;}
   const nv=fxView(next);
   const nm=((next.kn&&!koReady(next))?(RLABEL[next.round]+": "+esc(nv.home.n)+" v "+esc(nv.away.n)):(nv.home.f+' '+esc(nv.home.n)+' v '+esc(nv.away.n)+' '+nv.away.f))+(next.tag==="qatar"?' <small>⭐</small>':'');
   if(lab.__nm!==nm){lab.__nm=nm;lab.innerHTML=nm;} /* rebuild only on change — recreating the flag <img>s every second made the header jitter each tick */
@@ -3735,8 +3803,16 @@ function tickCountdown(){
   const h=Math.floor(diff/36e5);diff-=h*36e5;
   const mi=Math.floor(diff/6e4);diff-=mi*6e4;
   const se=Math.floor(diff/1e3);
-  const u=(v,l)=>'<div class="cd-unit"><b>'+String(v).padStart(2,"0")+'</b><span>'+l+'</span></div>';
-  wrap.innerHTML=u(d,"days")+u(h,"hrs")+u(mi,"min")+u(se,"sec");
+  /* build the four units once; per tick only a changed digit is touched (one-shot split-flap) */
+  if(!wrap.__cd){
+    wrap.innerHTML=["days","hrs","min","sec"].map(l=>'<div class="cd-unit"><b>--</b><span>'+l+'</span></div>').join("");
+    wrap.__cd=Array.prototype.slice.call(wrap.querySelectorAll(".cd-unit"));
+  }
+  [d,h,mi,se].forEach((v,i)=>{
+    const un=wrap.__cd[i],b=un.firstElementChild,t=String(v).padStart(2,"0");
+    if(b.textContent!==t){b.textContent=t;un.classList.remove("tick");void b.offsetWidth;un.classList.add("tick");}
+  });
+  document.getElementById("countdown").classList.toggle("imminent",(new Date(next.ko).getTime()-now)<36e5);
 }
 
 /* ===== Matchday Live pack ===== */
