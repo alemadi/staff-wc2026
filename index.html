@@ -1404,6 +1404,27 @@
   .room-asis .mine-live.sweat-me{color:var(--cream)}
   .room-refresh{display:block;width:100%;margin:0 0 10px;padding:7px 10px;border-radius:10px;border:1px solid var(--line);background:var(--glass);color:var(--faint);font-size:11px;font-weight:700;font-family:var(--font-b);cursor:pointer;transition:color .2s,border-color .2s}
   .room-refresh:hover{color:var(--gold-bright);border-color:rgba(180,151,89,.4)}
+
+  /* ===================================================================
+     MATCHNIGHT pass — derby, office card, tv mode (frontend-only,
+     palette-locked, reduced-motion-gated). Auto-derby panel + board tag,
+     collective office story button, ?tv kiosk board. Static styling only.
+     =================================================================== */
+  /* F2 — Derby of the Day (slim standings only; mirrors .me-squad language) */
+  .me-derby{background:linear-gradient(120deg,rgba(180,151,89,.14),transparent 70%),var(--glass);border:1px solid rgba(180,151,89,.4);border-radius:15px;padding:12px 14px;margin:14px 0 2px;text-align:left}
+  .me-derby .md-hd{font-size:9.5px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+  .me-derby .md-vs{font-size:14px;font-weight:800;color:var(--cream)}
+  .me-derby .md-vs b{color:var(--gold-bright)}
+  .me-derby .md-gap{font-size:11.5px;color:var(--muted);margin-top:3px}
+  .me-derby .md-gap b{color:var(--gold-bright);font-family:var(--font-d);font-weight:400;font-size:14px;letter-spacing:.02em}
+  .me-derby .md-stat{font-size:11px;font-weight:700;color:var(--gold);margin-top:7px;padding-top:7px;border-top:1px solid var(--line)}
+  .derbytag{margin-left:6px;font-size:8.5px;font-weight:800;letter-spacing:.5px;color:var(--gold-bright);background:rgba(138,21,56,.28);border:1px solid rgba(138,21,56,.6);padding:1px 6px;border-radius:5px;vertical-align:1px}
+  /* F4 — ?tv kiosk board: hide personal chrome, widen, scale for distance */
+  body.tv{zoom:1.22}
+  body.tv nav.bottom,body.tv footer.app,body.tv .userchip,body.tv #jumpnext,body.tv #xbanner,body.tv #xb-spacer,body.tv .sq-share,body.tv .nb-brag,body.tv .room-brag{display:none!important}
+  body.tv .wrap{max-width:1100px;padding-bottom:28px}
+  .tv-tag{display:none;position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);right:12px;z-index:49;background:rgba(180,151,89,.14);border:1px solid var(--gold);border-radius:6px;padding:4px 10px;font-size:10px;font-weight:800;letter-spacing:.14em;color:var(--gold-bright);pointer-events:none}
+  body.tv .tv-tag{display:block}
 </style>
 </head>
 <body>
@@ -1685,6 +1706,7 @@
   </div>
   <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
   <div id="demo-badge" aria-hidden="true">DEMO</div>
+  <div class="tv-tag" aria-hidden="true">STAFF CHALLENGE · LIVE BOARD</div>
 
 <script>
 /* ===== Matchday — World Cup 2026 staff pool · full 104-match build · v2: knockout predictions · WC26 official theme (black/gold + host tricolor) ===== */
@@ -3007,7 +3029,7 @@ function lbRowHTML(r,i,PT){
   var streakChip="";
   if(r.me&&state.player&&!state.demo){try{const run=koStreakCurrent(state.player.predictions,state.results);if(run>=2)streakChip='<span class="lb-streak">\ud83d\udd25\u00d7'+run+'</span>';}catch(e){}}
   return '<div class="lb-row '+(r.me?"me":"")+'" style="animation-delay:'+Math.min(i*0.03,0.5)+'s"><div class="rank">'+r.rank+'</div>'+moveHTML(r.dRank)+'<div class="avatar">'+avatarFill(r.name)+'</div>'+
-    '<div class="lb-info"><div class="n">'+esc(r.name)+(r.me?'<span class="youtag">YOU</span>':'')+streakChip+titleChip(r.slug)+(r.rv?'<span class="rivtag">\ud83c\udfaf RIVAL</span>':'')+(r.demo?'<span class="demotag">demo</span>':'')+'</div><div class="d">'+esc(r.dept||"")+'</div>'+
+    '<div class="lb-info"><div class="n">'+esc(r.name)+(r.me?'<span class="youtag">YOU</span>':'')+streakChip+titleChip(r.slug)+(r.rv?'<span class="rivtag">\ud83c\udfaf RIVAL</span>':'')+(r.dby?'<span class="derbytag">\u2694\ufe0f DERBY</span>':'')+(r.demo?'<span class="demotag">demo</span>':'')+'</div><div class="d">'+esc(r.dept||"")+'</div>'+
     '<div class="lb-stats"><span>◎ <b>'+r.exact+'</b> exact</span><span>✓ <b>'+r.correct+'</b> correct</span><span>'+r.predicted+'/'+PT+' picked</span></div></div>'+
     '<div class="lb-pts"><b>'+'<span class="ptsn" data-pslug="'+r.slug+'">'+r.pts+'</span>'+'</b><span>pts</span></div></div>';
 }
@@ -3036,6 +3058,7 @@ async function renderLeaderboard(){
   }
   rows.sort((a,b)=>cmpSt(a,b)||a.name.localeCompare(b.name));
   let rank=0,prevR=null;rows.forEach((r,i)=>{if(prevR===null||cmpSt(r,prevR)!==0){rank=i+1;prevR=r;}r.rank=rank;});
+  if(!state.demo){const dd=derbyInfo(rows);if(dd&&dd.opp&&!dd.opp.rv)dd.opp.dby=true;} /* MATCHNIGHT F2 — derby marker (chosen rival wins) */
   if(!state.demo){
     const snap=await rankSnap();
     if(snap&&snap.ranks)rows.forEach(r=>{const pr=snap.ranks[r.slug];r.dRank=(pr!=null)?(pr-r.rank):null;});
@@ -3248,6 +3271,38 @@ function meSquad(st){
     (myInDept?('<div class="sq-you">You’re <b>#'+myInDept+'</b> of '+mates.length+' in '+esc(myDept)+(pctTop<=20?' — top <b>'+pctTop+'%</b> of your squad 🔑':'')+'</div>'):'')+
     '<div class="sq-derby">'+derby+'</div></div>';
 }
+/* MATCHNIGHT F2 — Derby of the Day: auto-rivalry vs the row directly above you
+   (or directly below when you lead). Slim standings only — seal-safe. */
+function derbyInfo(st){
+  if(state.demo||!state.meSlug||!st||st.length<2)return null;
+  const i=st.findIndex(function(r){return r.slug===state.meSlug;});
+  if(i<0)return null;
+  const above=i>0,opp=above?st[i-1]:st[i+1];
+  if(!opp)return null;
+  return {opp:opp,gap:Math.abs((opp.pts|0)-(st[i].pts|0)),above:above,meIdx:i,prize:above?i:1};
+}
+async function meDerby(st){
+  const d=derbyInfo(st);
+  if(!d)return "";
+  let oppD=null,meD=null;
+  try{const snap=await rankSnap();
+    if(snap&&snap.ranks){ /* same prev-minus-now delta convention as renderLeaderboard */
+      const po=snap.ranks[d.opp.slug],pm=snap.ranks[state.meSlug];
+      if(po!=null)oppD=po-(d.above?d.meIdx:d.meIdx+2);
+      if(pm!=null)meD=pm-(d.meIdx+1);
+    }}catch(e){}
+  const now=Date.now()+CLOCK_OFFSET;
+  const up=FIXTURES.filter(function(f){return new Date(f.ko).getTime()>now;}).sort(function(a,b){return new Date(a.ko)-new Date(b.ko);});
+  const tonight=up.find(function(f){return dayKey(f.ko)===dayKey(new Date(now).toISOString());});
+  const when=tonight?('first whistle <b>'+fmtTime(tonight.ko)+'</b>'):(up.length?('next match-night <b>'+fmtWk(up[0].ko)+'</b>'):'');
+  const stat=(oppD!=null&&oppD>0)?'They moved overnight — hold the line'
+            :((meD!=null&&meD>0)?'You’re closing — keep it up'
+            :('Winner takes '+ordinal(d.prize)));
+  return '<div class="me-derby"><div class="md-hd">⚔️ Tonight’s derby</div>'+
+    '<div class="md-vs">You vs <b>'+esc(d.opp.name)+'</b></div>'+
+    '<div class="md-gap">'+(d.gap>0?('<b>'+d.gap+'</b> pt'+(d.gap===1?'':'s')+' between you'):'Level on points — tiebreakers split you')+(when?' · '+when:'')+'</div>'+
+    '<div class="md-stat">'+stat+'</div></div>';
+}
 function meNeighbours(st,awaiting){
   if(awaiting||!st||!st.length||state.demo)return "";
   const idx=st.findIndex(function(r){return r.slug===state.meSlug;});
@@ -3364,6 +3419,7 @@ async function renderMe(){
     meNextPick()+
     meChampLine()+
     '<div id="champ-bets-slot">'+champBetsLine()+'</div>'+
+    (awaiting?"":await meDerby(st))+ /* MATCHNIGHT F2 — derby panel above the neighbours */
     meNeighbours(st,awaiting)+
     meSquad(st)+
     '<div class="me-seclbl">Achievements</div><div class="badges">'+badges.slice(0,5).map(b=>'<div class="badge '+(b.g?"gold":"")+'">'+b.t+'</div>').join("")+'</div>'+
@@ -4509,6 +4565,7 @@ async function renderRoomBody(){
   if(myVd&&myVd.cls==="exact"){var mrun=0;try{mrun=koStreakCurrent(state.player.predictions,state.results);}catch(e){}
     if(mrun>=2)html+='<div class="room-rarity mine">🔥 That’s <b>×'+mrun+'</b> exact in a row for you</div>';}
   if(myVd&&myVd.pts>0)html+='<button class="btn btn-ghost btn-sm room-brag" onclick="bragCall()">📤 Brag this call</button>';
+  if(rows.length>=8)html+='<button class="btn btn-ghost btn-sm room-brag" onclick="bragOffice()">🏟️ Share the office story</button>'; /* MATCHNIGHT F3 — collective card, shown regardless of own score */
   html+=roomTable(rows,mv,m);
   host.innerHTML=html;
 }
@@ -4740,7 +4797,7 @@ async function shareSquad(){
    rank. Only ever offered for a call you WON (never a shame card). */
 async function shareBrag(o){
   try{
-    if(!state.player){toast("Sign in first");return;}
+    if(!state.player&&o.foot==null){toast("Sign in first");return;} /* collective cards (o.foot) carry no name — fine signed-out */
     try{if(document.fonts&&document.fonts.load)await Promise.all([
       document.fonts.load("400 200px Anton"),document.fonts.load("800 44px 'Hanken Grotesk'")]);}catch(e){}
     const W=1080,H=1350,c=document.createElement("canvas");c.width=W;c.height=H;
@@ -4768,9 +4825,9 @@ async function shareBrag(o){
     if(o.line1){x.fillStyle="#f4eee3";x.font="700 34px 'Hanken Grotesk',sans-serif";wrapText(x,o.line1,W/2,888,W-140,42,2);}
     if(o.line2){x.fillStyle="rgba(227,211,163,.85)";x.font="600 28px 'Hanken Grotesk',sans-serif";x.fillText(o.line2,W/2,980);}
     x.fillStyle="rgba(244,238,227,.6)";x.font="700 30px 'Hanken Grotesk',sans-serif";
-    x.fillText(state.player.name+(state.player.dept?(" · "+state.player.dept):""),W/2,1138);
+    x.fillText(o.foot!=null?o.foot:(state.player.name+(state.player.dept?(" · "+state.player.dept):"")),W/2,1138); /* MATCHNIGHT F3: collective cards override the name line */
     x.fillStyle="#b49759";x.font="700 30px 'Hanken Grotesk',sans-serif";
-    x.fillText("Think you can beat me? → staffchallenge26.com",W/2,1204);
+    x.fillText(o.cta||"Think you can beat me? → staffchallenge26.com",W/2,1204);
     x.fillStyle="rgba(244,238,227,.35)";x.font="600 22px 'Hanken Grotesk',sans-serif";
     x.fillText("Staff World Cup 2026 · 11 June – 19 July",W/2,1254);
     c.toBlob(async b=>{
@@ -4812,6 +4869,38 @@ async function bragCall(){
       shareBrag({emoji:"🎯",badge:"CALLED IT",big:exact?(r.h+"–"+r.a):("+"+vd.pts),bigLabel:exact?"EXACT SCORE":"POINTS",
         line1:matchLbl,line2:(exLine?exLine:(pct<100?((pct<=50?"Only ":"")+pct+"% of the office got it"):"Right on the money")),
         accent:[180,151,89],file:"called-it",shareText:(exLine?exLine+" — "+matchLbl:"Called "+matchLbl)+" in Staff Challenge 26"});
+    }
+  }catch(e){toast("Couldn’t build the card");}
+}
+/* MATCHNIGHT F3 — the office "WE" story card: collective, settled-only, open to
+   everyone in the room (no personal points needed). Same guards + counting loop
+   as bragCall; NO individual is ever named on the card or in the share text. */
+async function bragOffice(){
+  try{
+    const m=FIXBYID[ROOM_SEL];if(!m)return;
+    const r=state.results[m.id];
+    if(!r||(m.kn?r.w==null:r.h==null)){toast("Wait for the final whistle 🙂");return;}
+    const mv=fxView(m),players=await ppPlayers();
+    let tot=0,gotIt=0,exactC=0;
+    const exOK=r.h!=null&&r.a!=null;
+    if(m.kn){players.forEach(p=>{const v=(p.predictions||{})[m.id];if(!v||!v.w)return;tot++;if(v.w===r.w)gotIt++;if(exOK&&v.h===r.h&&v.a===r.a)exactC++;});}
+    else{const ro=r.h>r.a?"H":(r.h<r.a?"A":"D");players.forEach(p=>{const v=(p.predictions||{})[m.id];if(!v||!v.o)return;tot++;if(v.o===ro)gotIt++;if(exOK&&v.h===r.h&&v.a===r.a)exactC++;});}
+    if(tot<8){toast("Not enough office calls on this one yet");return;}
+    const pct=Math.round(gotIt/tot*100);
+    const matchLbl=mv.home.n+" "+(r.h!=null?r.h:"")+"–"+(r.a!=null?r.a:"")+" "+mv.away.n;
+    const foot="One office · one story",cta="Join the office story → staffchallenge26.com",l2="One office · "+tot+" calls";
+    if(pct<=30){
+      shareBrag({emoji:"🏟️",badge:"NOBODY SAW IT COMING",big:gotIt+"/"+tot,bigLabel:"CALLED IT",
+        line1:matchLbl,line2:l2,accent:[138,21,56],file:"office-story",foot:foot,cta:cta,
+        shareText:"Only "+gotIt+" of "+tot+" of us saw "+matchLbl+" coming — Staff Challenge 26"});
+    }else if(exOK&&exactC>0&&exactC<=3){
+      shareBrag({emoji:"🎯",badge:"RARE AIR",big:exactC+"/"+tot,bigLabel:"NAILED "+r.h+"–"+r.a,
+        line1:matchLbl,line2:l2,accent:[180,151,89],file:"office-story",foot:foot,cta:cta,
+        shareText:"Just "+exactC+" of "+tot+" of us nailed "+r.h+"–"+r.a+" in "+matchLbl+" — Staff Challenge 26"});
+    }else{
+      shareBrag({emoji:"🏟️",badge:"THE OFFICE CALLED IT",big:pct+"%",bigLabel:"GOT IT RIGHT",
+        line1:matchLbl,line2:l2,accent:[180,151,89],file:"office-story",foot:foot,cta:cta,
+        shareText:pct+"% of the office called "+matchLbl+" — Staff Challenge 26"});
     }
   }catch(e){toast("Couldn’t build the card");}
 }
@@ -5920,6 +6009,32 @@ function liveTick(){
   });
 })();
 
+/* ===== MATCHNIGHT F4 — TV / kiosk mode (?tv): a clean signage board for office
+   screens. Same URL-flag idiom as bannerForced. Boot popups are suppressed and
+   the board cycles people → dept → room on ONE interval. ===== */
+function tvMode(){try{return /(^|[?&#])tv\b/i.test(location.search+location.hash);}catch(e){return false;}}
+let TV_T=null,TV_HOLD=0;
+function tvLoop(){
+  if(TV_T)return;                                     /* handle stored — the interval can never double */
+  const seq=["people","dept","room"];let i=0;
+  /* 22s per step ⇒ a full people→dept→room lap is 66s; the Room's blob pull rides the
+     60s PP_CACHE, so ONE kiosk device costs ≤1 pull/min — acceptable. */
+  TV_T=setInterval(function(){
+    if(Date.now()<TV_HOLD)return;                     /* someone's at the screen — hold, resume after 90s */
+    if(state.view!=="leaderboard"||state.demo)return;
+    i=(i+1)%seq.length;LB_MODE=seq[i];
+    if(LB_MODE==="room"){                             /* the live match owns the room, else latest settled */
+      const list=roomMatches(),liveM=list.find(function(m){return isLive(m)&&!roomSettled(m);}),done=list.filter(roomSettled);
+      if(list.length)ROOM_SEL=(liveM||done[0]||list[0]).id;
+      else{i=(i+1)%seq.length;LB_MODE=seq[i];}        /* room not open yet — skip that step */
+    }
+    const lm=document.getElementById("lbmode");
+    if(lm)lm.querySelectorAll("button").forEach(function(b){b.classList.toggle("on",b.dataset.m===LB_MODE);});
+    renderLeaderboard();
+  },22000);
+  document.addEventListener("pointerdown",function(){TV_HOLD=Date.now()+90000;},true);
+}
+
 (async function init(){
   state.results=await getJSON("wc:results",true)||{};
   state.kteams=await getJSON("wc:kteams",true)||{};
@@ -5927,13 +6042,16 @@ function liveTick(){
   const me=await getJSON("wc:me",false);
   if(me){const p=await getJSON("wc:player:"+me,true);if(p){state.player=p;state.meSlug=me;}}
   state.filter=defaultRound();
+  const TV=tvMode();                                 /* MATCHNIGHT F4 — kiosk board */
+  if(TV)document.body.classList.add("tv");
   if(state.player){
     document.getElementById("userchip").style.display="flex";
     document.getElementById("countdown").style.display="flex";
     const h=(location.hash||"").slice(1);
-    updateChip();go(["matches","bracket","leaderboard","me"].indexOf(h)>=0?h:"matches");
-    if(!openReveal()){if(!maybeWhatsNew())welcomeDelta();}
-  }else{go("join");}
+    updateChip();go(TV?"leaderboard":(["matches","bracket","leaderboard","me"].indexOf(h)>=0?h:"matches"));
+    if(!TV){if(!openReveal()){if(!maybeWhatsNew())welcomeDelta();}}  /* TV: no boot popups on the office screen */
+  }else{go(TV?"leaderboard":"join");}                /* the board reads fine signed-out */
+  if(TV)tvLoop();
   setupBanner();
   renderPulse();setInterval(renderPulse,30000);
   fetchLive();setInterval(liveTick,60000);
