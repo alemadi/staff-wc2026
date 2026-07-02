@@ -344,7 +344,6 @@
   .lb-row{display:flex;align-items:center;gap:12px;background:var(--glass);border:1px solid var(--line);border-radius:15px;padding:11px 14px;margin-bottom:9px;animation:rise .45s both;transition:.2s}
   .lb-gap{text-align:center;color:var(--faint);font-weight:800;letter-spacing:4px;padding:2px 0 8px}
   .lb-more{display:block;width:100%;margin:6px 0 2px;padding:13px;border-radius:13px;border:1px solid var(--line);background:transparent;color:var(--gold);font:inherit;font-size:13px;font-weight:800;cursor:pointer}
-  .lb-row.me{border-color:var(--gold);background:linear-gradient(100deg,rgba(180,151,89,.14),var(--glass));box-shadow:0 0 0 1px rgba(180,151,89,.25)}
   .lb-row .rank{font-family:var(--font-d);font-size:19px;color:var(--muted);min-width:26px;text-align:center}
   .lb-row.me .rank{color:var(--gold)}
   .lb-info{flex:1;min-width:0}
@@ -438,7 +437,7 @@
   .input{flex:1;background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:12px;color:var(--cream);padding:12px 14px;font-family:var(--font-b);font-size:16px;font-weight:600}
   button,select,input,.switch{touch-action:manipulation}
   .input:focus{outline:none;border-color:var(--gold)}
-  select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23e7c879'%3E%3Cpath d='M2 4l4 4 4-4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+  select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23e3d3a3'%3E%3Cpath d='M2 4l4 4 4-4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
   .switch-row{display:flex;align-items:center;gap:12px;background:var(--glass);border:1px solid var(--line);border-radius:14px;padding:13px 15px;margin-bottom:13px}
   .switch-row .txt{flex:1}
   .switch-row .txt b{font-size:13px;font-weight:800;display:block}
@@ -1108,6 +1107,239 @@
   .me-title-desc{font-size:11.5px;color:var(--muted);line-height:1.35;min-width:0}
   .me-race{font-size:12px;color:var(--muted);line-height:1.5}
   .me-race b{color:var(--gb)}
+
+  /* ===================================================================
+     SHOWTIME pass — shell & join (frontend-only, palette-locked,
+     reduced-motion-gated). Countdown split-flap + final-hour urgency,
+     rank-aware userchip, join CTA pending/sheen, nav snap, toast accents,
+     departures hairline, banner chip cascade, micro-contrast fixes.
+     =================================================================== */
+  /* S1 — countdown: one-shot flap on the digit that changed + <1h urgency */
+  .cd-unit.tick b{animation:cdflap .3s both}
+  @keyframes cdflap{from{transform:rotateX(78deg);opacity:.2}to{transform:rotateX(0);opacity:1}}
+  @media(prefers-reduced-motion:reduce){.cd-unit.tick b{animation:none}}
+  .countdown.imminent{border-color:rgba(138,21,56,.5);box-shadow:0 0 14px -4px rgba(138,21,56,.45)}
+  .countdown.imminent .cd-unit b{background:linear-gradient(var(--magenta-2),var(--qatar));-webkit-background-clip:text;background-clip:text}
+  /* S2 — userchip rank halo (reuses goldRingPulse; header is the one focal glow) */
+  .avatar.champ{animation:goldRingPulse 2.8s ease-in-out infinite}
+  @media(prefers-reduced-motion:reduce){.avatar.champ{animation:none;box-shadow:0 0 0 2px var(--gold)}}
+  .avatar.podium{box-shadow:0 0 0 2px var(--gold)}
+  /* S3/S4 — join CTA pending state + gold sheen (single element, static screen) */
+  #join-cta:disabled{opacity:.72;cursor:progress;transform:none}
+  #join-cta{position:relative;overflow:hidden}
+  #join-cta::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 38%,rgba(227,211,163,.32) 50%,transparent 62%);animation:ctasheen 4.5s linear infinite}
+  @keyframes ctasheen{0%,72%{transform:translateX(-130%)}100%{transform:translateX(130%)}}
+  @media(prefers-reduced-motion:reduce){#join-cta::after{animation:none;content:none}}
+  /* S5 — bottom nav: legible inactive tabs + tab-switch snap */
+  .navbtn{color:var(--muted)}
+  .navbtn.on::before{animation:navin .25s cubic-bezier(.34,1.56,.64,1) both}
+  @keyframes navin{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+  .navbtn.on svg{transform:scale(1.08)}
+  /* S6 — toast: 3px intent accent (warning/info no longer identical) + spring in */
+  #toast{transition:opacity .3s,transform .35s cubic-bezier(.34,1.56,.64,1)}
+  #toast.success{border-left:3px solid var(--ok)}
+  #toast.error{border-left:3px solid var(--bad)}
+  #toast.warning{border-left:3px solid var(--gold)}
+  #toast.info{border-left:3px solid var(--gold-deep)}
+  /* S7 — departures board: signature gold hairline + legibility lift */
+  .dep{position:relative}
+  .dep::before{content:"";position:absolute;top:0;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,var(--gold-deep) 20%,var(--gold-bright) 50%,var(--gold-deep) 80%,transparent);opacity:.7}
+  .dep-st{color:var(--muted)}
+  .dep-sub{color:var(--muted)}
+  .dep-ft{color:var(--muted)}
+  /* S8 — micro-contrast */
+  .mark .wc em{color:var(--muted)}
+  .cd-unit span{color:var(--muted)}
+  /* S9 — banner chips cascade in (one-shot, reuses badgeIn) + collapsed-strip affordance */
+  .xbanner:not(.mini) .xb-chip{animation:badgeIn .4s cubic-bezier(.34,.8,.64,1) backwards}
+  .xbanner:not(.mini) .xb-chip:nth-child(1){animation-delay:.05s}
+  .xbanner:not(.mini) .xb-chip:nth-child(2){animation-delay:.14s}
+  .xbanner:not(.mini) .xb-chip:nth-child(3){animation-delay:.23s}
+  .xbanner.mini{border-left:3px solid var(--gold)}
+
+  /* ===================================================================
+     SHOWTIME pass — matches & live (frontend-only, palette-locked,
+     reduced-motion-gated). Live card frame + pinned Live-now group,
+     in-play score voice, Match-of-the-Day hero, consensus split bar,
+     stakes line, exact-score chip, pulsebar + day-banner polish,
+     Qatar settled cleanup.
+     =================================================================== */
+  /* M1 — live match-card frame (heartbeat stays on .live-pill .pulse) */
+  .match-card.live{border-color:rgba(239,51,64,.5);box-shadow:0 0 0 1px rgba(239,51,64,.22),0 16px 44px -22px rgba(239,51,64,.7);background:linear-gradient(100deg,rgba(239,51,64,.08),transparent 55%),var(--glass)}
+  .match-card.done.live{border-color:rgba(244,238,227,.08);box-shadow:none;background:var(--glass)} /* guard: settled always wins */
+  /* M2 — pinned "Live now" group header */
+  .livehdr h3{color:var(--magenta-2)}
+  .livehdr .livedot{background:var(--magenta-2);box-shadow:0 0 10px rgba(239,51,64,.7)}
+  /* M3 — in-play score gets its own voice (settled FT stays gold) */
+  .final-score.livescore{color:var(--cream);text-shadow:0 0 14px rgba(239,51,64,.35);animation:livebeat 2.4s ease-in-out infinite}
+  @keyframes livebeat{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
+  @media(prefers-reduced-motion:reduce){.final-score.livescore{animation:none}}
+  /* M4 — Match of the Day hero */
+  .match-card.mod{border-color:rgba(180,151,89,.5);background:linear-gradient(135deg,rgba(180,151,89,.14),rgba(180,151,89,.03)),var(--glass);box-shadow:0 0 0 1px rgba(180,151,89,.2),0 18px 48px -24px rgba(180,151,89,.8);cursor:pointer}
+  .mod-tag{display:inline-block;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:800;color:#181106;background:linear-gradient(115deg,var(--gold-deep),var(--gold));border-radius:6px;padding:2px 8px;margin:0 0 11px 6px;vertical-align:top}
+  /* M5 — consensus split bar (same k-floored numbers as the text) */
+  .cons-bar{height:6px;border-radius:99px;overflow:hidden;display:flex;gap:2px;margin:8px auto 2px;max-width:280px;background:rgba(255,255,255,.05)}
+  .cons-bar i{display:block;height:100%}
+  .cons-bar .h{background:linear-gradient(90deg,var(--gold-deep),var(--gold-bright))}
+  .cons-bar .d{background:rgba(244,238,227,.25)}
+  .cons-bar .a{background:rgba(239,51,64,.55)}
+  /* M6 — locked-card anticipation line */
+  .stakeline b{color:var(--gold-bright)}
+  /* M7 — exact-score celebration on settled cards */
+  .match-card.done.exact{border-color:rgba(180,151,89,.4);box-shadow:0 0 0 1px rgba(180,151,89,.18),0 16px 44px -22px rgba(180,151,89,.55)}
+  .exact-chip{font-size:8.5px;font-weight:800;letter-spacing:.08em;background:linear-gradient(115deg,var(--gold-deep),var(--gold));color:#181106;border-radius:5px;padding:2px 6px;margin-left:6px;white-space:nowrap}
+  /* M8 — pulsebar: display score + trailing watch link */
+  .pulsebar .pb-score{font-family:var(--font-d);font-size:17px;color:var(--gold-bright);letter-spacing:.02em}
+  .pb-watch{color:var(--gold);font-weight:700;font-size:11px;text-decoration:none;margin-left:auto}
+  /* M10 — day-banner scorecard */
+  .daybanner .db-earn{color:var(--lime)}
+  .db-pips{letter-spacing:2px;color:var(--gold);font-size:10px;margin-left:6px}
+  /* M11 — Qatar settled-card cleanup: .done fades the frame, maroon glow goes too */
+  .match-card.qatar.done{box-shadow:none;border-color:rgba(138,21,56,.3)}
+
+  /* ===================================================================
+     SHOWTIME pass — bracket (frontend-only, palette-locked,
+     reduced-motion-gated). Decided-path glow, champion crescendo,
+     real-vs-projected trace, settled scorelines, live/next beacon,
+     pick rail, TBD slot hints, group-card cascade.
+     =================================================================== */
+  /* B1 — visible base connectors + decided paths glow by default */
+  .brk-svg path{stroke:rgba(244,238,227,.22)}
+  .brk-svg path.done{stroke:var(--gold-deep);opacity:.75}
+  /* B3 — traced route: solid = played, dashed = your call (lit re-asserted after .done so tracing wins) */
+  .brk-svg path.lit{stroke:var(--gold-bright);stroke-width:2.6;opacity:1;filter:drop-shadow(0 0 4px rgba(227,211,163,.4))}
+  .brk-svg path.lit.proj{stroke-dasharray:5 5;stroke:var(--gold);filter:none}
+  .tcard.lit.proj{border-style:dashed}
+  /* B2 — legible round captions + quiet-gold Final caption + champion crescendo */
+  .tc-rd{color:var(--muted)}
+  .tcard.fin .tc-rd{color:var(--gold)}
+  .tcard.fin.won{overflow:visible;border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 0 26px -6px rgba(227,211,163,.75)}
+  .tcard.fin.won::after{content:"🏆";position:absolute;top:-15px;right:8px;font-size:18px;filter:drop-shadow(0 3px 6px rgba(0,0,0,.6))}
+  @media(prefers-reduced-motion:reduce){.tcard.fin.won{box-shadow:0 0 0 1px var(--gold)}}
+  /* B4 — scoreline on the settled winner row */
+  .tc-sc{margin-left:auto;font-family:var(--font-d);font-size:10px;color:var(--gold);letter-spacing:.04em;flex:0 0 auto}
+  /* B6 — one live/next beacon per render */
+  .tc-live{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--magenta-2);box-shadow:0 0 0 0 rgba(239,51,64,.6);animation:pulse 1.8s infinite}
+  .tcard.hot{border-color:rgba(239,51,64,.55)}
+  .tcard.hot.next{border-color:rgba(180,151,89,.55)}
+  .tcard.hot.next .tc-live{background:var(--gold);box-shadow:none;animation:none}
+  @media(prefers-reduced-motion:reduce){.tc-live{animation:none}}
+  /* B7 — persistent "your pick" gold rail */
+  .tc-tm.picked{position:relative;padding-left:8px}
+  .tc-tm.picked::before{content:"";position:absolute;left:0;top:4px;bottom:4px;width:3px;border-radius:2px;background:var(--gold)}
+  /* B9 — TBD slots say what feeds them */
+  .tc-tm.tbd .tc-nm{font-size:9.5px;color:var(--faint)}
+  /* B10 — group cards cascade in (capped stagger) */
+  .gcard:nth-child(1){animation-delay:.03s}
+  .gcard:nth-child(2){animation-delay:.06s}
+  .gcard:nth-child(3){animation-delay:.09s}
+  .gcard:nth-child(4){animation-delay:.12s}
+  .gcard:nth-child(5){animation-delay:.15s}
+  .gcard:nth-child(6){animation-delay:.18s}
+
+  /* ===================================================================
+     SHOWTIME pass — leaderboard & room (frontend-only, palette-locked,
+     reduced-motion-gated). Podium crown + honour chips, room split bar,
+     honest Live tag, rank-move pop, settled theatre, find-me spine,
+     dept tribal frame, chip shine, RTM runway, broadcast ticker,
+     prize gleam, podium skeleton.
+     =================================================================== */
+  /* L1 — podium throne for #1 */
+  .pod-crown{font-size:20px;line-height:1;animation:crownDrop .6s cubic-bezier(.34,1.56,.64,1) .35s both;filter:drop-shadow(0 4px 8px rgba(0,0,0,.6))}
+  @keyframes crownDrop{from{opacity:0;transform:translateY(-14px) rotate(-14deg)}to{opacity:1;transform:none}}
+  @media(prefers-reduced-motion:reduce){.pod-crown{animation:none}}
+  .pod.first .stand{position:relative}
+  .pod.first .stand::before{content:"";position:absolute;inset:auto -18px -8px;top:-34px;background:radial-gradient(closest-side,rgba(180,151,89,.22),transparent 70%);pointer-events:none}
+  .pod .pname .title-chip i{display:none} /* emoji-only chip keeps the name ellipsis honest */
+  /* L2 — the Room's pre-result suspense bar (floored aggregates only) */
+  .room-bar{height:9px;border-radius:99px;overflow:hidden;display:flex;gap:2px;margin:6px 0 10px;background:rgba(255,255,255,.05)}
+  .room-bar i{display:block;height:100%;transition:width .7s cubic-bezier(.2,.8,.2,1)}
+  .room-bar .h{background:linear-gradient(90deg,var(--gold-deep),var(--gold-bright))}
+  .room-bar .d{background:rgba(244,238,227,.25)}
+  .room-bar .a{background:rgba(138,21,56,.75)}
+  .room-bar i.mine{box-shadow:inset 0 0 0 1.5px var(--gold-bright)}
+  /* L4 — rank-move kinetics (climbers only, one-shot) */
+  .rmove.up{animation:moveup .5s cubic-bezier(.34,1.56,.64,1) both}
+  @keyframes moveup{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  /* L5 — room settled theatre (reuses resultslide/resultpop/rise) */
+  .room-res.land{animation:resultslide .4s cubic-bezier(.34,1.6,.5,1) both}
+  .room-res.land .rw{animation:resultpop .5s cubic-bezier(.34,1.8,.5,1) both}
+  .room-hero{animation:rise .45s .15s both}
+  /* L6 — find-me anchoring */
+  .lb-row.me{border-left:3px solid var(--gold)}
+  .lb-gap span{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:800}
+  /* L7 — department league tribal frame */
+  .lb-row.lead{border-color:rgba(180,151,89,.5);background:linear-gradient(100deg,rgba(180,151,89,.16),var(--glass));box-shadow:0 0 22px -12px rgba(180,151,89,.6)}
+  .lb-row.dept-top .avatar{width:44px;height:44px}
+  /* L8 — honour-chip shine (frontrunner only, one-shot) */
+  .title-chip.shine{position:relative;overflow:hidden}
+  .title-chip.shine::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.5) 50%,transparent 60%);transform:translateX(-120%);animation:chipshine 1.2s .8s 1 both}
+  @keyframes chipshine{to{transform:translateX(120%)}}
+  @media(prefers-reduced-motion:reduce){.title-chip.shine::after{content:none}}
+  /* L9 — RTM runway inside the strip */
+  .rtm-strip{flex-wrap:wrap}
+  .rtm-strip .rtm-track{width:100%;flex:none;margin:4px 2px 1px}
+  /* L10 — ticker → broadcast bar */
+  .lb-tick{cursor:pointer}
+  .lb-tick .tk-lab{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.14em;color:#181106;background:linear-gradient(115deg,var(--gd),var(--gold));border-radius:5px;padding:2px 6px;margin-right:8px;vertical-align:1px}
+  /* L11 — prize-strip gleam (reuses chipshine, declared once above) */
+  .prize-strip b{position:relative;overflow:hidden;display:inline-block;padding:0 2px}
+  .prize-strip b::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.45) 50%,transparent 60%);transform:translateX(-130%);animation:chipshine 1.4s .6s 1 both}
+  @media(prefers-reduced-motion:reduce){.prize-strip b::after{content:none}}
+  /* L12 — podium skeleton (no board jump when the podium paints) */
+  .sk-pod{align-items:end;margin:8px 0 6px}
+  .sk-pod .sk.av{margin:0 auto}
+  /* ===================================================================
+     SHOWTIME pass — me card & reveal (frontend-only, palette-locked,
+     reduced-motion-gated). Rank-tiered collectible me card + foil sheen,
+     reveal depth-flip/charge/fuse/streak heat, near-miss warmth, richer
+     confetti, sealed reveal chip.
+     =================================================================== */
+  /* R1 — rank-tiered collectible card (metals from cream/gold-deep only) */
+  .mecard[data-tier="t1"]{border-color:var(--gold);box-shadow:0 0 34px -12px rgba(180,151,89,.65),0 20px 60px -30px rgba(0,0,0,.8)}
+  .mecard[data-tier="t2"]{border-color:rgba(244,238,227,.5);box-shadow:0 0 28px -14px rgba(244,238,227,.4),0 20px 60px -30px rgba(0,0,0,.8)}
+  .mecard[data-tier="t3"]{border-color:rgba(138,115,74,.75);box-shadow:0 0 28px -14px rgba(138,115,74,.55),0 20px 60px -30px rgba(0,0,0,.8)}
+  .mecard[data-tier="elite"]{border-color:rgba(180,151,89,.45)}
+  .me-tier{position:absolute;top:12px;right:12px;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--gold-bright);border:1px solid rgba(180,151,89,.5);background:rgba(180,151,89,.1);border-radius:6px;padding:3px 7px;pointer-events:none;z-index:1}
+  .mecard[data-tier="t2"] .me-tier{color:var(--cream);border-color:rgba(244,238,227,.4);background:rgba(244,238,227,.06)}
+  .mecard[data-tier="t3"] .me-tier{color:var(--gold-deep);border-color:rgba(138,115,74,.6);background:rgba(138,115,74,.12)}
+  .mecard[data-tier] .me-reveal{margin-top:24px} /* clear the corner tier pill when both are present */
+  /* R2 — one-shot foil sheen sweep on the me card */
+  .mecard .foil{position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 42%,rgba(227,211,163,.15) 50%,transparent 58%);transform:translateX(-130%);animation:foilsweep 1.6s .5s 1 both}
+  @keyframes foilsweep{to{transform:translateX(130%)}}
+  @media(prefers-reduced-motion:reduce){.mecard .foil{content:none;display:none}}
+  /* R3 — reveal flip: depth lunge toward the camera + charge-up beat */
+  .rv-card.flipped .rv-flip{animation:flip3d .78s cubic-bezier(.45,.05,.2,1) both;transform:rotateY(180deg);transition:none}
+  @keyframes flip3d{0%{transform:rotateY(0)}50%{transform:rotateY(90deg) translateZ(70px) scale(1.05)}100%{transform:rotateY(180deg)}}
+  .rv-quick.rv-card.flipped .rv-flip{animation-duration:.42s}
+  .rv-front.charge::after{content:"";position:absolute;inset:0;border-radius:24px;box-shadow:inset 0 0 0 1px rgba(180,151,89,.35);animation:rvcharge 1.35s ease-in both;pointer-events:none}
+  @keyframes rvcharge{from{box-shadow:inset 0 0 0 1px rgba(180,151,89,.2)}to{box-shadow:inset 0 0 24px 2px rgba(180,151,89,.45)}}
+  @media(prefers-reduced-motion:reduce){.rv-card.flipped .rv-flip{animation:none}.rv-front.charge::after{animation:none}}
+  /* R4 — fixture identity on the reveal front + de-collided pick text */
+  .rv-tm{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:14px}
+  .rv-tm .fl-img{width:40px;height:auto;border-radius:6px;box-shadow:0 4px 10px rgba(0,0,0,.45)}
+  .rv-tm i{font-family:var(--font-d);font-style:normal;color:var(--faint);font-size:14px}
+  .rv-mypick{font-size:15px;font-weight:800;color:var(--muted);margin-top:6px}
+  /* R6 — streak-tier reveal heat (scales the gold flash with the run) */
+  .rv-card.sr2.exactfx{animation:rvgold .7s ease}
+  .rv-card.sr3.exactfx .rv-face,.rv-card.sr4.exactfx .rv-face{border-color:var(--gold)}
+  .rv-card.sr3.exactfx{animation:rvgold3 .8s ease}
+  @keyframes rvgold3{30%{box-shadow:0 0 60px rgba(180,151,89,.8)}}
+  .rv-card.sr4.exactfx{animation:rvgold4 .9s ease}
+  @keyframes rvgold4{25%,65%{box-shadow:0 0 80px rgba(227,211,163,.9)}}
+  /* R7 — near-miss warmth inside the existing cons line */
+  .rv-cons b{color:var(--cream);font-weight:800}
+  /* R8 — welcomeDelta drama scaling */
+  .delta-pop.big .dv{font-size:34px}
+  /* R10 — reveal chip = sealed pack: one-shot shimmer + RM fallback ring */
+  .me-reveal{overflow:hidden}
+  .me-reveal::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 42%,rgba(227,211,163,.18) 50%,transparent 58%);transform:translateX(-130%);animation:foilsweep 1.4s .4s 1 both}
+  @media(prefers-reduced-motion:reduce){.me-reveal{animation:none;box-shadow:0 0 0 2px rgba(180,151,89,.5)}.me-reveal::after{content:none}}
+  /* R11 — tap-to-reveal drain bar (matches the 1400ms auto-flip; hidden in quick mode) */
+  .rv-fuse{position:absolute;left:24px;right:24px;bottom:16px;height:3px;border-radius:2px;background:rgba(180,151,89,.25);overflow:hidden}
+  .rv-fuse::after{content:"";display:block;height:100%;background:linear-gradient(90deg,var(--gold-deep),var(--gold-bright));animation:fuse 1.4s linear both}
+  @keyframes fuse{from{width:100%}to{width:0}}
+  @media(prefers-reduced-motion:reduce){.rv-fuse{display:none}}
 </style>
 </head>
 <body>
@@ -1231,7 +1463,7 @@
   <!-- MATCHES -->
   <section class="view" id="view-matches">
     <div class="sec-title"><h2>Matches</h2><div class="tag" id="match-tag">104 fixtures</div></div>
-    <div id="pulsebar" class="pulsebar" style="display:none" onclick="location.href='watch.html'" title="Where to watch" role="link"></div>
+    <div id="pulsebar" class="pulsebar" style="display:none" onclick="pulseJump()" title="Jump to the live match" role="button"></div>
     <div id="daybanner" class="daybanner" style="display:none"></div>
     <div id="champ-card"></div>
     <button id="jumpnext" class="jumpnext" style="display:none" onclick="jumpToNext()">Next unpicked ↓</button>
@@ -1287,7 +1519,7 @@
 
   <!-- LEADERBOARD -->
   <section class="view" id="view-leaderboard">
-    <div class="sec-title"><h2>Leaderboard</h2><span class="live tag"><span class="pulse"></span> Live</span></div>
+    <div class="sec-title"><h2>Leaderboard</h2><span class="live tag" id="lb-live"><span class="pulse"></span> Live</span></div>
     <div class="lbmode" id="lbmode"><button type="button" data-m="people" class="on">People</button><button type="button" data-m="dept">Departments</button><button type="button" data-m="room">🏟 The Room<i class="tnew" id="room-new" style="display:none">NEW</i></button></div>
     <div class="prize-strip">🥇 <b>Maldives trip</b> · 🥈 60,000 pts · 🥉 40,000 pts<span class="ps-note">QNB Life Rewards · prizes for the top three at the final whistle</span></div>
     <div id="demo-banner" class="demo-banner" style="display:none">🎬 Demo mode — sample players shown for presentation. Nothing here is saved.</div>
@@ -1841,6 +2073,7 @@ async function fetchStandings(){
         predicted:Object.values(p.predictions||{}).filter(x=>x.o||x.w).length};});
   }
   STAND_CACHE={t:Date.now(),rows};
+  try{updateChip();}catch(e){} /* header chip can now show the live rank badge */
   return rows;
 }
 
@@ -2089,6 +2322,9 @@ function rollBoard(){
 }
 
 async function joinNow(){
+  const cta=document.getElementById("join-cta");
+  if(cta){cta.disabled=true;cta.setAttribute("aria-busy","true");cta.dataset.lbl=cta.textContent;cta.textContent="Joining… ⚽";}
+  try{
   let ig=document.getElementById("j-ig").value
     .replace(/[\u200B-\u200F\u202A-\u202E\u2060\uFEFF]/g,"")
     .replace(/[\u0660-\u0669]/g,function(d){return String.fromCharCode(d.charCodeAt(0)-0x0660+48);})
@@ -2137,6 +2373,9 @@ async function joinNow(){
   state.filter=defaultRound();
   go("matches");
   setupBanner();   // now that they're a player, surface the streak announcement
+  }finally{
+    if(cta){cta.disabled=false;cta.removeAttribute("aria-busy");if(cta.dataset.lbl){cta.textContent=cta.dataset.lbl;delete cta.dataset.lbl;}}
+  }
 }
 async function signOut(){
   if(!confirm("Sign out? Your predictions stay saved — sign back in with the same handle to resume."))return;
@@ -2149,10 +2388,22 @@ async function signOut(){
 }
 function updateChip(){
   if(!state.player)return;
-  document.getElementById("chip-av").innerHTML=avatarFill(state.player.name);
+  const av=document.getElementById("chip-av");
+  av.innerHTML=avatarFill(state.player.name);
+  av.classList.remove("champ","podium");
   document.getElementById("chip-name").textContent=state.player.name;
   const ptsEl=document.getElementById("chip-pts");
-  const nv=scoreFor(state.player.predictions,state.results,state.player.champ).pts+" PTS";
+  let nv=scoreFor(state.player.predictions,state.results,state.player.champ).pts+" PTS";
+  /* live rank badge — cache-only (never triggers a fetch); tie-aware, same idiom as the board */
+  if(STAND_CACHE.rows){
+    const st=STAND_CACHE.rows.slice().sort((a,b)=>cmpSt(a,b)||(a.name||"").localeCompare(b.name||""));
+    let rank=0,prev=null,me=null;
+    st.forEach((r,i)=>{if(prev===null||cmpSt(r,prev)!==0){rank=i+1;prev=r;}if(me===null&&r.slug===state.meSlug)me=rank;});
+    if(me!=null){
+      nv=(me<=3?["🥇","🥈","🥉"][me-1]+" ":"")+nv+" · #"+me;
+      if(me===1)av.classList.add("champ");else if(me<=3)av.classList.add("podium");
+    }
+  }
   if(ptsEl){if(ptsEl.textContent&&ptsEl.textContent!=="0 PTS"&&ptsEl.textContent!==nv){ptsEl.classList.remove("pop");void ptsEl.offsetWidth;ptsEl.classList.add("pop");}ptsEl.textContent=nv;}
   updateMeBadge();
 }
@@ -2271,12 +2522,19 @@ function renderMatches(){
   const host=document.getElementById("match-list");
   if(!list.length){host.innerHTML='<div class="empty"><div class="ic">📅</div><b>No matches here</b><span>Nothing scheduled for this filter today — try another tab.</span></div>'+ffInline();return;}
   const nowL=Date.now()+CLOCK_OFFSET;
-  const {soon,rest}=locksSoonSplit(list,nowL);
+  const liveNow=list.filter(m=>isLive(m)&&!isFinished(m));
+  const liveIds={};liveNow.forEach(m=>{liveIds[m.id]=1;});
+  const {soon,rest}=locksSoonSplit(list.filter(m=>!liveIds[m.id]),nowL);
   const groups={},order=[];
   rest.forEach(m=>{
     const k=dayKey(m.ko);if(!groups[k]){groups[k]=[];order.push(k);}groups[k].push(m);
   });
-  let html="",idx=0;
+  let html=modHero(nowL),idx=0;
+  if(liveNow.length){
+    html+='<div class="daygroup"><div class="dayhdr soonhdr livehdr"><span class="dot soon livedot"></span><h3>🔴 Live now</h3><span class="ln"></span></div>';
+    liveNow.forEach(m=>{const v=fxView(m);html+=m.kn?(koReady(m)?koMatchCard(v,idx++):knockoutCard(v,idx++)):matchCard(v,idx++);});
+    html+='</div>';
+  }
   if(soon.length){
     html+='<div class="daygroup"><div class="dayhdr soonhdr"><span class="dot soon"></span><h3>\u23f3 Locking soon \u2014 pick now</h3><span class="ln"></span></div>';
     soon.forEach(m=>{const v=fxView(m);html+=m.kn?(koReady(m)?koMatchCard(v,idx++):knockoutCard(v,idx++)):matchCard(v,idx++);});
@@ -2303,9 +2561,44 @@ function gScorePts(p,res){
   return (p.o===ro?3:0)+((p.h!=null&&p.a!=null&&Number(p.h)===res.h&&Number(p.a)===res.a)?2:0);
 }
 
+/* "Match of the Day" hero — a spotlight above the list when nothing is live and a
+   fixture kicks off within 72h. Own-data only (seal-safe): no consensus, no other
+   players' picks, no pick buttons — tap scrolls to the real card. */
+function modHero(now){
+  if(!state.player||FIXTURES.some(f=>isLive(f)))return "";
+  const fut=FIXTURES.filter(m=>{const t=new Date(m.ko).getTime();return t>now&&t-now<=72*36e5&&!isFinished(m);});
+  if(!fut.length)return "";
+  fut.sort((a,b)=>new Date(a.ko)-new Date(b.ko));
+  const dk=dayKey(fut[0].ko);
+  const day=fut.filter(m=>dayKey(m.ko)===dk).map(m=>fxView(m));
+  day.sort((a,b)=>((b.tag==="qatar")-(a.tag==="qatar"))||((b.kn?koPts(b):0)-(a.kn?koPts(a):0))||(new Date(a.ko)-new Date(b.ko)));
+  const m=day[0],p=state.player.predictions[m.id]||{};
+  const label=m.kn?(m.tag==="final"?"🏆 Final":(m.tag==="third"?"Third-place play-off":RLABEL[m.round])):"Group stage";
+  const tn=t=>t.f?('<div class="flag">'+t.f+'</div><div class="tname">'+esc(t.n)+'</div>'):('<div class="flag-tbd">?</div><div class="tname slot">'+esc(t.n)+'</div>');
+  let stake;
+  if(m.kn?p.w:p.o){
+    const nm=m.kn?p.w:(p.o==="H"?m.home.n:p.o==="A"?m.away.n:"Draw");
+    const N=m.kn?(koPts(m)+((p.h!=null&&p.a!=null)?koBonus(m):0)):((p.h!=null&&p.a!=null)?5:3);
+    stake='Your call: <b>'+esc(nm)+'</b> · <b>+'+N+'</b>'+(m.kn?' if they go through':' on the line');
+  }else stake='⚡ You haven’t picked this one yet';
+  return '<div class="match-card mod" role="button" onclick="modJump(\''+m.id+'\')">'+
+    '<div class="rnd-pill">'+label+'</div><span class="mod-tag">MATCH OF THE DAY ★</span>'+
+    '<div class="teams"><div class="team">'+tn(m.home)+'</div>'+
+    '<div class="midcol"><div class="vs">VS</div><div class="kotime">'+fmtTime(m.ko)+'</div><div class="koday">'+fmtWk(m.ko)+'</div></div>'+
+    '<div class="team right">'+tn(m.away)+'</div></div>'+
+    '<div class="kn-note stakeline" style="font-style:normal">'+stake+'</div></div>';
+}
+function modJump(id){
+  const n=document.querySelector('[data-mc="'+id+'"],.picks[data-mid="'+id+'"]');
+  const el=n?n.closest(".match-card"):null;if(!el)return;
+  el.scrollIntoView({behavior:"smooth",block:"center"});
+  el.classList.add("jflash");setTimeout(()=>el.classList.remove("jflash"),1300);
+}
+
 function matchCard(m,idx){
   const p=state.player.predictions[m.id]||{};
   const res=state.results[m.id],lk=lockedM(m)||!!res;
+  const ex=!!(res&&p.o&&p.h!=null&&p.a!=null&&Number(p.h)===res.h&&Number(p.a)===res.a); /* exact-score bonus won */
   const ribbon=m.tag==="qatar"?'<div class="ribbon">⭐ Qatar</div>':(m.tag==="open"?'<div class="ribbon open">Opener</div>':'');
   let mid='<div class="midcol" data-mc="'+m.id+'">'+midHTML(m,res)+'</div>';
   let picks="";
@@ -2314,8 +2607,9 @@ function matchCard(m,idx){
     if(res&&p.o){
       const ro=res.h>res.a?"H":res.h<res.a?"A":"D";
       const got=gScorePts(p,res);
-      picks='<div class="result-line '+(p.o===ro?"win":"lose")+'">'+(p.o===ro?"✓ ":"✗ ")+esc(lab)+(p.h!=null?' &nbsp;<span style="color:var(--faint)">('+p.h+'–'+p.a+')</span>':'')+'<span class="pts">+'+got+' pts</span></div>';
-    }else{picks='<div class="result-line">'+(isLive(m)?'<span class="live-pill"><span class="pulse"></span>LIVE</span>':'<span class="locked-tag">Locked</span>')+' <span style="color:var(--muted)">'+esc(lab)+(p.o&&p.h!=null&&p.a!=null?' <span style="color:var(--faint)">('+p.h+'–'+p.a+')</span>':'')+'</span></div>';}
+      picks='<div class="result-line '+(p.o===ro?"win":"lose")+'">'+(p.o===ro?"✓ ":"✗ ")+esc(lab)+(p.h!=null?' &nbsp;<span style="color:var(--faint)">('+p.h+'–'+p.a+')</span>':'')+'<span class="pts">+'+got+' pts</span>'+(ex?'<span class="exact-chip">✨ EXACT</span>':'')+'</div>';
+    }else{picks='<div class="result-line">'+(isLive(m)?'<span class="live-pill"><span class="pulse"></span>LIVE</span>':'<span class="locked-tag">Locked</span>')+' <span style="color:var(--muted)">'+esc(lab)+(p.o&&p.h!=null&&p.a!=null?' <span style="color:var(--faint)">('+p.h+'–'+p.a+')</span>':'')+'</span></div>';
+      if(!isLive(m)&&!res&&p.o)picks+='<div class="kn-note stakeline">⏳ kicks off '+fmtTime(m.ko)+' · <b>+'+((p.h!=null&&p.a!=null)?5:3)+'</b> on the line</div>';}
     picks+='<div class="cons" data-cons="'+m.id+'"></div>';
   }else{
     picks='<div class="picks" data-mid="'+m.id+'">'+
@@ -2329,7 +2623,7 @@ function matchCard(m,idx){
       '<span class="scoredash">–</span><input class="scorein" type="number" min="0" max="20" inputmode="numeric" aria-label="'+esc(m.away.n)+' goals" data-sa="'+m.id+'" value="'+(p.a!=null?p.a:"")+'"><label>'+m.away.f+'</label></div></div>'+
       '<div class="lockin'+((lockTs(m)-Date.now()-CLOCK_OFFSET)<7200000?' soon':'')+'" data-lockts="'+lockTs(m)+'">⏳ '+fmtLeft(lockTs(m)-Date.now()-CLOCK_OFFSET)+'</div>';
   }
-  return '<div class="match-card '+(m.tag==="qatar"?"qatar":"")+(res?" done":"")+'" style="animation-delay:'+Math.min(idx*0.03,0.4)+'s">'+ribbon+
+  return '<div class="match-card '+(m.tag==="qatar"?"qatar":"")+(isLive(m)&&!res?" live":"")+(res?" done":"")+(ex?" exact":"")+'" style="animation-delay:'+Math.min(idx*0.03,0.4)+'s">'+ribbon+
     '<div class="teams"><div class="team"><div class="flag">'+m.home.f+'</div><div class="tname">'+esc(m.home.n)+'</div></div>'+mid+
     '<div class="team right"><div class="flag">'+m.away.f+'</div><div class="tname">'+esc(m.away.n)+'</div></div></div>'+
     (!res&&!lk?'<div class="venue">'+(m.v?esc(m.v):"World Cup 2026 · Group Stage")+'</div>':'')+picks+'</div>';
@@ -2359,6 +2653,7 @@ function koFinalMid(res){
 function koMatchCard(m,idx){
   const p=state.player.predictions[m.id]||{};
   const res=state.results[m.id],win=(res&&res.w)?res.w:null;
+  const exK=!!(win&&p.w&&koBonus(m)>0&&koScoreHit(p,res)); /* exact-score bonus won */
   const lk=lockedM(m)||!!win;
   const label=(m.tag==="final"?"🏆 Final":(m.tag==="third"?"Third-place play-off":RLABEL[m.round]))+' · winner +'+koPts(m)+' pts';
   const isQa=m.home.n==="Qatar"||m.away.n==="Qatar";
@@ -2372,12 +2667,13 @@ function koMatchCard(m,idx){
     if(win&&p.w){
       const gotW=(p.w===win)?koPts(m):0;
       const gotB=koScoreHit(p,res)?koBonus(m):0;
-      const sc=(p.h!=null&&p.a!=null)?(' <span style="color:var(--faint)">('+p.h+'–'+p.a+')</span>'):'';
-      picks='<div class="result-line '+(gotW?"win":"lose")+'">'+(gotW?"✓ ":"✗ ")+esc(lab)+sc+' <span style="color:var(--faint)">· '+esc(win)+' through</span><span class="pts">+'+(gotW+gotB)+' pts</span></div>';
+      const sc=(p.h!=null&&p.a!=null)?(' <span style="color:var(--faint);white-space:nowrap">('+p.h+'–'+p.a+')</span>'):'';
+      picks='<div class="result-line '+(gotW?"win":"lose")+'">'+(gotW?"✓ ":"✗ ")+esc(lab)+sc+' <span style="color:var(--faint)">· '+esc(win)+' through</span><span class="pts">+'+(gotW+gotB)+' pts</span>'+(gotB?'<span class="exact-chip">✨ EXACT</span>':'')+'</div>';
     }else if(win){
       picks='<div class="result-line"><span class="locked-tag">'+esc(win)+' through</span> <span style="color:var(--muted)">No pick</span></div>';
     }else{
-      picks='<div class="result-line">'+(isLive(m)?'<span class="live-pill"><span class="pulse"></span>LIVE</span>':'<span class="locked-tag">Locked</span>')+' <span style="color:var(--muted)">'+esc(lab)+(p.w&&p.h!=null&&p.a!=null?' <span style="color:var(--faint)">('+p.h+'–'+p.a+')</span>':'')+'</span></div>';
+      picks='<div class="result-line">'+(isLive(m)?'<span class="live-pill"><span class="pulse"></span>LIVE</span>':'<span class="locked-tag">Locked</span>')+' <span style="color:var(--muted)">'+esc(lab)+(p.w&&p.h!=null&&p.a!=null?' <span style="color:var(--faint);white-space:nowrap">('+p.h+'–'+p.a+')</span>':'')+'</span></div>';
+      if(!isLive(m)&&p.w)picks+='<div class="kn-note stakeline">⏳ kicks off '+fmtTime(m.ko)+' · <b>+'+(koPts(m)+((p.h!=null&&p.a!=null)?koBonus(m):0))+'</b> on the line</div>';
     }
     picks+='<div class="cons" data-cons="'+m.id+'"></div>';
   }else{
@@ -2392,7 +2688,7 @@ function koMatchCard(m,idx){
       '<div class="bonus-fields show"><label>'+m.home.f+'</label><input class="scorein" type="number" min="0" max="20" inputmode="numeric" aria-label="'+esc(m.home.n)+' goals" data-ksh="'+m.id+'" value="'+(p.h!=null?p.h:"")+'"><span class="scoredash">–</span><input class="scorein" type="number" min="0" max="20" inputmode="numeric" aria-label="'+esc(m.away.n)+' goals" data-ksa="'+m.id+'" value="'+(p.a!=null?p.a:"")+'"><label>'+m.away.f+'</label></div>'+
       '<div class="lockin'+((lockTs(m)-Date.now()-CLOCK_OFFSET)<7200000?' soon':'')+'" data-lockts="'+lockTs(m)+'">⏳ '+fmtLeft(lockTs(m)-Date.now()-CLOCK_OFFSET)+'</div>';
   }
-  return '<div class="match-card '+(isQa?"qatar":"")+(m.tag==="final"?" final":"")+(win?" done":"")+'" style="animation-delay:'+Math.min(idx*0.03,0.4)+'s">'+ribbon+
+  return '<div class="match-card '+(isQa?"qatar":"")+(m.tag==="final"?" final":"")+(isLive(m)&&!win?" live":"")+(win?" done":"")+(exK?" exact":"")+'" style="animation-delay:'+Math.min(idx*0.03,0.4)+'s">'+ribbon+
     '<div class="rnd-pill">'+label+'</div>'+
     '<div class="teams"><div class="team"><div class="flag">'+m.home.f+'</div><div class="tname">'+esc(m.home.n)+'</div></div>'+mid+
     '<div class="team right"><div class="flag">'+m.away.f+'</div><div class="tname">'+esc(m.away.n)+'</div></div></div>'+
@@ -2515,7 +2811,7 @@ function confettiBurst(){
     const dpr=window.devicePixelRatio||1,W=innerWidth,H=innerHeight;
     cv.width=W*dpr;cv.height=H*dpr;const cx=cv.getContext("2d");cx.scale(dpr,dpr);
     const COLS=["#e3d3a3","#b49759","#ef3340","#2ea84f","#2d6fe0","#f4eee3"],P=[];
-    for(let i=0;i<110;i++)P.push({x:W/2+(Math.random()-.5)*60,y:H*.62,vx:(Math.random()-.5)*9,vy:-(5+Math.random()*8),s:4+Math.random()*5,r:Math.random()*Math.PI,vr:(Math.random()-.5)*.3,c:COLS[i%COLS.length],life:1});
+    for(let i=0;i<110;i++)P.push({x:W/2+(Math.random()-.5)*60,y:H*.62,vx:(Math.random()-.5)*9,vy:-(5+Math.random()*8),s:4+Math.random()*5,r:Math.random()*Math.PI,vr:(Math.random()-.5)*.3,st:i%4===0,c:i%4===0?(i%8?"#e3d3a3":"#b49759"):COLS[i%COLS.length],life:1}); /* every 4th piece: thin gold streamer */
     let prev=performance.now();
     (function frame(t){
       const dt=Math.min((t-prev)/16.7,2);prev=t;cx.clearRect(0,0,W,H);
@@ -2524,7 +2820,7 @@ function confettiBurst(){
         p.vy+=.28*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.r+=p.vr*dt;p.life-=.008*dt;
         if(p.life<=0||p.y>H+20)continue;alive=true;
         cx.save();cx.globalAlpha=Math.max(p.life,0);cx.translate(p.x,p.y);cx.rotate(p.r);
-        cx.fillStyle=p.c;cx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.62);cx.restore();
+        cx.fillStyle=p.c;if(p.st)cx.fillRect(-1.25,-6,2.5,12);else cx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.62);cx.restore();
       }
       if(alive)requestAnimationFrame(frame);else cv.remove();
     })(prev);
@@ -2625,7 +2921,7 @@ function computeHonours(rows){
   Object.keys(holders).forEach(function(k){if(k.indexOf('captain_')!==0)return;const h=holders[k];if(!map[h.slug])map[h.slug]={emoji:'⭐',label:'Squad Captain',key:'captain'};});
   LB_HONOURS=map;return map;
 }
-function titleChip(slug){const t=LB_HONOURS[slug];if(!t)return '';const d=titleDesc(t.key);const k="explainTitle(event,'"+t.key+"')";return '<span class="title-chip tap" role="button" tabindex="0" title="'+esc(t.label+(d?' — '+d:''))+'" onclick="'+k+'" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();'+k+'}">'+t.emoji+'<i>'+esc(t.label)+'</i></span>';}
+function titleChip(slug){const t=LB_HONOURS[slug];if(!t)return '';const d=titleDesc(t.key);const k="explainTitle(event,'"+t.key+"')";return '<span class="title-chip tap'+(t.key==="frontrunner"?" shine":"")+'" role="button" tabindex="0" title="'+esc(t.label+(d?' — '+d:''))+'" onclick="'+k+'" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();'+k+'}">'+t.emoji+'<i>'+esc(t.label)+'</i></span>';}
 function meHonours(s){
   if(!state.player||state.demo)return "";
   const full=HONOURS_FULL||{};
@@ -2651,7 +2947,9 @@ function lbMore(){LB_SHOWN+=200;renderLeaderboard();}
 async function renderLeaderboard(){
   const body=document.getElementById("lb-body");
   document.getElementById("demo-banner").style.display=state.demo?"flex":"none";
-  body.innerHTML='<div class="sk-wrap">'+Array(6).fill('<div class="sk-row"><div class="sk r"></div><div class="sk av"></div><div class="sk nm"></div><div class="sk pt"></div></div>').join('')+'</div>';
+  const lbl=document.getElementById("lb-live");   /* honest Live tag: pulse only while a match is actually live */
+  if(lbl)lbl.innerHTML=FIXTURES.some(isLive)?'<span class="pulse"></span> Live':'Standings';
+  body.innerHTML='<div class="sk-wrap">'+((state.demo||LB_MODE==="people")?'<div class="podium sk-pod"><div class="sk av"></div><div class="sk av"></div><div class="sk av"></div></div>':'')+Array(6).fill('<div class="sk-row"><div class="sk r"></div><div class="sk av"></div><div class="sk nm"></div><div class="sk pt"></div></div>').join('')+'</div>';
   const lm=document.getElementById("lbmode");
   if(lm)lm.style.display=state.demo?"none":"flex";
   const rvSlug=state.demo?null:await getJSON("wc:rival",false);
@@ -2682,7 +2980,7 @@ async function renderLeaderboard(){
   if(rows.length>=3){
     const ord=[rows[1],rows[0],rows[2]],cls=["second","first","third"],med=["🥈","🥇","🥉"];
     html+='<div class="podium">';
-    ord.forEach((r,i)=>{html+='<div class="pod '+cls[i]+'" style="animation-delay:'+(i*0.08)+'s"><div class="medal">'+med[i]+'</div><div class="avatar av">'+avatarFill(r.name)+'</div><div class="pname">'+esc(r.name)+'</div><div class="stand"><div class="ppts">'+r.pts+'<small> PTS</small></div></div></div>';});
+    ord.forEach((r,i)=>{html+='<div class="pod '+cls[i]+'" style="animation-delay:'+(i*0.08)+'s"><div class="medal">'+med[i]+'</div>'+(cls[i]==="first"?'<div class="pod-crown">👑</div>':'')+'<div class="avatar av">'+avatarFill(r.name)+'</div><div class="pname">'+esc(r.name)+(r.me?'<span class="youtag">YOU</span>':'')+titleChip(r.slug)+'</div><div class="stand"><div class="ppts"><span class="ptsn" data-pslug="'+r.slug+'">'+r.pts+'</span><small> PTS</small></div></div></div>';});
     html+='</div>';
   }
   if(state.player&&!state.demo)html+=rtmStrip(roadGap(rows));
@@ -2690,15 +2988,16 @@ async function renderLeaderboard(){
   const lim=Math.min(rows.length,LB_SHOWN);
   for(let i=0;i<lim;i++)html+=lbRowHTML(rows[i],i,PT);
   const meIdx=rows.findIndex(r=>r.me);
-  if(meIdx>=lim)html+='<div class="lb-gap">⋯</div>'+lbRowHTML(rows[meIdx],lim,PT);
+  if(meIdx>=lim)html+='<div class="lb-gap"><span>⋯ you’re here ↓</span></div>'+lbRowHTML(rows[meIdx],lim,PT);
   if(rows.length>lim)html+='<button class="lb-more" onclick="lbMore()">Show more · '+(rows.length-lim)+' below</button>';
   body.innerHTML=html;
   if(!state.player)body.insertAdjacentHTML("beforeend",'<button class="btn btn-primary" style="margin:16px auto 4px;display:flex" onclick="go(\'join\')">Join the pool \u26bd</button>');
   body.insertAdjacentHTML("beforeend",'<div id="ff-lb" class="ff" style="margin-top:14px"></div>');
   mountFact(document.getElementById("ff-lb"),"lb");
   rows.forEach(function(r){
-    const sp=body.querySelector('.ptsn[data-pslug="'+r.slug+'"]');
-    if(sp&&LB_PREV[r.slug]!=null&&LB_PREV[r.slug]!==r.pts)odo(sp,LB_PREV[r.slug],r.pts,600);
+    body.querySelectorAll('.ptsn[data-pslug="'+r.slug+'"]').forEach(function(sp){ /* all: podium number + list row share a slug */
+      if(LB_PREV[r.slug]!=null&&LB_PREV[r.slug]!==r.pts)odo(sp,LB_PREV[r.slug],r.pts,600);
+    });
     LB_PREV[r.slug]=r.pts;
   });
   startLbTicker(rows);
@@ -2707,7 +3006,7 @@ async function renderLeaderboard(){
 /* ===== fun-stat ticker (leaderboard) =====
    Rotating one-liners built from data already in hand: the standings rows +
    the ranksnap deltas, then enriched once the consensus pull resolves. */
-let TICK_T=null;
+let TICK_T=null,TICK_I=0; /* rotation index survives re-renders — consensus refresh doesn't restart at fact 0 */
 function startLbTicker(rows){
   clearInterval(TICK_T);
   const el=document.getElementById("lb-tick");
@@ -2734,13 +3033,13 @@ function startLbTicker(rows){
     if(c.perfectN>=1)facts.push('\ud83d\udd2e <b>'+c.perfectN+'</b> colleague'+(c.perfectN===1?'':'s')+' still perfect \u2014 not a single miss');
   }).catch(function(){});
   if(!facts.length)return;
-  let i=0;
   const show=function(){
     if(!document.body.contains(el)){clearInterval(TICK_T);return;}
     el.classList.remove("on");
-    setTimeout(function(){el.innerHTML=facts[i%facts.length];el.classList.add("on");i++;},250);
+    setTimeout(function(){el.innerHTML='<i class="tk-lab">OFFICE PULSE</i>'+facts[TICK_I%facts.length];el.classList.add("on");TICK_I++;},250);
   };
   el.style.display="block";show();
+  el.onclick=function(){if(facts.length>1)show();};   /* tap advances — same rotate fn, no second interval */
   TICK_T=setInterval(function(){if(facts.length>1)show();},6000);
 }
 
@@ -2913,8 +3212,9 @@ function rtmPanel(g){
 }
 function rtmStrip(g){
   if(!g||g.allZero)return "";
-  if(g.leader)return '<div class="rtm-strip"><span class="pl">🏝️</span><span>You lead — the Maldives is <b>yours to lose</b></span>'+(g.leadOver!=null&&g.nextName?'<span class="nx"><b>+'+g.leadOver+'</b> on '+esc(g.nextName)+'</span>':'')+'</div>';
-  return '<div class="rtm-strip"><span class="pl">✈️</span><span><b>'+g.ptsToFirst+'</b> pts from the Maldives · '+ord(g.rank)+'</span>'+(g.ptsToNext>0?('<span class="nx">↑ <b>'+g.ptsToNext+'</b> to pass '+esc(g.nextName)+'</span>'):('<span class="nx">level with '+esc(g.nextName)+'</span>'))+'</div>';
+  if(g.leader)return '<div class="rtm-strip"><span class="pl">🏝️</span><span>You lead — the Maldives is <b>yours to lose</b></span>'+(g.leadOver!=null&&g.nextName?'<span class="nx"><b>+'+g.leadOver+'</b> on '+esc(g.nextName)+'</span>':'')+rtmTrack(100,92)+'</div>';
+  const pct=rtmPlanePct(g);   /* runway under the text row — same helpers as rtmPanel */
+  return '<div class="rtm-strip"><span class="pl">✈️</span><span><b>'+g.ptsToFirst+'</b> pts from the Maldives · '+ord(g.rank)+'</span>'+(g.ptsToNext>0?('<span class="nx">↑ <b>'+g.ptsToNext+'</b> to pass '+esc(g.nextName)+'</span>'):('<span class="nx">level with '+esc(g.nextName)+'</span>'))+rtmTrack(pct,pct)+'</div>';
 }
 async function renderMe(){
   if(!state.player){go("join");return;}
@@ -2959,9 +3259,15 @@ async function renderMe(){
   const awaiting=s.scored===0;
   const medal=(!awaiting&&myRank!=="—"&&myRank<=3)?["🥇","🥈","🥉"][myRank-1]:null;
   const rankPill=medal?'<div class="me-rankpill">'+medal+' '+ordinal(myRank)+' place'+(total?(' of '+total):'')+'</div>':'';
+  /* rank-tiered collectible frame (standings-only, so seal-safe) */
+  let tier="";if(!awaiting&&myRank!=="—"&&total)tier=myRank===1?"t1":myRank===2?"t2":myRank===3?"t3":(myRank<=Math.ceil(total*.1)?"elite":"base");
+  const tierTxt=tier==="t1"?"GOLD · №1":tier==="t2"?"SILVER · №2":tier==="t3"?"BRONZE · №3":tier==="elite"?"TOP 10%":"";
+  const mc0=document.getElementById("mecard");
+  if(mc0){if(tier)mc0.dataset.tier=tier;else mc0.removeAttribute("data-tier");}
   document.getElementById("mecard").innerHTML=
     meRevealChip()+
-    '<div class="avatar av">'+avatarFill(state.player.name)+'</div><h3>'+esc(state.player.name)+'</h3>'+
+    (tierTxt?'<div class="me-tier">'+tierTxt+'</div>':'')+
+    '<div class="avatar av" onclick="foilReplay()">'+avatarFill(state.player.name)+'</div><h3>'+esc(state.player.name)+'</h3>'+
     '<div class="role">'+esc(state.player.dept)+'</div>'+(state.player.ig?'<div class="mail">@'+esc(state.player.ig)+'</div>':'')+
     rankPill+
     '<div id="me-honours-slot">'+meHonours(s)+'</div>'+
@@ -3008,8 +3314,11 @@ async function renderMe(){
   const mc=document.getElementById("mecard");
   if(mc)mc.insertAdjacentHTML("beforeend",
     '<div class="me-set"><span>Sounds</span><button class="sndtog'+(sndOn()?" on":"")+'" onclick="toggleSnd(this)">'+(sndOn()?"On":"Off")+'</button></div>'+
-    '<div class="me-set me-faq" onclick="openFaq()"><span>How it works \u00b7 FAQ</span><b>\u203a</b></div>');
+    '<div class="me-set me-faq" onclick="openFaq()"><span>How it works \u00b7 FAQ</span><b>\u203a</b></div>'+
+    '<i class="foil"></i>');
 }
+/* replay the one-shot foil sheen (cheap: re-add the node) */
+function foilReplay(){try{const mc=document.getElementById("mecard");if(!mc)return;const o=mc.querySelector(".foil");if(o)o.remove();mc.insertAdjacentHTML("beforeend",'<i class="foil"></i>');}catch(e){}}
 
 async function rivalHTML(s,st){
   const rs=await getJSON("wc:rival",false);
@@ -3186,11 +3495,15 @@ function renderBracket(){
   if(state.player)FIXTURES.forEach(m=>{if(!m.kn)return;const r=state.results[m.id],p=state.player.predictions[m.id];if(!r||!r.w||!p)return;if(p.w){ktot++;if(p.w===r.w){kc++;kp+=koPts(m);}}if(koScoreHit(p,r))kp+=koBonus(m);});
   const tag=document.getElementById("brk-tag");if(tag)tag.textContent=state.player?(kp+" KO pts"):"Knockouts";
   const L=bracketLayout();
-  let cards="";L.nodes.forEach(function(nd){cards+=treeCard(nd,L);});
+  /* One beacon per render: the first live tie, else the next upcoming ready undecided tie. */
+  let hotId=null,hotLive=false;
+  for(const m of FIXTURES){if(m.kn&&isLive(m)){hotId=m.id;hotLive=true;break;}}
+  if(!hotId){let bt=Infinity;FIXTURES.forEach(function(m){if(!m.kn||!koReady(m))return;if(state.results[m.id]&&state.results[m.id].w)return;const t=new Date(m.ko).getTime();if(t<bt){bt=t;hotId=m.id;}});}
+  let cards="";L.nodes.forEach(function(nd){cards+=treeCard(nd,L,hotId,hotLive);});
   let heads="";RND_HEAD.forEach(function(h,col){heads+='<div class="tcol-head" style="left:'+(L.PADX+col*L.COLW)+'px;width:'+L.CARDW+'px">'+h[1]+' <b>'+h[2]+'</b></div>';});
   let html="";
   if(state.player)html+='<div class="brk-sum">Your knockout points: <b>'+kp+'</b>'+(ktot?(' · '+kc+'/'+ktot+' correct'):' · picks open as ties are set')+'</div>';
-  html+='<div class="brk-hint">Tap any team to light its route to the final · swipe to pan · zoom with － / ＋</div>';
+  html+='<div class="brk-hint">drag to pan · － / ＋ to zoom · tap a team to trace its road</div>';
   html+='<div class="brk-toolbar"><button class="brk-zb" data-z="out" aria-label="zoom out">－</button><button class="brk-zb" data-z="fit">Fit</button><button class="brk-zb" data-z="in" aria-label="zoom in">＋</button><span class="brk-selnote" id="brk-selnote"></span></div>';
   html+='<div class="brk-tree-vp" id="brk-vp"><div class="brk-tree-sizer" id="brk-sizer"><div class="brk-tree-canvas" id="brk-canvas" style="width:'+L.width+'px;height:'+L.height+'px">'
     +'<svg class="brk-svg" width="'+L.width+'" height="'+L.height+'">'+treeConnectors(L)+'</svg>'+heads+cards+'</div></div></div>';
@@ -3198,6 +3511,14 @@ function renderBracket(){
   wireBracket();
   applyZoom(treeZoom);
   highlightTree();
+  /* Land on the action: centre the earliest ready-but-undecided tie (else the Final). */
+  const vp=document.getElementById("brk-vp");
+  if(vp&&vp.clientWidth>0){
+    let tgt=null,best=Infinity;
+    FIXTURES.forEach(function(m){if(!m.kn||!L.pos[m.id]||!koReady(m))return;if(state.results[m.id]&&state.results[m.id].w)return;const o=(RND_COL[m.round]!=null?RND_COL[m.round]:4)*1e14+new Date(m.ko).getTime();if(o<best){best=o;tgt=m.id;}});
+    const p=L.pos[tgt||"k32"];
+    if(p)requestAnimationFrame(function(){const z=treeZoom||1;vp.scrollLeft=Math.max(0,Math.round((p.x+L.CARDW/2)*z-vp.clientWidth/2));vp.scrollTop=Math.max(0,Math.round(p.cy*z-vp.clientHeight/2));});
+  }
   renderGroups();
 }
 function toggleGroupTables(){
@@ -3237,21 +3558,34 @@ function treeConnectors(L){
       const fp=L.pos[fid];if(!fp)return;
       const fx=fp.x+L.CARDW,fy=fp.cy,px=parent.x,py=parent.cy,mx=Math.round((fx+px)/2);
       const d="M"+fx+" "+fy+"H"+mx+"V"+py+"H"+px;
-      p+='<path d="'+d+'"'+(take==="L"?' class="l3"':' data-edge="'+fid+'>'+id+'"')+'></path>';
+      const cls=((take==="L"?"l3 ":"")+((state.results[fid]&&state.results[fid].w)?"done":"")).trim();
+      p+='<path d="'+d+'"'+(cls?' class="'+cls+'"':'')+(take==="L"?'':' data-edge="'+fid+'>'+id+'"')+'></path>';
     });
   }
   return p;
 }
-function treeCard(nd,L){
+function treeCard(nd,L,hotId,hotLive){
   const m=nd.m,t=koTeams(m),res=state.results[m.id],win=(res&&res.w)?res.w:null;
   const pk=(state.player&&state.player.predictions[m.id]&&state.player.predictions[m.id].w)||null;
-  function row(team){
-    if(!team)return '<div class="tc-tm tbd"><span class="tc-fl"></span><span class="tc-nm">TBD</span></div>';
-    const isWin=win&&win===team.n,cls='tc-tm'+(win?(isWin?' win':' out'):'')+(pk&&pk===team.n?' picked':'');
-    return '<div class="'+cls+'" data-team="'+esc(team.n)+'"><span class="tc-fl">'+(team.f||'')+'</span><span class="tc-nm">'+esc(team.n)+'</span>'+(isWin?'<span class="tc-ck">✓</span>':'')+'</div>';
+  const sc=(win&&res.h!=null&&res.a!=null)?('<span class="tc-sc">'+res.h+'–'+res.a+'</span>'):'';
+  /* What feeds an empty slot: the raw R32 slot spec, else the feeder tie from BRACKET. */
+  function slotHint(side){
+    if(m.round==="R32"){const raw=side==="h"?m.home:m.away;if(raw&&raw.n&&raw.n!=="TBD")return raw.n;}
+    const f=BRACKET[m.id];
+    if(f){const fid=side==="h"?f[0]:f[1],fm=FXID[fid];
+      if(fm){const ft=koTeams(fm),pre=f[2]==="L"?"Loser of ":"Winner of ";
+        if(ft.h&&ft.a)return pre+ft.h.n+" / "+ft.a.n;
+        return pre+shortRound(fm.round)+" · "+fmtWk(fm.ko);}}
+    return "TBD";
   }
-  const lab=m.tag==="final"?"🏆 FINAL":(m.tag==="third"?"3RD PLACE":shortRound(m.round));
-  return '<div class="tcard'+(m.tag==="final"?' fin':'')+(nd.third?' third':'')+'" data-tie="'+m.id+'" style="left:'+nd.x+'px;top:'+nd.y+'px;width:'+L.CARDW+'px;height:'+L.CARDH+'px"><div class="tc-rd">'+lab+'</div>'+row(t.h)+row(t.a)+'</div>';
+  function row(team,side){
+    if(!team)return '<div class="tc-tm tbd"><span class="tc-fl"></span><span class="tc-nm">'+esc(slotHint(side))+'</span></div>';
+    const isWin=win&&win===team.n,cls='tc-tm'+(win?(isWin?' win':' out'):'')+(pk&&pk===team.n?' picked':'');
+    return '<div class="'+cls+'" data-team="'+esc(team.n)+'"><span class="tc-fl">'+(team.f||'')+'</span><span class="tc-nm">'+esc(team.n)+'</span>'+(isWin?sc+'<span class="tc-ck">✓</span>':'')+'</div>';
+  }
+  const lab=m.tag==="final"?"🏆 THE FINAL · 19 JULY":(m.tag==="third"?"3RD PLACE":shortRound(m.round));
+  const hot=(hotId&&hotId===m.id)?(' hot'+(hotLive?'':' next')):'';
+  return '<div class="tcard'+(m.tag==="final"?' fin':'')+(nd.third?' third':'')+((m.tag==="final"&&win)?' won':'')+hot+'" data-tie="'+m.id+'" style="left:'+nd.x+'px;top:'+nd.y+'px;width:'+L.CARDW+'px;height:'+L.CARDH+'px"><div class="tc-rd">'+lab+'</div>'+row(t.h,"h")+row(t.a,"a")+(hot?'<span class="tc-live"></span>':'')+'</div>';
 }
 /* The ordered tie ids a team passes through, stopping where it's knocked out
    (by official result, or — past the live front — by the player's own pick). */
@@ -3260,12 +3594,13 @@ function teamChain(name){
   let entry=null;
   for(const m of FIXTURES){if(!m.kn||m.round!=="R32")continue;const t=koTeams(m);if((t.h&&t.h.n===name)||(t.a&&t.a.n===name)){entry=m;break;}}
   if(!entry)return [];
-  const ids=[];let cur=entry.id;
+  const ids=[];ids.off=[]; /* parallel: off[i]=true → node i decided by an official result */
+  let cur=entry.id;
   while(cur){
     const off=(state.results[cur]&&state.results[cur].w)||null;
     const pick=(state.player&&state.player.predictions[cur]&&state.player.predictions[cur].w)||null;
     const res=off?(off===name?"win":"out"):(pick?(pick===name?"win":"out"):"pending");
-    ids.push(cur);
+    ids.push(cur);ids.off.push(!!off);
     if(res!=="win")break;
     cur=CHILD_OF[cur];
   }
@@ -3274,17 +3609,19 @@ function teamChain(name){
 function highlightTree(){
   const canvas=document.getElementById("brk-canvas");if(!canvas)return;
   canvas.classList.toggle("tracing",!!treeSel);
-  canvas.querySelectorAll(".tcard.lit").forEach(e=>e.classList.remove("lit"));
+  canvas.querySelectorAll(".tcard.lit").forEach(e=>e.classList.remove("lit","real","proj"));
   canvas.querySelectorAll(".tc-tm.litteam").forEach(e=>e.classList.remove("litteam"));
-  canvas.querySelectorAll(".brk-svg path.lit").forEach(e=>e.classList.remove("lit"));
+  canvas.querySelectorAll(".brk-svg path.lit").forEach(e=>e.classList.remove("lit","real","proj"));
   const note=document.getElementById("brk-selnote");
   if(!treeSel){if(note)note.textContent="";return;}
   const ids=teamChain(treeSel);
   if(!ids.length){if(note)note.textContent=treeSel+" — not in the bracket yet";treeSel=null;canvas.classList.remove("tracing");return;}
+  let hasReal=false,hasProj=false; /* beyond the entry card: official steps vs your-pick steps */
   ids.forEach(function(tid,i){
+    const arrOff=i===0||!!ids.off[i-1]; /* the team is really in this tie iff its feeder settled officially */
     const card=canvas.querySelector('.tcard[data-tie="'+tid+'"]');
-    if(card){card.classList.add("lit");card.querySelectorAll(".tc-tm").forEach(function(tm){if(tm.getAttribute("data-team")===treeSel)tm.classList.add("litteam");});}
-    if(i<ids.length-1){const edge=canvas.querySelector('.brk-svg path[data-edge="'+tid+'>'+ids[i+1]+'"]');if(edge)edge.classList.add("lit");}
+    if(card){card.classList.add("lit",arrOff?"real":"proj");card.querySelectorAll(".tc-tm").forEach(function(tm){if(tm.getAttribute("data-team")===treeSel)tm.classList.add("litteam");});}
+    if(i<ids.length-1){const edge=canvas.querySelector('.brk-svg path[data-edge="'+tid+'>'+ids[i+1]+'"]');if(edge)edge.classList.add("lit",ids.off[i]?"real":"proj");if(ids.off[i])hasReal=true;else hasProj=true;}
   });
   if(note){
     const lastId=ids[ids.length-1],lr=(state.results[lastId]&&state.results[lastId].w)||null,lp=(state.player&&state.player.predictions[lastId]&&state.player.predictions[lastId].w)||null,lround=shortRound(FXID[lastId].round),decided=lr||lp;
@@ -3292,13 +3629,17 @@ function highlightTree(){
     if(lastId==="k32")txt=lr===treeSel?" — Champion 🏆":(lr?" — runner-up":" — in the Final 🏆");
     else if(decided&&decided!==treeSel)txt=" — out at "+lround;
     else txt=" — in the "+lround;
-    note.textContent=treeSel+txt;}
+    if(hasReal&&hasProj)txt+=" · solid = played · dashed = your call";
+    /* "→ winner meets X" for the traced team's current (first officially undecided) tie */
+    let hint="";
+    for(let i=0;i<ids.length;i++){if(!ids.off[i]){const hm=FXID[ids[i]];if(hm)hint=(nextHint(hm)||"").replace(/<[^>]*>/g,"");break;}}
+    note.textContent=treeSel+txt+(hint?" "+hint:"");}
 }
 function applyZoom(z){
   const vp=document.getElementById("brk-vp"),sizer=document.getElementById("brk-sizer"),canvas=document.getElementById("brk-canvas");
   if(!vp||!canvas||!sizer)return;
   const cw=canvas.offsetWidth||850,ch=canvas.offsetHeight||1040;
-  if(z==null){const avail=vp.clientWidth-2;z=avail>0?Math.max(.34,Math.min(1,avail/cw)):.5;}
+  if(z==null){const avail=vp.clientWidth-2;z=avail>0?Math.max(.52,Math.min(1,avail/cw)):.52;}
   treeZoom=z;
   canvas.style.transform="scale("+z+")";
   sizer.style.width=Math.round(cw*z)+"px";sizer.style.height=Math.round(ch*z)+"px";
@@ -3726,7 +4067,7 @@ function tickCountdown(){
   const now=Date.now();
   const next=FIXTURES.filter(m=>new Date(m.ko).getTime()>now).sort((a,b)=>new Date(a.ko)-new Date(b.ko))[0];
   const wrap=document.getElementById("cd-clock"),lab=document.getElementById("cd-match");
-  if(!next){if(lab.__nm!=="over"){lab.__nm="over";lab.textContent="Tournament underway";wrap.innerHTML="";}return;}
+  if(!next){if(lab.__nm!=="over"){lab.__nm="over";lab.textContent="Tournament underway";wrap.innerHTML="";wrap.__cd=null;document.getElementById("countdown").classList.remove("imminent");}return;}
   const nv=fxView(next);
   const nm=((next.kn&&!koReady(next))?(RLABEL[next.round]+": "+esc(nv.home.n)+" v "+esc(nv.away.n)):(nv.home.f+' '+esc(nv.home.n)+' v '+esc(nv.away.n)+' '+nv.away.f))+(next.tag==="qatar"?' <small>⭐</small>':'');
   if(lab.__nm!==nm){lab.__nm=nm;lab.innerHTML=nm;} /* rebuild only on change — recreating the flag <img>s every second made the header jitter each tick */
@@ -3735,8 +4076,16 @@ function tickCountdown(){
   const h=Math.floor(diff/36e5);diff-=h*36e5;
   const mi=Math.floor(diff/6e4);diff-=mi*6e4;
   const se=Math.floor(diff/1e3);
-  const u=(v,l)=>'<div class="cd-unit"><b>'+String(v).padStart(2,"0")+'</b><span>'+l+'</span></div>';
-  wrap.innerHTML=u(d,"days")+u(h,"hrs")+u(mi,"min")+u(se,"sec");
+  /* build the four units once; per tick only a changed digit is touched (one-shot split-flap) */
+  if(!wrap.__cd){
+    wrap.innerHTML=["days","hrs","min","sec"].map(l=>'<div class="cd-unit"><b>--</b><span>'+l+'</span></div>').join("");
+    wrap.__cd=Array.prototype.slice.call(wrap.querySelectorAll(".cd-unit"));
+  }
+  [d,h,mi,se].forEach((v,i)=>{
+    const un=wrap.__cd[i],b=un.firstElementChild,t=String(v).padStart(2,"0");
+    if(b.textContent!==t){b.textContent=t;un.classList.remove("tick");void b.offsetWidth;un.classList.add("tick");}
+  });
+  document.getElementById("countdown").classList.toggle("imminent",(new Date(next.ko).getTime()-now)<36e5);
 }
 
 /* ===== Matchday Live pack ===== */
@@ -3759,11 +4108,11 @@ function renderPulse(){
     const v=fxView(m); /* resolve knockout slot labels ("Winners C") to real teams before display + feed matching */
     const le=(typeof liveFor==="function")?liveFor(v):null;
     const min=Math.max(1,Math.min(120,Math.floor((now-new Date(v.ko).getTime())/60000)));
-    const sc=(le&&le.hs!=null&&le.state!=="pre")?('<b>'+le.hs+'\u2013'+le.as+'</b>'):'v';
+    const sc=(le&&le.hs!=null&&le.state!=="pre")?('<b class="pb-score">'+le.hs+'\u2013'+le.as+'</b>'):'v';
     const done=!!(le&&le.done);
     const ck=done?'FT':((le&&le.state==="in"&&le.clock)?le.clock:(min+'\u2032'));
-    el.innerHTML='<span class="pb-dot'+(done?' idle':(min>=80?' final-push':''))+'"></span><b>'+(done?'FT':'LIVE')+'</b>&nbsp;'+(v.home.f?v.home.f+' ':'')+esc(v.home.n)+' '+sc+' '+esc(v.away.n)+(v.away.f?' '+v.away.f:'')+(done?'':' \u00b7 '+esc(ck))+(live.length>1?'<span class="pb-more">+'+(live.length-1)+' more live</span>':'')+'<div class="pb-stakes" id="pbstk" style="display:none"></div>';
-    el.className="pulsebar live";el.style.display="flex";
+    el.innerHTML='<span class="pb-dot'+(done?' idle':(min>=80?' final-push':''))+'"></span><b>'+(done?'FT':'LIVE')+'</b>&nbsp;'+(v.home.f?v.home.f+' ':'')+esc(v.home.n)+' '+sc+' '+esc(v.away.n)+(v.away.f?' '+v.away.f:'')+(done?'':' \u00b7 '+esc(ck))+(live.length>1?'<span class="pb-more">+'+(live.length-1)+' more live</span>':'')+'<a class="pb-watch" href="watch.html" onclick="event.stopPropagation()">\ud83d\udcfa where to watch</a><div class="pb-stakes" id="pbstk" style="display:none"></div>';
+    el.className=done?"pulsebar":"pulsebar live";el.style.display="flex";el.dataset.pm=m.id; /* FT drops the live frame; tap jumps to this card */
     if(le)fillStakes(v,le);
     return;
   }
@@ -3772,6 +4121,10 @@ function renderPulse(){
      when signed in, and the header countdown is always visible in that state, so render
      nothing here to avoid the duplicate "Next kickoff" label. */
   el.style.display="none";
+}
+function pulseJump(){ /* pulsebar tap → scroll to the shown match's card (watch link opts out via stopPropagation) */
+  const el=document.getElementById("pulsebar");
+  if(el&&el.dataset.pm)modJump(el.dataset.pm);
 }
 
 function confetti(){
@@ -3783,13 +4136,13 @@ function confetti(){
     const cols=["#e3d3a3","#b49759","#ef3340","#2ea84f","#f4eee3"];
     const P=[];for(let i=0;i<90;i++)P.push({x:c.width/2+(Math.random()-0.5)*120,y:-20-Math.random()*40,
       vx:(Math.random()-0.5)*7,vy:2+Math.random()*4,r:3+Math.random()*5,a:Math.random()*Math.PI,
-      va:(Math.random()-0.5)*0.3,col:cols[i%cols.length]});
+      va:(Math.random()-0.5)*0.3,st:i%4===0,col:i%4===0?(i%8?"#e3d3a3":"#b49759"):cols[i%cols.length]}); /* every 4th piece: thin gold streamer */
     const t0=Date.now();
     (function frame(){
       const t=Date.now()-t0;x.clearRect(0,0,c.width,c.height);
       P.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.08;p.a+=p.va;
         x.save();x.translate(p.x,p.y);x.rotate(p.a);x.fillStyle=p.col;
-        x.globalAlpha=Math.max(0,1-t/1900);x.fillRect(-p.r,-p.r/2,p.r*2,p.r);x.restore();});
+        x.globalAlpha=Math.max(0,1-t/1900);if(p.st)x.fillRect(-1.5,-7,3,14);else x.fillRect(-p.r,-p.r/2,p.r*2,p.r);x.restore();});
       if(t<2000)requestAnimationFrame(frame);else c.remove();
     })();
   }catch(e){}
@@ -3822,14 +4175,16 @@ async function welcomeDelta(){
     const social=passedN&&passedName
       ?('<div class="dx">\ud83e\udee1 You passed <b>'+esc(passedName)+'</b>'+(passedN>1?(' and '+(passedN-1)+' other'+(passedN-1===1?'':'s')):'')+'</div>')
       :'';
-    const pop=document.createElement("div");pop.className="delta-pop";
+    const big=dr>=3||dp>=8; /* big-night drama scaling */
+    const pop=document.createElement("div");pop.className="delta-pop"+(big?" big":"");
     pop.innerHTML='<div class="dt">Since your last visit</div>'+
-      '<div class="dv">'+(dp>0?("+"+dp+" pts"):"")+(dp>0&&dr>0?" \u00b7 ":"")+(dr>0?("\u25b2 "+dr+" place"+(dr===1?"":"s")):"")+'</div>'+
+      '<div class="dv">'+(dp>0?('+<span id="dp-n">'+dp+'</span> pts'):"")+(dp>0&&dr>0?" \u00b7 ":"")+(dr>0?("\u25b2 "+dr+" place"+(dr===1?"":"s")):"")+'</div>'+
       '<div class="ds">'+(dr>0?("You\u2019re now #"+rank):"Keep climbing \u2014 #"+rank)+'</div>'+social;
     document.body.appendChild(pop);
     requestAnimationFrame(()=>pop.classList.add("show"));
+    if(dp>0){try{odo(document.getElementById("dp-n"),0,dp,700);}catch(e){}}
     setTimeout(()=>{pop.classList.remove("show");setTimeout(()=>pop.remove(),400);},6200);
-    if(dp>0)confetti();
+    if(dp>0){if(big&&!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches))confettiBurst();else confetti();}
   }catch(e){}
 }
 
@@ -3861,9 +4216,12 @@ async function renderDept(body){
   let html='<div class="dept-note">\ud83c\udfe2 <b>Department leagues</b> \u2014 your squad vs the rest of the bank. Ranked by <b>average points per player</b> (fair across squad sizes); ties broken by total. Squads need '+DEPT_MIN+'+ players to rank.</div>';
   lg.ranked.forEach((x,i)=>{
     const mine=x.d===myDept;
-    html+='<div class="lb-row dept-row'+(mine?' me':'')+'" style="animation-delay:'+Math.min(i*0.03,0.4)+'s"><div class="rank">'+(i<3?med[i]:(i+1))+'</div>'+
+    let gap='';   /* rows 1-3: avg gap subline (display only \u2014 ranking math untouched) */
+    if(i===0&&lg.ranked[1]){const d=Math.round((x.avg-lg.ranked[1].avg)*10)/10;if(d>0)gap='<div class="lb-stats"><span>\u25b2 <b>'+d.toFixed(1)+'</b> avg clear of '+esc(lg.ranked[1].d)+'</span></div>';}
+    else if(i>0&&i<3){const up=lg.ranked[i-1],d=Math.round((up.avg-x.avg)*10)/10;gap='<div class="lb-stats"><span>'+(d>0?('\u25b2 <b>'+d.toFixed(1)+'</b> avg to catch '+esc(up.d)):('level on avg with '+esc(up.d)))+'</span></div>';}
+    html+='<div class="lb-row dept-row'+(mine?' me':'')+(i===0?' lead':'')+(i<3?' dept-top':'')+'" style="animation-delay:'+Math.min(i*0.03,0.4)+'s"><div class="rank">'+(i<3?med[i]:(i+1))+'</div>'+
       '<div class="avatar deptbadge">'+deptAvatarFill(x.d)+'</div>'+
-      '<div class="lb-info"><div class="n">'+esc(x.d)+(mine?'<span class="youtag">YOUR SQUAD</span>':'')+'</div><div class="d">'+x.n+' players \u00b7 \u03a3 '+x.sum+' pts</div></div>'+
+      '<div class="lb-info"><div class="n">'+esc(x.d)+(mine?'<span class="youtag">YOUR SQUAD</span>':'')+'</div><div class="d">'+x.n+' players \u00b7 \u03a3 '+x.sum+' pts</div>'+gap+'</div>'+
       '<div class="lb-pts"><b>'+(Math.round(x.avg*10)/10)+'</b><span>avg</span></div></div>';});
   if(lg.small.length)html+='<div class="dept-note" style="margin-top:12px">Not yet ranked (under '+DEPT_MIN+' players): '+lg.small.map(x=>esc(x.d)+' ('+x.n+')').join(' \u00b7 ')+'</div>';
   body.innerHTML=html;
@@ -3910,21 +4268,25 @@ function roomConsensus(m,players,myPk){
   if(m.kn){
     let hN=0,aN=0;
     players.forEach(function(p){const v=(p.predictions||{})[m.id];if(!v||!v.w)return;if(v.w===mv.home.n)hN++;else if(v.w===mv.away.n)aN++;});
-    const tot=hN+aN;if(tot<8)return "";
+    const tot=hN+aN;if(tot<8)return null;
     const hp=Math.round(hN/tot*100);
     let line='🏟 '+tot+' colleagues called it: '+seg(mv.home.n,hp,myPk&&myPk.w===mv.home.n)+' · '+seg(mv.away.n,100-hp,myPk&&myPk.w===mv.away.n);
     if(res&&res.w){const rN=res.w===mv.home.n?hN:(res.w===mv.away.n?aN:0),rp=Math.round(rN/tot*100);
       if(rp<=25)line+='<span class="c2">🧨 Upset — only '+rp+'% of the office saw it coming</span>';}
-    return line;
+    return {html:line,segs:[{k:'h',pct:hp,mine:!!(myPk&&myPk.w===mv.home.n)},{k:'a',pct:100-hp,mine:!!(myPk&&myPk.w===mv.away.n)}]};
   }
   let H=0,D=0,A=0;
   players.forEach(function(p){const v=(p.predictions||{})[m.id];if(!v||!v.o)return;if(v.o==="H")H++;else if(v.o==="D")D++;else if(v.o==="A")A++;});
-  const tot=H+D+A;if(tot<5)return "";
-  let line='🏟 '+tot+' colleagues called it: '+seg(mv.home.n,Math.round(H/tot*100),myPk&&myPk.o==="H")+' · '+seg("Draw",Math.round(D/tot*100),myPk&&myPk.o==="D")+' · '+seg(mv.away.n,Math.round(A/tot*100),myPk&&myPk.o==="A");
+  const tot=H+D+A;if(tot<5)return null;
+  const hp=Math.round(H/tot*100),dp=Math.round(D/tot*100),ap=Math.round(A/tot*100);
+  let line='🏟 '+tot+' colleagues called it: '+seg(mv.home.n,hp,myPk&&myPk.o==="H")+' · '+seg("Draw",dp,myPk&&myPk.o==="D")+' · '+seg(mv.away.n,ap,myPk&&myPk.o==="A");
   if(res&&res.h!=null){const ro=res.h>res.a?"H":(res.h<res.a?"A":"D"),rp=Math.round((ro==="H"?H:(ro==="D"?D:A))/tot*100);
     if(rp<=25)line+='<span class="c2">🧨 Upset — only '+rp+'% of the office called it</span>';}
-  return line;
+  return {html:line,segs:[{k:'h',pct:hp,mine:!!(myPk&&myPk.o==="H")},{k:'d',pct:dp,mine:!!(myPk&&myPk.o==="D")},{k:'a',pct:ap,mine:!!(myPk&&myPk.o==="A")}]};
 }
+/* Suspense split bar from the SAME floored counts roomConsensus computed — renders only
+   when the text line itself passed the k-anon floor. Aggregates only, never names. */
+function roomBarHTML(segs){return '<div class="room-bar">'+segs.filter(function(s){return s.pct>0;}).map(function(s){return '<i class="'+s.k+(s.mine?' mine':'')+'" style="width:'+s.pct+'%"></i>';}).join('')+'</div>';}
 /* Windowed table — at 670 players a settled knockout can have 600+ rows. Show the
    top scorers + your row + your immediate neighbours, with a one-tap "show all". */
 function roomTable(rows,mv,m){
@@ -3938,12 +4300,13 @@ function roomTable(rows,mv,m){
     idxs=Object.keys(set).map(Number).sort(function(a,b){return a-b;});
   }
   let html='<div class="pp-head"><span>Player</span><span>Pick</span><span>Exact</span><span>Pts</span></div>';
-  let prev=-1;
+  let rk=0,pv=null;const rks=rows.map(function(x,i){if(pv===null||x.pts!==pv){rk=i+1;pv=x.pts;}return rk;}); /* tie-aware: same pts ⇒ same rank */
+  let prev=-1,vk=0;
   idxs.forEach(function(i){
     if(i>prev+1)html+='<div class="lb-gap">⋯</div>';
     prev=i;
     const x=rows[i],me=x.p.slug===state.meSlug;
-    html+='<div class="pp-row room-row '+x.cls+(me?' mine':'')+'"><span class="pp-n"><i class="rr">'+(i+1)+'</i>'+esc(x.p.name||x.p.slug)+(me?'<span class="youtag">YOU</span>':'')+'<small>'+esc(x.p.dept||"")+'</small></span>'+
+    html+='<div class="pp-row room-row '+x.cls+(me?' mine':'')+'" style="animation:rise .35s both;animation-delay:'+Math.min((vk++)*0.025,0.4)+'s"><span class="pp-n"><i class="rr">'+rks[i]+'</i>'+esc(x.p.name||x.p.slug)+(me?'<span class="youtag">YOU</span>':'')+'<small>'+esc(x.p.dept||"")+'</small></span>'+
       '<span class="pp-p">'+esc(ppPickLabel(mv,m.kn,x.pk)||"—")+'</span>'+
       '<span class="pp-e">'+ppExactHTML(x.pk)+'</span>'+
       '<span class="pp-s '+(x.pts>0?'win':'zero')+'">'+(x.pts>0?'+'+x.pts:'+0')+'</span></div>';
@@ -3961,12 +4324,12 @@ async function renderRoomBody(){
   const players=(CONFIGURED&&!state.demo)?await ppPlayers():[];   /* ONE ~1MB pull, 60s cache, never on a timer */
   let html='';
   if(settled){
-    html+='<div class="room-res"><span class="rh">FULL TIME</span><b>'+esc(mv.home.n)+' '+(r.h!=null?r.h:'')+'–'+(r.a!=null?r.a:'')+' '+esc(mv.away.n)+'</b>'+(m.kn&&r.w?'<span class="rw">'+esc(r.w)+' advance</span>':'')+'</div>';
+    html+='<div class="room-res land"><span class="rh">FULL TIME</span><b>'+esc(mv.home.n)+' '+(r.h!=null?r.h:'')+'–'+(r.a!=null?r.a:'')+' '+esc(mv.away.n)+'</b>'+(m.kn&&r.w?'<span class="rw">'+esc(r.w)+' advance</span>':'')+'</div>';
   }else{
     html+='<div class="room-res live"><span class="rh">SEALED · awaiting result</span><b>'+esc(mv.home.n)+' v '+esc(mv.away.n)+'</b></div>';
   }
-  const cline=roomConsensus(m,players,myPk);   /* aggregate from the single pull; safe pre-result via the tot<5/8 floor */
-  if(cline)html+='<div class="room-cons">'+cline+'</div>';
+  const cons=roomConsensus(m,players,myPk);   /* aggregate from the single pull; safe pre-result via the tot<5/8 floor */
+  if(cons&&cons.html)html+='<div class="room-cons">'+cons.html+((!settled&&cons.segs)?roomBarHTML(cons.segs):'')+'</div>';
   if(!settled){
     html+='<div class="org-note">🔒 Who picked what unlocks at the final whistle. The office split above is live — the names land after full time.</div>';
     host.innerHTML=html;return;
@@ -4088,15 +4451,21 @@ async function shareCard(){
     let g=x.createRadialGradient(W/2,180,40,W/2,180,760);
     g.addColorStop(0,"rgba(180,151,89,.30)");g.addColorStop(1,"rgba(180,151,89,0)");
     x.fillStyle=g;x.fillRect(0,0,W,H);
+    cardFrame(x,W,H);
     x.fillStyle="#ef3340";x.fillRect(0,0,W/3,12);x.fillStyle="#2ea84f";x.fillRect(W/3,0,W/3,12);x.fillStyle="#2d6fe0";x.fillRect(W/3*2,0,W/3+2,12);
     x.textAlign="center";
     x.fillStyle="#b49759";x.font="800 32px 'Hanken Grotesk',sans-serif";
     x.fillText("S T A F F   C H A L L E N G E   \u00b7   W C 2 6",W/2,96);
     drawCardTrophy(x,W/2,150,210);
     x.fillStyle="#f4eee3";x.font="800 56px 'Hanken Grotesk',sans-serif";
-    x.fillText(state.player.name,W/2,470);
+    x.fillText(state.player.name,W/2,400);
     x.fillStyle="rgba(244,238,227,.55)";x.font="600 30px 'Hanken Grotesk',sans-serif";
-    x.fillText((state.player.dept||"")+(state.player.ig?("  \u00b7  @"+state.player.ig):""),W/2,516);
+    x.fillText((state.player.dept||"")+(state.player.ig?("  \u00b7  @"+state.player.ig):""),W/2,446);
+    if(rank){const pt="#"+rank+" IN THE OFFICE";x.font="800 26px 'Hanken Grotesk',sans-serif"; /* rank pill fills the old dead band */
+      const pw=x.measureText(pt).width+56;
+      x.fillStyle="rgba(180,151,89,.12)";roundRect(x,W/2-pw/2,474,pw,52,26);x.fill();
+      x.strokeStyle="rgba(180,151,89,.75)";x.lineWidth=2;roundRect(x,W/2-pw/2,474,pw,52,26);x.stroke();
+      x.fillStyle="#e3d3a3";x.fillText(pt,W/2,509);}
     const grd=x.createLinearGradient(0,560,0,860);grd.addColorStop(0,"#e3d3a3");grd.addColorStop(.55,"#b49759");grd.addColorStop(1,"#8a734a");
     x.fillStyle=grd;x.font="400 250px Anton,'Arial Narrow',sans-serif";
     x.fillText(rank?("#"+rank):"\u2013",W/2,810);
@@ -4106,6 +4475,7 @@ async function shareCard(){
     stats.forEach((p,i)=>{const cx=W/2+(i-1)*300;
       x.fillStyle="rgba(0,0,0,.4)";roundRect(x,cx-125,930,250,170,22);x.fill();
       x.strokeStyle="rgba(244,238,227,.14)";x.lineWidth=2;roundRect(x,cx-125,930,250,170,22);x.stroke();
+      x.fillStyle="rgba(180,151,89,.8)";x.fillRect(cx-103,930,206,2); /* gold top hairline — echoes .me-stat */
       x.fillStyle="#e3d3a3";x.font="400 84px Anton,'Arial Narrow',sans-serif";x.fillText(String(p[0]),cx,1018);
       x.fillStyle="rgba(244,238,227,.5)";x.font="700 22px 'Hanken Grotesk',sans-serif";x.fillText(p[1],cx,1066);});
     const exr=koStreakCurrent(state.player.predictions,state.results);
@@ -4158,6 +4528,7 @@ async function shareSquad(){
     let g=x.createRadialGradient(W/2,210,40,W/2,210,800);
     g.addColorStop(0,"rgba(180,151,89,.30)");g.addColorStop(1,"rgba(180,151,89,0)");
     x.fillStyle=g;x.fillRect(0,0,W,H);
+    cardFrame(x,W,H);
     x.fillStyle="#ef3340";x.fillRect(0,0,W/3,12);x.fillStyle="#2ea84f";x.fillRect(W/3,0,W/3,12);x.fillStyle="#2d6fe0";x.fillRect(W/3*2,0,W/3+2,12);
     x.textAlign="center";
     x.fillStyle="#b49759";x.font="800 32px 'Hanken Grotesk',sans-serif";
@@ -4175,6 +4546,7 @@ async function shareSquad(){
     stats.forEach((p,i)=>{const cx=W/2+(i-1)*300;
       x.fillStyle="rgba(0,0,0,.4)";roundRect(x,cx-125,858,250,170,22);x.fill();
       x.strokeStyle="rgba(244,238,227,.14)";x.lineWidth=2;roundRect(x,cx-125,858,250,170,22);x.stroke();
+      x.fillStyle="rgba(180,151,89,.8)";x.fillRect(cx-103,858,206,2); /* gold top hairline — echoes .me-stat */
       x.fillStyle="#e3d3a3";x.font="400 76px Anton,'Arial Narrow',sans-serif";x.fillText(String(p[0]),cx,946);
       x.fillStyle="rgba(244,238,227,.5)";x.font="700 22px 'Hanken Grotesk',sans-serif";x.fillText(p[1],cx,994);});
     const line=idx===0?"Top squad in the bank 🏆":("Chasing "+lg.ranked[idx-1].d);
@@ -4214,6 +4586,7 @@ async function shareBrag(o){
     let g=x.createRadialGradient(W/2,300,40,W/2,300,840);
     g.addColorStop(0,"rgba("+acc[0]+","+acc[1]+","+acc[2]+",.34)");g.addColorStop(1,"rgba("+acc[0]+","+acc[1]+","+acc[2]+",0)");
     x.fillStyle=g;x.fillRect(0,0,W,H);
+    cardFrame(x,W,H);
     x.fillStyle="#ef3340";x.fillRect(0,0,W/3,12);x.fillStyle="#2ea84f";x.fillRect(W/3,0,W/3,12);x.fillStyle="#2d6fe0";x.fillRect(W/3*2,0,W/3+2,12);
     x.textAlign="center";
     x.fillStyle="#b49759";x.font="800 32px 'Hanken Grotesk',sans-serif";
@@ -4358,6 +4731,15 @@ function meBrags(st){
   return '<div class="me-seclbl">Brag-worthy 📤</div><div class="me-brags">'+chips.join("")+'</div>';
 }
 function roundRect(x,a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath();}
+/* shared premium finish for every share canvas: corner vignette + gold inset frame + inner hairline */
+function cardFrame(x,W,H){
+  const vg=x.createRadialGradient(W/2,H/2,H*.32,W/2,H/2,H*.64);
+  vg.addColorStop(0,"rgba(0,0,0,0)");vg.addColorStop(1,"rgba(0,0,0,.38)");
+  x.fillStyle=vg;x.fillRect(0,0,W,H);
+  const fg=x.createLinearGradient(0,40,0,H-40);fg.addColorStop(0,"#e3d3a3");fg.addColorStop(1,"#8a734a");
+  x.strokeStyle=fg;x.lineWidth=3;roundRect(x,40,40,W-80,H-80,28);x.stroke();
+  x.save();x.globalAlpha=.25;x.lineWidth=1;roundRect(x,52,52,W-104,H-104,22);x.stroke();x.restore();
+}
 function drawCardTrophy(x,cx,cy,s){
   const u=s/140;
   const gold=x.createLinearGradient(cx-70*u,cy,cx+70*u,cy+140*u);
@@ -4431,7 +4813,7 @@ function midHTML(m,res){
   if(res)return '<div class="final-score">'+res.h+'\u2013'+res.a+'</div><div class="final-tag">Full time</div>';
   const le=liveFor(m);
   if(le&&le.state==="in"&&le.hs!=null&&lockedM(m))
-    return '<div class="final-score">'+le.hs+'\u2013'+le.as+'</div><div class="final-tag live-tag"><span class="pulse"></span>'+esc(le.clock||"LIVE")+'</div>';
+    return '<div class="final-score livescore">'+le.hs+'\u2013'+le.as+'</div><div class="final-tag live-tag"><span class="pulse"></span>'+esc(le.clock||"LIVE")+'</div>';
   if(le&&le.done&&le.hs!=null&&lockedM(m))
     return '<div class="final-score" style="opacity:.82">'+le.hs+'\u2013'+le.as+'</div><div class="final-tag">FT \u00b7 unofficial</div>';
   return '<div class="vs">VS</div><div class="kotime">'+fmtTime(m.ko)+'</div><div class="koday">'+fmtWk(m.ko)+'</div>';
@@ -4440,11 +4822,14 @@ function liveDecorate(){
   document.querySelectorAll("[data-mc]").forEach(n=>{
     const raw=FIXTURES.find(x=>x.id===n.dataset.mc);if(!raw)return;
     const res=state.results&&state.results[raw.id];
+    const card=n.closest(".match-card"); /* light the card frame between full re-renders */
     if(raw.kn){
-      if(res&&res.w){const h=koFinalMid(res);if(n.innerHTML!==h)n.innerHTML=h;return;} /* settled knockout: pin final score even before the next full re-render */
+      if(res&&res.w){if(card)card.classList.remove("live");const h=koFinalMid(res);if(n.innerHTML!==h)n.innerHTML=h;return;} /* settled knockout: pin final score even before the next full re-render */
+      if(card)card.classList.toggle("live",isLive(raw));
       const m=(typeof fxView==="function")?fxView(raw):raw; /* resolve slot placeholders to real teams so liveFor matches the feed */
       const h=midHTML(m,null);if(n.innerHTML!==h)n.innerHTML=h;
     }else{
+      if(card)card.classList.toggle("live",isLive(raw)&&!res);
       const h=midHTML(raw,res);if(n.innerHTML!==h)n.innerHTML=h;
     }
   });
@@ -4586,16 +4971,19 @@ function consText(m,p){
     const hN=c.w[mv.home.n]||0,aN=c.w[mv.away.n]||0,tot=hN+aN;
     if(tot<5)return "";
     const hp=Math.round(hN/tot*100);
-    let kline='\ud83c\udfdf '+tot+' colleagues called it: '+seg(mv.home.n,hp,p&&p.w===mv.home.n)+' \u00b7 '+seg(mv.away.n,100-hp,p&&p.w===mv.away.n);
+    let kline='<div class="cons-bar"><i class="h" style="width:'+hp+'%"></i><i class="a" style="width:'+(100-hp)+'%"></i></div>'
+      +'\ud83c\udfdf '+tot+' colleagues called it: '+seg(mv.home.n,hp,p&&p.w===mv.home.n)+' \u00b7 '+seg(mv.away.n,100-hp,p&&p.w===mv.away.n);
     if(res&&res.w&&tot>=8){const rp=Math.round((c.w[res.w]||0)/tot*100);
       if(rp<=25)kline+='<span class="c2">\ud83e\udde8 Upset \u2014 only '+rp+'% of the office saw it coming</span>';}
     return kline;
   }
   const tot=c.H+c.D+c.A;if(tot<5)return "";
-  let line='\ud83c\udfdf '+tot+' colleagues called it: '
-    +seg(m.home.n,Math.round(c.H/tot*100),p&&p.o==="H")+' \u00b7 '
-    +seg("Draw",Math.round(c.D/tot*100),p&&p.o==="D")+' \u00b7 '
-    +seg(m.away.n,Math.round(c.A/tot*100),p&&p.o==="A");
+  const pH=Math.round(c.H/tot*100),pD=Math.round(c.D/tot*100),pA=Math.round(c.A/tot*100);
+  let line='<div class="cons-bar"><i class="h" style="width:'+pH+'%"></i><i class="d" style="width:'+pD+'%"></i><i class="a" style="width:'+pA+'%"></i></div>'
+    +'\ud83c\udfdf '+tot+' colleagues called it: '
+    +seg(m.home.n,pH,p&&p.o==="H")+' \u00b7 '
+    +seg("Draw",pD,p&&p.o==="D")+' \u00b7 '
+    +seg(m.away.n,pA,p&&p.o==="A");
   const sc=c.sc||{};
   if(res&&res.h!=null){
     const key=res.h+"-"+res.a,n=sc[key]||0,scoreTxt=res.h+'\u2013'+res.a;
@@ -4882,10 +5270,12 @@ function renderRevealCard(){
   document.getElementById("rv-stage").innerHTML=
     '<div class="rv-card'+(RV.quick?' rv-quick':'')+'" id="rv-card" onclick="revealFlip()">'+
       '<div class="rv-flip">'+
-        '<div class="rv-face rv-front">'+
+        '<div class="rv-face rv-front'+(RV.quick?'':' charge')+'">'+
           '<div class="rv-lab">'+esc(RLABEL[m.round]||m.round)+'</div>'+
-          '<div class="rv-sec">YOUR PICK</div><div class="rv-pick">'+esc(pick)+'</div>'+
+          ((mv.home.f||mv.away.f)?'<div class="rv-tm">'+mv.home.f+'<i>vs</i>'+mv.away.f+'</div>':'')+
+          '<div class="rv-sec">YOUR PICK</div><div class="rv-mypick">'+esc(pick)+'</div>'+
           '<div class="rv-tap">tap to reveal \u21bb</div>'+
+          (RV.quick?'':'<i class="rv-fuse"></i>')+
         '</div>'+
         '<div class="rv-face rv-back">'+
           '<div class="rv-lab">'+esc(RLABEL[m.round]||m.round)+'</div>'+
@@ -4903,12 +5293,23 @@ function revealFlip(){
   try{sndFlip();}catch(e){} /* card-whoosh as it turns */
   const m=RV.q[RV.i],p=state.player.predictions[m.id]||{},r=state.results[m.id];
   const v=rvVerdict(m,p,r);
+  const sr=(m.kn&&v.cls==="exact")?koStreakRunAt(state.player.predictions,state.results,m.id):0;
+  if(sr>=2)card.classList.add("sr"+Math.min(sr,4)); /* streak-tier heat scales the gold flash */
   card.classList.add("flipped",v.cls+"fx");
   const st=document.getElementById("rv-stamp");
   st.textContent=v.label;st.className="rv-stamp "+v.cls;
   const cn=document.getElementById("rv-cons");
-  if(cn){const ct=consRevealText(m,r,v);if(ct)cn.textContent=ct;}
-  const sr=(m.kn&&v.cls==="exact")?koStreakRunAt(state.player.predictions,state.results,m.id):0;
+  if(cn){
+    let ct=consRevealText(m,r,v)||"";ct=ct?esc(ct):"";
+    /* honest near-miss warmth — own pick + official result only (post-settle, seal-safe) */
+    if(v.cls==="miss"&&!m.kn&&r&&r.h!=null){
+      let nm="";
+      if(p.h!=null&&p.a!=null&&Math.abs(Number(p.h)-r.h)+Math.abs(Number(p.a)-r.a)===1)nm="So close — "+p.h+"–"+p.a+" vs "+r.h+"–"+r.a+".";
+      else if((p.o==="H"||p.o==="A")&&r.h===r.a)nm="A draw stole it.";
+      if(nm)ct="<b>"+nm+"</b>"+(ct?" "+ct:"");
+    }
+    if(ct)cn.innerHTML=ct;
+  }
   const sb=streakBonusAt(sr);                 // exact-score streak bonus earned at this match (0 unless run>=2)
   const from=RV.total;RV.total+=v.pts+sb;     // include streak so the headline total matches the leaderboard
   odo(document.getElementById("rv-odo"),from,RV.total,500);
@@ -4937,14 +5338,20 @@ async function revealFinale(){
     '<div class="rv-done"><div class="rv-sec">THIS REVEAL</div>'+
     '<div class="rv-big pop">+<span id="rv-bign">'+RV.total+'</span></div>'+
     (dr>0?'<div class="rv-climb">\u25b2 '+dr+' place'+(dr===1?"":"s")+(rank?' \u00b7 now #'+rank:'')+'</div>'
-        :(rank?'<div class="rv-sub">#'+rank+' overall</div>':''))+'<div class="rv-of" id="rv-of"></div></div>';
+        :(rank?'<div class="rv-sub">#'+rank+' overall</div>':''))+
+    (RV.total===0?'<div class="rv-sub">Tough night \u2014 your run\u2019s still alive. Next round, new points.</div>':'')+
+    '<div class="rv-of" id="rv-of"></div></div>';
   fillRevealOffice();
   try{var _bn=document.getElementById("rv-bign");if(_bn){_bn.textContent="0";odo(_bn,0,RV.total,750);}}catch(e){} /* count up the reveal total */
   try{sndFinale();}catch(e){} /* triumphant flourish */
   document.getElementById("rv-foot").innerHTML=
     '<button class="sw-b" onclick="shareCard()">Share this</button>'+
     '<button class="sw-b sw-done-b" onclick="closeReveal()">Done</button>';
-  if(dr>0||RV.total>0)confetti();
+  if(RV.total>0){ /* +0 nights keep confetti suppressed — never fake a celebration */
+    confetti();
+    if(!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches))confettiBurst();
+    try{navigator.vibrate&&navigator.vibrate([10,40,10,40,60]);}catch(e){}
+  }
 }
 function revealOfficeLines(){
   if(state.demo||!CONS.map)return [];
@@ -4996,6 +5403,8 @@ function fillRevealOffice(){
   const of=document.getElementById("rv-of");if(!of)return;
   const ls=revealOfficeLines();
   if(ls.length)of.innerHTML=ls.map(function(t){return '<div>'+t+'</div>';}).join("");
+  else{const f=ffShuffle()[0]; /* never leave the office panel blank — fall back to trivia */
+    of.innerHTML='<div class="ff show" style="text-align:left"><span class="ff-lab">'+(FF_ICON[f.c]||"💡")+' Did you know?</span><span class="ff-tx">'+esc(f.t)+'</span></div>';}
 }
 function revealSummary(){
   clearTimeout(RV.timer);
@@ -5067,9 +5476,10 @@ function renderDayBanner(){
     if(settled)got+=rvVerdict(m,p,r).pts;
     else{left++;pot+=m.kn?(koPts(m)+((p.h!=null&&p.a!=null)?koBonus(m):0)):((p.h!=null&&p.a!=null)?5:3);}
   });
-  if(left>0&&got===0)el.innerHTML='Today: up to <b>+'+pot+'</b> riding on your '+left+' pick'+(left===1?'':'s');
-  else if(left>0)el.innerHTML='Today so far: <b>+'+got+'</b> \u00b7 '+left+' still to play <small>up to +'+(got+pot)+' possible</small>';
-  else el.innerHTML='Today: <b>+'+got+'</b> \u2014 all settled \u2713';
+  const pips='<span class="db-pips">'+'\u25b0'.repeat(mine.length-left)+'\u25b1'.repeat(left)+'</span>'; /* settled vs pending pips (mine.length>=1 here) */
+  if(left>0&&got===0)el.innerHTML='Today: up to <b>+'+pot+'</b> riding on your '+left+' pick'+(left===1?'':'s')+pips;
+  else if(left>0)el.innerHTML='Today so far: <b class="db-earn">+'+got+'</b> \u00b7 '+left+' still to play'+pips+' <small>up to +'+(got+pot)+' possible</small>';
+  else el.innerHTML='Today: <b class="db-earn">+'+got+'</b> \u2014 all settled \u2713'+pips;
   el.style.display="block";
 }
 
@@ -5204,31 +5614,37 @@ function flyOff(card,dir,done){
 function bindSwipeGestures(){
   const c=document.getElementById("sw-card");
   if(!c||!window.PointerEvent)return;
-  let sx=0,sy=0,drag=false;
+  let sx=0,sy=0,drag=false,hz=false; /* hz: haptic fired for this threshold crossing */
   const gl=document.getElementById("sw-gl"),gr=document.getElementById("sw-gr");
-  c.addEventListener("pointerdown",e=>{drag=true;c.classList.remove("peek");sx=e.clientX;sy=e.clientY;try{c.setPointerCapture(e.pointerId);}catch(x){}c.style.transition="none";});
+  c.addEventListener("pointerdown",e=>{drag=true;hz=false;c.classList.remove("peek");sx=e.clientX;sy=e.clientY;try{c.setPointerCapture(e.pointerId);}catch(x){}c.style.transition="none";});
   c.addEventListener("pointermove",e=>{
     if(!drag)return;
     const dx=e.clientX-sx,dy=e.clientY-sy;
     c.style.transform="translate("+dx+"px,"+(dy*0.4)+"px) rotate("+(dx*0.05)+"deg)";
     if(gr)gr.style.opacity=Math.min(1,Math.max(0,dx/90));   /* right drag \u2192 away */
     if(gl)gl.style.opacity=Math.min(1,Math.max(0,-dx/90));  /* left drag \u2192 home */
+    const over=Math.abs(dx)>=90; /* commit threshold: one light tick + a border tint toward the side */
+    if(over&&!hz){hz=true;try{navigator.vibrate&&navigator.vibrate(6);}catch(x){}}
+    else if(!over)hz=false;
+    c.style.borderColor=over?(dx>0?"rgba(227,211,163,.85)":"rgba(255,107,107,.6)"):"";
   });
   c.addEventListener("pointerup",e=>{
     if(!drag)return;drag=false;
     const dx=e.clientX-sx,dy=e.clientY-sy;
     if(gl)gl.style.opacity=0;if(gr)gr.style.opacity=0;
+    c.style.borderColor="";
     if(dx>90)return swipeCommit("A");
     if(dx<-90)return swipeCommit("H");
     if(dy<-90)return swipeCommit("D");
     c.style.transition="transform .25s";c.style.transform="";
   });
-  c.addEventListener("pointercancel",()=>{drag=false;c.style.transition="transform .25s";c.style.transform="";if(gl)gl.style.opacity=0;if(gr)gr.style.opacity=0;});
+  c.addEventListener("pointercancel",()=>{drag=false;c.style.transition="transform .25s";c.style.transform="";c.style.borderColor="";if(gl)gl.style.opacity=0;if(gr)gr.style.opacity=0;});
 }
 function liveTick(){
   const now=Date.now()+CLOCK_OFFSET;
   const active=FIXTURES.some(m=>{const k=new Date(m.ko).getTime();return now>k-15*60e3&&now<k+150*60e3;});
   if(active)fetchLive();
+  if(active&&state.view==="leaderboard"&&LB_MODE==="people"&&!state.demo)renderLeaderboard(); /* board heartbeat: only while a match is live, so odo count-up fires when results land — never replays the board on quiet weeks (60s cadence, cached) */
 }
 
 /* Collapse the progress panel to a slim bar once it sticks. Two rules keep this from feeling broken:
