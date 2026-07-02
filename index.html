@@ -1157,6 +1157,86 @@
   .xbanner:not(.mini) .xb-chip:nth-child(2){animation-delay:.14s}
   .xbanner:not(.mini) .xb-chip:nth-child(3){animation-delay:.23s}
   .xbanner.mini{border-left:3px solid var(--gold)}
+
+  /* ===================================================================
+     SHOWTIME pass — matches & live (frontend-only, palette-locked,
+     reduced-motion-gated). Live card frame + pinned Live-now group,
+     in-play score voice, Match-of-the-Day hero, consensus split bar,
+     stakes line, exact-score chip, pulsebar + day-banner polish,
+     Qatar settled cleanup.
+     =================================================================== */
+  /* M1 — live match-card frame (heartbeat stays on .live-pill .pulse) */
+  .match-card.live{border-color:rgba(239,51,64,.5);box-shadow:0 0 0 1px rgba(239,51,64,.22),0 16px 44px -22px rgba(239,51,64,.7);background:linear-gradient(100deg,rgba(239,51,64,.08),transparent 55%),var(--glass)}
+  .match-card.done.live{border-color:rgba(244,238,227,.08);box-shadow:none;background:var(--glass)} /* guard: settled always wins */
+  /* M2 — pinned "Live now" group header */
+  .livehdr h3{color:var(--magenta-2)}
+  .livehdr .livedot{background:var(--magenta-2);box-shadow:0 0 10px rgba(239,51,64,.7)}
+  /* M3 — in-play score gets its own voice (settled FT stays gold) */
+  .final-score.livescore{color:var(--cream);text-shadow:0 0 14px rgba(239,51,64,.35);animation:livebeat 2.4s ease-in-out infinite}
+  @keyframes livebeat{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
+  @media(prefers-reduced-motion:reduce){.final-score.livescore{animation:none}}
+  /* M4 — Match of the Day hero */
+  .match-card.mod{border-color:rgba(180,151,89,.5);background:linear-gradient(135deg,rgba(180,151,89,.14),rgba(180,151,89,.03)),var(--glass);box-shadow:0 0 0 1px rgba(180,151,89,.2),0 18px 48px -24px rgba(180,151,89,.8);cursor:pointer}
+  .mod-tag{display:inline-block;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:800;color:#181106;background:linear-gradient(115deg,var(--gold-deep),var(--gold));border-radius:6px;padding:2px 8px;margin:0 0 11px 6px;vertical-align:top}
+  /* M5 — consensus split bar (same k-floored numbers as the text) */
+  .cons-bar{height:6px;border-radius:99px;overflow:hidden;display:flex;gap:2px;margin:8px auto 2px;max-width:280px;background:rgba(255,255,255,.05)}
+  .cons-bar i{display:block;height:100%}
+  .cons-bar .h{background:linear-gradient(90deg,var(--gold-deep),var(--gold-bright))}
+  .cons-bar .d{background:rgba(244,238,227,.25)}
+  .cons-bar .a{background:rgba(239,51,64,.55)}
+  /* M6 — locked-card anticipation line */
+  .stakeline b{color:var(--gold-bright)}
+  /* M7 — exact-score celebration on settled cards */
+  .match-card.done.exact{border-color:rgba(180,151,89,.4);box-shadow:0 0 0 1px rgba(180,151,89,.18),0 16px 44px -22px rgba(180,151,89,.55)}
+  .exact-chip{font-size:8.5px;font-weight:800;letter-spacing:.08em;background:linear-gradient(115deg,var(--gold-deep),var(--gold));color:#181106;border-radius:5px;padding:2px 6px;margin-left:6px;white-space:nowrap}
+  /* M8 — pulsebar: display score + trailing watch link */
+  .pulsebar .pb-score{font-family:var(--font-d);font-size:17px;color:var(--gold-bright);letter-spacing:.02em}
+  .pb-watch{color:var(--gold);font-weight:700;font-size:11px;text-decoration:none;margin-left:auto}
+  /* M10 — day-banner scorecard */
+  .daybanner .db-earn{color:var(--lime)}
+  .db-pips{letter-spacing:2px;color:var(--gold);font-size:10px;margin-left:6px}
+  /* M11 — Qatar settled-card cleanup: .done fades the frame, maroon glow goes too */
+  .match-card.qatar.done{box-shadow:none;border-color:rgba(138,21,56,.3)}
+
+  /* ===================================================================
+     SHOWTIME pass — bracket (frontend-only, palette-locked,
+     reduced-motion-gated). Decided-path glow, champion crescendo,
+     real-vs-projected trace, settled scorelines, live/next beacon,
+     pick rail, TBD slot hints, group-card cascade.
+     =================================================================== */
+  /* B1 — visible base connectors + decided paths glow by default */
+  .brk-svg path{stroke:rgba(244,238,227,.22)}
+  .brk-svg path.done{stroke:var(--gold-deep);opacity:.75}
+  /* B3 — traced route: solid = played, dashed = your call (lit re-asserted after .done so tracing wins) */
+  .brk-svg path.lit{stroke:var(--gold-bright);stroke-width:2.6;opacity:1;filter:drop-shadow(0 0 4px rgba(227,211,163,.4))}
+  .brk-svg path.lit.proj{stroke-dasharray:5 5;stroke:var(--gold);filter:none}
+  .tcard.lit.proj{border-style:dashed}
+  /* B2 — legible round captions + quiet-gold Final caption + champion crescendo */
+  .tc-rd{color:var(--muted)}
+  .tcard.fin .tc-rd{color:var(--gold)}
+  .tcard.fin.won{overflow:visible;border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 0 26px -6px rgba(227,211,163,.75)}
+  .tcard.fin.won::after{content:"🏆";position:absolute;top:-15px;right:8px;font-size:18px;filter:drop-shadow(0 3px 6px rgba(0,0,0,.6))}
+  @media(prefers-reduced-motion:reduce){.tcard.fin.won{box-shadow:0 0 0 1px var(--gold)}}
+  /* B4 — scoreline on the settled winner row */
+  .tc-sc{margin-left:auto;font-family:var(--font-d);font-size:10px;color:var(--gold);letter-spacing:.04em;flex:0 0 auto}
+  /* B6 — one live/next beacon per render */
+  .tc-live{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--magenta-2);box-shadow:0 0 0 0 rgba(239,51,64,.6);animation:pulse 1.8s infinite}
+  .tcard.hot{border-color:rgba(239,51,64,.55)}
+  .tcard.hot.next{border-color:rgba(180,151,89,.55)}
+  .tcard.hot.next .tc-live{background:var(--gold);box-shadow:none;animation:none}
+  @media(prefers-reduced-motion:reduce){.tc-live{animation:none}}
+  /* B7 — persistent "your pick" gold rail */
+  .tc-tm.picked{position:relative;padding-left:8px}
+  .tc-tm.picked::before{content:"";position:absolute;left:0;top:4px;bottom:4px;width:3px;border-radius:2px;background:var(--gold)}
+  /* B9 — TBD slots say what feeds them */
+  .tc-tm.tbd .tc-nm{font-size:9.5px;color:var(--faint)}
+  /* B10 — group cards cascade in (capped stagger) */
+  .gcard:nth-child(1){animation-delay:.03s}
+  .gcard:nth-child(2){animation-delay:.06s}
+  .gcard:nth-child(3){animation-delay:.09s}
+  .gcard:nth-child(4){animation-delay:.12s}
+  .gcard:nth-child(5){animation-delay:.15s}
+  .gcard:nth-child(6){animation-delay:.18s}
 </style>
 </head>
 <body>
@@ -1280,7 +1360,7 @@
   <!-- MATCHES -->
   <section class="view" id="view-matches">
     <div class="sec-title"><h2>Matches</h2><div class="tag" id="match-tag">104 fixtures</div></div>
-    <div id="pulsebar" class="pulsebar" style="display:none" onclick="location.href='watch.html'" title="Where to watch" role="link"></div>
+    <div id="pulsebar" class="pulsebar" style="display:none" onclick="pulseJump()" title="Jump to the live match" role="button"></div>
     <div id="daybanner" class="daybanner" style="display:none"></div>
     <div id="champ-card"></div>
     <button id="jumpnext" class="jumpnext" style="display:none" onclick="jumpToNext()">Next unpicked ↓</button>
@@ -2339,12 +2419,19 @@ function renderMatches(){
   const host=document.getElementById("match-list");
   if(!list.length){host.innerHTML='<div class="empty"><div class="ic">📅</div><b>No matches here</b><span>Nothing scheduled for this filter today — try another tab.</span></div>'+ffInline();return;}
   const nowL=Date.now()+CLOCK_OFFSET;
-  const {soon,rest}=locksSoonSplit(list,nowL);
+  const liveNow=list.filter(m=>isLive(m)&&!isFinished(m));
+  const liveIds={};liveNow.forEach(m=>{liveIds[m.id]=1;});
+  const {soon,rest}=locksSoonSplit(list.filter(m=>!liveIds[m.id]),nowL);
   const groups={},order=[];
   rest.forEach(m=>{
     const k=dayKey(m.ko);if(!groups[k]){groups[k]=[];order.push(k);}groups[k].push(m);
   });
-  let html="",idx=0;
+  let html=modHero(nowL),idx=0;
+  if(liveNow.length){
+    html+='<div class="daygroup"><div class="dayhdr soonhdr livehdr"><span class="dot soon livedot"></span><h3>🔴 Live now</h3><span class="ln"></span></div>';
+    liveNow.forEach(m=>{const v=fxView(m);html+=m.kn?(koReady(m)?koMatchCard(v,idx++):knockoutCard(v,idx++)):matchCard(v,idx++);});
+    html+='</div>';
+  }
   if(soon.length){
     html+='<div class="daygroup"><div class="dayhdr soonhdr"><span class="dot soon"></span><h3>\u23f3 Locking soon \u2014 pick now</h3><span class="ln"></span></div>';
     soon.forEach(m=>{const v=fxView(m);html+=m.kn?(koReady(m)?koMatchCard(v,idx++):knockoutCard(v,idx++)):matchCard(v,idx++);});
@@ -2371,9 +2458,44 @@ function gScorePts(p,res){
   return (p.o===ro?3:0)+((p.h!=null&&p.a!=null&&Number(p.h)===res.h&&Number(p.a)===res.a)?2:0);
 }
 
+/* "Match of the Day" hero — a spotlight above the list when nothing is live and a
+   fixture kicks off within 72h. Own-data only (seal-safe): no consensus, no other
+   players' picks, no pick buttons — tap scrolls to the real card. */
+function modHero(now){
+  if(!state.player||FIXTURES.some(f=>isLive(f)))return "";
+  const fut=FIXTURES.filter(m=>{const t=new Date(m.ko).getTime();return t>now&&t-now<=72*36e5&&!isFinished(m);});
+  if(!fut.length)return "";
+  fut.sort((a,b)=>new Date(a.ko)-new Date(b.ko));
+  const dk=dayKey(fut[0].ko);
+  const day=fut.filter(m=>dayKey(m.ko)===dk).map(m=>fxView(m));
+  day.sort((a,b)=>((b.tag==="qatar")-(a.tag==="qatar"))||((b.kn?koPts(b):0)-(a.kn?koPts(a):0))||(new Date(a.ko)-new Date(b.ko)));
+  const m=day[0],p=state.player.predictions[m.id]||{};
+  const label=m.kn?(m.tag==="final"?"🏆 Final":(m.tag==="third"?"Third-place play-off":RLABEL[m.round])):"Group stage";
+  const tn=t=>t.f?('<div class="flag">'+t.f+'</div><div class="tname">'+esc(t.n)+'</div>'):('<div class="flag-tbd">?</div><div class="tname slot">'+esc(t.n)+'</div>');
+  let stake;
+  if(m.kn?p.w:p.o){
+    const nm=m.kn?p.w:(p.o==="H"?m.home.n:p.o==="A"?m.away.n:"Draw");
+    const N=m.kn?(koPts(m)+((p.h!=null&&p.a!=null)?koBonus(m):0)):((p.h!=null&&p.a!=null)?5:3);
+    stake='Your call: <b>'+esc(nm)+'</b> · <b>+'+N+'</b>'+(m.kn?' if they go through':' on the line');
+  }else stake='⚡ You haven’t picked this one yet';
+  return '<div class="match-card mod" role="button" onclick="modJump(\''+m.id+'\')">'+
+    '<div class="rnd-pill">'+label+'</div><span class="mod-tag">MATCH OF THE DAY ★</span>'+
+    '<div class="teams"><div class="team">'+tn(m.home)+'</div>'+
+    '<div class="midcol"><div class="vs">VS</div><div class="kotime">'+fmtTime(m.ko)+'</div><div class="koday">'+fmtWk(m.ko)+'</div></div>'+
+    '<div class="team right">'+tn(m.away)+'</div></div>'+
+    '<div class="kn-note stakeline" style="font-style:normal">'+stake+'</div></div>';
+}
+function modJump(id){
+  const n=document.querySelector('[data-mc="'+id+'"],.picks[data-mid="'+id+'"]');
+  const el=n?n.closest(".match-card"):null;if(!el)return;
+  el.scrollIntoView({behavior:"smooth",block:"center"});
+  el.classList.add("jflash");setTimeout(()=>el.classList.remove("jflash"),1300);
+}
+
 function matchCard(m,idx){
   const p=state.player.predictions[m.id]||{};
   const res=state.results[m.id],lk=lockedM(m)||!!res;
+  const ex=!!(res&&p.o&&p.h!=null&&p.a!=null&&Number(p.h)===res.h&&Number(p.a)===res.a); /* exact-score bonus won */
   const ribbon=m.tag==="qatar"?'<div class="ribbon">⭐ Qatar</div>':(m.tag==="open"?'<div class="ribbon open">Opener</div>':'');
   let mid='<div class="midcol" data-mc="'+m.id+'">'+midHTML(m,res)+'</div>';
   let picks="";
@@ -2382,8 +2504,9 @@ function matchCard(m,idx){
     if(res&&p.o){
       const ro=res.h>res.a?"H":res.h<res.a?"A":"D";
       const got=gScorePts(p,res);
-      picks='<div class="result-line '+(p.o===ro?"win":"lose")+'">'+(p.o===ro?"✓ ":"✗ ")+esc(lab)+(p.h!=null?' &nbsp;<span style="color:var(--faint)">('+p.h+'–'+p.a+')</span>':'')+'<span class="pts">+'+got+' pts</span></div>';
-    }else{picks='<div class="result-line">'+(isLive(m)?'<span class="live-pill"><span class="pulse"></span>LIVE</span>':'<span class="locked-tag">Locked</span>')+' <span style="color:var(--muted)">'+esc(lab)+(p.o&&p.h!=null&&p.a!=null?' <span style="color:var(--faint)">('+p.h+'–'+p.a+')</span>':'')+'</span></div>';}
+      picks='<div class="result-line '+(p.o===ro?"win":"lose")+'">'+(p.o===ro?"✓ ":"✗ ")+esc(lab)+(p.h!=null?' &nbsp;<span style="color:var(--faint)">('+p.h+'–'+p.a+')</span>':'')+'<span class="pts">+'+got+' pts</span>'+(ex?'<span class="exact-chip">✨ EXACT</span>':'')+'</div>';
+    }else{picks='<div class="result-line">'+(isLive(m)?'<span class="live-pill"><span class="pulse"></span>LIVE</span>':'<span class="locked-tag">Locked</span>')+' <span style="color:var(--muted)">'+esc(lab)+(p.o&&p.h!=null&&p.a!=null?' <span style="color:var(--faint)">('+p.h+'–'+p.a+')</span>':'')+'</span></div>';
+      if(!isLive(m)&&!res&&p.o)picks+='<div class="kn-note stakeline">⏳ kicks off '+fmtTime(m.ko)+' · <b>+'+((p.h!=null&&p.a!=null)?5:3)+'</b> on the line</div>';}
     picks+='<div class="cons" data-cons="'+m.id+'"></div>';
   }else{
     picks='<div class="picks" data-mid="'+m.id+'">'+
@@ -2397,7 +2520,7 @@ function matchCard(m,idx){
       '<span class="scoredash">–</span><input class="scorein" type="number" min="0" max="20" inputmode="numeric" aria-label="'+esc(m.away.n)+' goals" data-sa="'+m.id+'" value="'+(p.a!=null?p.a:"")+'"><label>'+m.away.f+'</label></div></div>'+
       '<div class="lockin'+((lockTs(m)-Date.now()-CLOCK_OFFSET)<7200000?' soon':'')+'" data-lockts="'+lockTs(m)+'">⏳ '+fmtLeft(lockTs(m)-Date.now()-CLOCK_OFFSET)+'</div>';
   }
-  return '<div class="match-card '+(m.tag==="qatar"?"qatar":"")+(res?" done":"")+'" style="animation-delay:'+Math.min(idx*0.03,0.4)+'s">'+ribbon+
+  return '<div class="match-card '+(m.tag==="qatar"?"qatar":"")+(isLive(m)&&!res?" live":"")+(res?" done":"")+(ex?" exact":"")+'" style="animation-delay:'+Math.min(idx*0.03,0.4)+'s">'+ribbon+
     '<div class="teams"><div class="team"><div class="flag">'+m.home.f+'</div><div class="tname">'+esc(m.home.n)+'</div></div>'+mid+
     '<div class="team right"><div class="flag">'+m.away.f+'</div><div class="tname">'+esc(m.away.n)+'</div></div></div>'+
     (!res&&!lk?'<div class="venue">'+(m.v?esc(m.v):"World Cup 2026 · Group Stage")+'</div>':'')+picks+'</div>';
@@ -2427,6 +2550,7 @@ function koFinalMid(res){
 function koMatchCard(m,idx){
   const p=state.player.predictions[m.id]||{};
   const res=state.results[m.id],win=(res&&res.w)?res.w:null;
+  const exK=!!(win&&p.w&&koBonus(m)>0&&koScoreHit(p,res)); /* exact-score bonus won */
   const lk=lockedM(m)||!!win;
   const label=(m.tag==="final"?"🏆 Final":(m.tag==="third"?"Third-place play-off":RLABEL[m.round]))+' · winner +'+koPts(m)+' pts';
   const isQa=m.home.n==="Qatar"||m.away.n==="Qatar";
@@ -2441,11 +2565,12 @@ function koMatchCard(m,idx){
       const gotW=(p.w===win)?koPts(m):0;
       const gotB=koScoreHit(p,res)?koBonus(m):0;
       const sc=(p.h!=null&&p.a!=null)?(' <span style="color:var(--faint)">('+p.h+'–'+p.a+')</span>'):'';
-      picks='<div class="result-line '+(gotW?"win":"lose")+'">'+(gotW?"✓ ":"✗ ")+esc(lab)+sc+' <span style="color:var(--faint)">· '+esc(win)+' through</span><span class="pts">+'+(gotW+gotB)+' pts</span></div>';
+      picks='<div class="result-line '+(gotW?"win":"lose")+'">'+(gotW?"✓ ":"✗ ")+esc(lab)+sc+' <span style="color:var(--faint)">· '+esc(win)+' through</span><span class="pts">+'+(gotW+gotB)+' pts</span>'+(gotB?'<span class="exact-chip">✨ EXACT</span>':'')+'</div>';
     }else if(win){
       picks='<div class="result-line"><span class="locked-tag">'+esc(win)+' through</span> <span style="color:var(--muted)">No pick</span></div>';
     }else{
       picks='<div class="result-line">'+(isLive(m)?'<span class="live-pill"><span class="pulse"></span>LIVE</span>':'<span class="locked-tag">Locked</span>')+' <span style="color:var(--muted)">'+esc(lab)+(p.w&&p.h!=null&&p.a!=null?' <span style="color:var(--faint)">('+p.h+'–'+p.a+')</span>':'')+'</span></div>';
+      if(!isLive(m)&&p.w)picks+='<div class="kn-note stakeline">⏳ kicks off '+fmtTime(m.ko)+' · <b>+'+(koPts(m)+((p.h!=null&&p.a!=null)?koBonus(m):0))+'</b> on the line</div>';
     }
     picks+='<div class="cons" data-cons="'+m.id+'"></div>';
   }else{
@@ -2460,7 +2585,7 @@ function koMatchCard(m,idx){
       '<div class="bonus-fields show"><label>'+m.home.f+'</label><input class="scorein" type="number" min="0" max="20" inputmode="numeric" aria-label="'+esc(m.home.n)+' goals" data-ksh="'+m.id+'" value="'+(p.h!=null?p.h:"")+'"><span class="scoredash">–</span><input class="scorein" type="number" min="0" max="20" inputmode="numeric" aria-label="'+esc(m.away.n)+' goals" data-ksa="'+m.id+'" value="'+(p.a!=null?p.a:"")+'"><label>'+m.away.f+'</label></div>'+
       '<div class="lockin'+((lockTs(m)-Date.now()-CLOCK_OFFSET)<7200000?' soon':'')+'" data-lockts="'+lockTs(m)+'">⏳ '+fmtLeft(lockTs(m)-Date.now()-CLOCK_OFFSET)+'</div>';
   }
-  return '<div class="match-card '+(isQa?"qatar":"")+(m.tag==="final"?" final":"")+(win?" done":"")+'" style="animation-delay:'+Math.min(idx*0.03,0.4)+'s">'+ribbon+
+  return '<div class="match-card '+(isQa?"qatar":"")+(m.tag==="final"?" final":"")+(isLive(m)&&!win?" live":"")+(win?" done":"")+(exK?" exact":"")+'" style="animation-delay:'+Math.min(idx*0.03,0.4)+'s">'+ribbon+
     '<div class="rnd-pill">'+label+'</div>'+
     '<div class="teams"><div class="team"><div class="flag">'+m.home.f+'</div><div class="tname">'+esc(m.home.n)+'</div></div>'+mid+
     '<div class="team right"><div class="flag">'+m.away.f+'</div><div class="tname">'+esc(m.away.n)+'</div></div></div>'+
@@ -3254,11 +3379,15 @@ function renderBracket(){
   if(state.player)FIXTURES.forEach(m=>{if(!m.kn)return;const r=state.results[m.id],p=state.player.predictions[m.id];if(!r||!r.w||!p)return;if(p.w){ktot++;if(p.w===r.w){kc++;kp+=koPts(m);}}if(koScoreHit(p,r))kp+=koBonus(m);});
   const tag=document.getElementById("brk-tag");if(tag)tag.textContent=state.player?(kp+" KO pts"):"Knockouts";
   const L=bracketLayout();
-  let cards="";L.nodes.forEach(function(nd){cards+=treeCard(nd,L);});
+  /* One beacon per render: the first live tie, else the next upcoming ready undecided tie. */
+  let hotId=null,hotLive=false;
+  for(const m of FIXTURES){if(m.kn&&isLive(m)){hotId=m.id;hotLive=true;break;}}
+  if(!hotId){let bt=Infinity;FIXTURES.forEach(function(m){if(!m.kn||!koReady(m))return;if(state.results[m.id]&&state.results[m.id].w)return;const t=new Date(m.ko).getTime();if(t<bt){bt=t;hotId=m.id;}});}
+  let cards="";L.nodes.forEach(function(nd){cards+=treeCard(nd,L,hotId,hotLive);});
   let heads="";RND_HEAD.forEach(function(h,col){heads+='<div class="tcol-head" style="left:'+(L.PADX+col*L.COLW)+'px;width:'+L.CARDW+'px">'+h[1]+' <b>'+h[2]+'</b></div>';});
   let html="";
   if(state.player)html+='<div class="brk-sum">Your knockout points: <b>'+kp+'</b>'+(ktot?(' · '+kc+'/'+ktot+' correct'):' · picks open as ties are set')+'</div>';
-  html+='<div class="brk-hint">Tap any team to light its route to the final · swipe to pan · zoom with － / ＋</div>';
+  html+='<div class="brk-hint">drag to pan · － / ＋ to zoom · tap a team to trace its road</div>';
   html+='<div class="brk-toolbar"><button class="brk-zb" data-z="out" aria-label="zoom out">－</button><button class="brk-zb" data-z="fit">Fit</button><button class="brk-zb" data-z="in" aria-label="zoom in">＋</button><span class="brk-selnote" id="brk-selnote"></span></div>';
   html+='<div class="brk-tree-vp" id="brk-vp"><div class="brk-tree-sizer" id="brk-sizer"><div class="brk-tree-canvas" id="brk-canvas" style="width:'+L.width+'px;height:'+L.height+'px">'
     +'<svg class="brk-svg" width="'+L.width+'" height="'+L.height+'">'+treeConnectors(L)+'</svg>'+heads+cards+'</div></div></div>';
@@ -3266,6 +3395,14 @@ function renderBracket(){
   wireBracket();
   applyZoom(treeZoom);
   highlightTree();
+  /* Land on the action: centre the earliest ready-but-undecided tie (else the Final). */
+  const vp=document.getElementById("brk-vp");
+  if(vp&&vp.clientWidth>0){
+    let tgt=null,best=Infinity;
+    FIXTURES.forEach(function(m){if(!m.kn||!L.pos[m.id]||!koReady(m))return;if(state.results[m.id]&&state.results[m.id].w)return;const o=(RND_COL[m.round]!=null?RND_COL[m.round]:4)*1e14+new Date(m.ko).getTime();if(o<best){best=o;tgt=m.id;}});
+    const p=L.pos[tgt||"k32"];
+    if(p)requestAnimationFrame(function(){const z=treeZoom||1;vp.scrollLeft=Math.max(0,Math.round((p.x+L.CARDW/2)*z-vp.clientWidth/2));vp.scrollTop=Math.max(0,Math.round(p.cy*z-vp.clientHeight/2));});
+  }
   renderGroups();
 }
 function toggleGroupTables(){
@@ -3305,21 +3442,34 @@ function treeConnectors(L){
       const fp=L.pos[fid];if(!fp)return;
       const fx=fp.x+L.CARDW,fy=fp.cy,px=parent.x,py=parent.cy,mx=Math.round((fx+px)/2);
       const d="M"+fx+" "+fy+"H"+mx+"V"+py+"H"+px;
-      p+='<path d="'+d+'"'+(take==="L"?' class="l3"':' data-edge="'+fid+'>'+id+'"')+'></path>';
+      const cls=((take==="L"?"l3 ":"")+((state.results[fid]&&state.results[fid].w)?"done":"")).trim();
+      p+='<path d="'+d+'"'+(cls?' class="'+cls+'"':'')+(take==="L"?'':' data-edge="'+fid+'>'+id+'"')+'></path>';
     });
   }
   return p;
 }
-function treeCard(nd,L){
+function treeCard(nd,L,hotId,hotLive){
   const m=nd.m,t=koTeams(m),res=state.results[m.id],win=(res&&res.w)?res.w:null;
   const pk=(state.player&&state.player.predictions[m.id]&&state.player.predictions[m.id].w)||null;
-  function row(team){
-    if(!team)return '<div class="tc-tm tbd"><span class="tc-fl"></span><span class="tc-nm">TBD</span></div>';
-    const isWin=win&&win===team.n,cls='tc-tm'+(win?(isWin?' win':' out'):'')+(pk&&pk===team.n?' picked':'');
-    return '<div class="'+cls+'" data-team="'+esc(team.n)+'"><span class="tc-fl">'+(team.f||'')+'</span><span class="tc-nm">'+esc(team.n)+'</span>'+(isWin?'<span class="tc-ck">✓</span>':'')+'</div>';
+  const sc=(win&&res.h!=null&&res.a!=null)?('<span class="tc-sc">'+res.h+'–'+res.a+'</span>'):'';
+  /* What feeds an empty slot: the raw R32 slot spec, else the feeder tie from BRACKET. */
+  function slotHint(side){
+    if(m.round==="R32"){const raw=side==="h"?m.home:m.away;if(raw&&raw.n&&raw.n!=="TBD")return raw.n;}
+    const f=BRACKET[m.id];
+    if(f){const fid=side==="h"?f[0]:f[1],fm=FXID[fid];
+      if(fm){const ft=koTeams(fm),pre=f[2]==="L"?"Loser of ":"Winner of ";
+        if(ft.h&&ft.a)return pre+ft.h.n+" / "+ft.a.n;
+        return pre+shortRound(fm.round)+" · "+fmtWk(fm.ko);}}
+    return "TBD";
   }
-  const lab=m.tag==="final"?"🏆 FINAL":(m.tag==="third"?"3RD PLACE":shortRound(m.round));
-  return '<div class="tcard'+(m.tag==="final"?' fin':'')+(nd.third?' third':'')+'" data-tie="'+m.id+'" style="left:'+nd.x+'px;top:'+nd.y+'px;width:'+L.CARDW+'px;height:'+L.CARDH+'px"><div class="tc-rd">'+lab+'</div>'+row(t.h)+row(t.a)+'</div>';
+  function row(team,side){
+    if(!team)return '<div class="tc-tm tbd"><span class="tc-fl"></span><span class="tc-nm">'+esc(slotHint(side))+'</span></div>';
+    const isWin=win&&win===team.n,cls='tc-tm'+(win?(isWin?' win':' out'):'')+(pk&&pk===team.n?' picked':'');
+    return '<div class="'+cls+'" data-team="'+esc(team.n)+'"><span class="tc-fl">'+(team.f||'')+'</span><span class="tc-nm">'+esc(team.n)+'</span>'+(isWin?sc+'<span class="tc-ck">✓</span>':'')+'</div>';
+  }
+  const lab=m.tag==="final"?"🏆 THE FINAL · 19 JULY":(m.tag==="third"?"3RD PLACE":shortRound(m.round));
+  const hot=(hotId&&hotId===m.id)?(' hot'+(hotLive?'':' next')):'';
+  return '<div class="tcard'+(m.tag==="final"?' fin':'')+(nd.third?' third':'')+((m.tag==="final"&&win)?' won':'')+hot+'" data-tie="'+m.id+'" style="left:'+nd.x+'px;top:'+nd.y+'px;width:'+L.CARDW+'px;height:'+L.CARDH+'px"><div class="tc-rd">'+lab+'</div>'+row(t.h,"h")+row(t.a,"a")+(hot?'<span class="tc-live"></span>':'')+'</div>';
 }
 /* The ordered tie ids a team passes through, stopping where it's knocked out
    (by official result, or — past the live front — by the player's own pick). */
@@ -3328,12 +3478,13 @@ function teamChain(name){
   let entry=null;
   for(const m of FIXTURES){if(!m.kn||m.round!=="R32")continue;const t=koTeams(m);if((t.h&&t.h.n===name)||(t.a&&t.a.n===name)){entry=m;break;}}
   if(!entry)return [];
-  const ids=[];let cur=entry.id;
+  const ids=[];ids.off=[]; /* parallel: off[i]=true → node i decided by an official result */
+  let cur=entry.id;
   while(cur){
     const off=(state.results[cur]&&state.results[cur].w)||null;
     const pick=(state.player&&state.player.predictions[cur]&&state.player.predictions[cur].w)||null;
     const res=off?(off===name?"win":"out"):(pick?(pick===name?"win":"out"):"pending");
-    ids.push(cur);
+    ids.push(cur);ids.off.push(!!off);
     if(res!=="win")break;
     cur=CHILD_OF[cur];
   }
@@ -3342,17 +3493,19 @@ function teamChain(name){
 function highlightTree(){
   const canvas=document.getElementById("brk-canvas");if(!canvas)return;
   canvas.classList.toggle("tracing",!!treeSel);
-  canvas.querySelectorAll(".tcard.lit").forEach(e=>e.classList.remove("lit"));
+  canvas.querySelectorAll(".tcard.lit").forEach(e=>e.classList.remove("lit","real","proj"));
   canvas.querySelectorAll(".tc-tm.litteam").forEach(e=>e.classList.remove("litteam"));
-  canvas.querySelectorAll(".brk-svg path.lit").forEach(e=>e.classList.remove("lit"));
+  canvas.querySelectorAll(".brk-svg path.lit").forEach(e=>e.classList.remove("lit","real","proj"));
   const note=document.getElementById("brk-selnote");
   if(!treeSel){if(note)note.textContent="";return;}
   const ids=teamChain(treeSel);
   if(!ids.length){if(note)note.textContent=treeSel+" — not in the bracket yet";treeSel=null;canvas.classList.remove("tracing");return;}
+  let hasReal=false,hasProj=false; /* beyond the entry card: official steps vs your-pick steps */
   ids.forEach(function(tid,i){
+    const arrOff=i===0||!!ids.off[i-1]; /* the team is really in this tie iff its feeder settled officially */
     const card=canvas.querySelector('.tcard[data-tie="'+tid+'"]');
-    if(card){card.classList.add("lit");card.querySelectorAll(".tc-tm").forEach(function(tm){if(tm.getAttribute("data-team")===treeSel)tm.classList.add("litteam");});}
-    if(i<ids.length-1){const edge=canvas.querySelector('.brk-svg path[data-edge="'+tid+'>'+ids[i+1]+'"]');if(edge)edge.classList.add("lit");}
+    if(card){card.classList.add("lit",arrOff?"real":"proj");card.querySelectorAll(".tc-tm").forEach(function(tm){if(tm.getAttribute("data-team")===treeSel)tm.classList.add("litteam");});}
+    if(i<ids.length-1){const edge=canvas.querySelector('.brk-svg path[data-edge="'+tid+'>'+ids[i+1]+'"]');if(edge)edge.classList.add("lit",ids.off[i]?"real":"proj");if(ids.off[i])hasReal=true;else hasProj=true;}
   });
   if(note){
     const lastId=ids[ids.length-1],lr=(state.results[lastId]&&state.results[lastId].w)||null,lp=(state.player&&state.player.predictions[lastId]&&state.player.predictions[lastId].w)||null,lround=shortRound(FXID[lastId].round),decided=lr||lp;
@@ -3360,13 +3513,17 @@ function highlightTree(){
     if(lastId==="k32")txt=lr===treeSel?" — Champion 🏆":(lr?" — runner-up":" — in the Final 🏆");
     else if(decided&&decided!==treeSel)txt=" — out at "+lround;
     else txt=" — in the "+lround;
-    note.textContent=treeSel+txt;}
+    if(hasReal&&hasProj)txt+=" · solid = played · dashed = your call";
+    /* "→ winner meets X" for the traced team's current (first officially undecided) tie */
+    let hint="";
+    for(let i=0;i<ids.length;i++){if(!ids.off[i]){const hm=FXID[ids[i]];if(hm)hint=(nextHint(hm)||"").replace(/<[^>]*>/g,"");break;}}
+    note.textContent=treeSel+txt+(hint?" "+hint:"");}
 }
 function applyZoom(z){
   const vp=document.getElementById("brk-vp"),sizer=document.getElementById("brk-sizer"),canvas=document.getElementById("brk-canvas");
   if(!vp||!canvas||!sizer)return;
   const cw=canvas.offsetWidth||850,ch=canvas.offsetHeight||1040;
-  if(z==null){const avail=vp.clientWidth-2;z=avail>0?Math.max(.34,Math.min(1,avail/cw)):.5;}
+  if(z==null){const avail=vp.clientWidth-2;z=avail>0?Math.max(.52,Math.min(1,avail/cw)):.52;}
   treeZoom=z;
   canvas.style.transform="scale("+z+")";
   sizer.style.width=Math.round(cw*z)+"px";sizer.style.height=Math.round(ch*z)+"px";
@@ -3835,11 +3992,11 @@ function renderPulse(){
     const v=fxView(m); /* resolve knockout slot labels ("Winners C") to real teams before display + feed matching */
     const le=(typeof liveFor==="function")?liveFor(v):null;
     const min=Math.max(1,Math.min(120,Math.floor((now-new Date(v.ko).getTime())/60000)));
-    const sc=(le&&le.hs!=null&&le.state!=="pre")?('<b>'+le.hs+'\u2013'+le.as+'</b>'):'v';
+    const sc=(le&&le.hs!=null&&le.state!=="pre")?('<b class="pb-score">'+le.hs+'\u2013'+le.as+'</b>'):'v';
     const done=!!(le&&le.done);
     const ck=done?'FT':((le&&le.state==="in"&&le.clock)?le.clock:(min+'\u2032'));
-    el.innerHTML='<span class="pb-dot'+(done?' idle':(min>=80?' final-push':''))+'"></span><b>'+(done?'FT':'LIVE')+'</b>&nbsp;'+(v.home.f?v.home.f+' ':'')+esc(v.home.n)+' '+sc+' '+esc(v.away.n)+(v.away.f?' '+v.away.f:'')+(done?'':' \u00b7 '+esc(ck))+(live.length>1?'<span class="pb-more">+'+(live.length-1)+' more live</span>':'')+'<div class="pb-stakes" id="pbstk" style="display:none"></div>';
-    el.className="pulsebar live";el.style.display="flex";
+    el.innerHTML='<span class="pb-dot'+(done?' idle':(min>=80?' final-push':''))+'"></span><b>'+(done?'FT':'LIVE')+'</b>&nbsp;'+(v.home.f?v.home.f+' ':'')+esc(v.home.n)+' '+sc+' '+esc(v.away.n)+(v.away.f?' '+v.away.f:'')+(done?'':' \u00b7 '+esc(ck))+(live.length>1?'<span class="pb-more">+'+(live.length-1)+' more live</span>':'')+'<a class="pb-watch" href="watch.html" onclick="event.stopPropagation()">\ud83d\udcfa where to watch</a><div class="pb-stakes" id="pbstk" style="display:none"></div>';
+    el.className=done?"pulsebar":"pulsebar live";el.style.display="flex";el.dataset.pm=m.id; /* FT drops the live frame; tap jumps to this card */
     if(le)fillStakes(v,le);
     return;
   }
@@ -3848,6 +4005,10 @@ function renderPulse(){
      when signed in, and the header countdown is always visible in that state, so render
      nothing here to avoid the duplicate "Next kickoff" label. */
   el.style.display="none";
+}
+function pulseJump(){ /* pulsebar tap → scroll to the shown match's card (watch link opts out via stopPropagation) */
+  const el=document.getElementById("pulsebar");
+  if(el&&el.dataset.pm)modJump(el.dataset.pm);
 }
 
 function confetti(){
@@ -4507,7 +4668,7 @@ function midHTML(m,res){
   if(res)return '<div class="final-score">'+res.h+'\u2013'+res.a+'</div><div class="final-tag">Full time</div>';
   const le=liveFor(m);
   if(le&&le.state==="in"&&le.hs!=null&&lockedM(m))
-    return '<div class="final-score">'+le.hs+'\u2013'+le.as+'</div><div class="final-tag live-tag"><span class="pulse"></span>'+esc(le.clock||"LIVE")+'</div>';
+    return '<div class="final-score livescore">'+le.hs+'\u2013'+le.as+'</div><div class="final-tag live-tag"><span class="pulse"></span>'+esc(le.clock||"LIVE")+'</div>';
   if(le&&le.done&&le.hs!=null&&lockedM(m))
     return '<div class="final-score" style="opacity:.82">'+le.hs+'\u2013'+le.as+'</div><div class="final-tag">FT \u00b7 unofficial</div>';
   return '<div class="vs">VS</div><div class="kotime">'+fmtTime(m.ko)+'</div><div class="koday">'+fmtWk(m.ko)+'</div>';
@@ -4516,11 +4677,14 @@ function liveDecorate(){
   document.querySelectorAll("[data-mc]").forEach(n=>{
     const raw=FIXTURES.find(x=>x.id===n.dataset.mc);if(!raw)return;
     const res=state.results&&state.results[raw.id];
+    const card=n.closest(".match-card"); /* light the card frame between full re-renders */
     if(raw.kn){
-      if(res&&res.w){const h=koFinalMid(res);if(n.innerHTML!==h)n.innerHTML=h;return;} /* settled knockout: pin final score even before the next full re-render */
+      if(res&&res.w){if(card)card.classList.remove("live");const h=koFinalMid(res);if(n.innerHTML!==h)n.innerHTML=h;return;} /* settled knockout: pin final score even before the next full re-render */
+      if(card)card.classList.toggle("live",isLive(raw));
       const m=(typeof fxView==="function")?fxView(raw):raw; /* resolve slot placeholders to real teams so liveFor matches the feed */
       const h=midHTML(m,null);if(n.innerHTML!==h)n.innerHTML=h;
     }else{
+      if(card)card.classList.toggle("live",isLive(raw)&&!res);
       const h=midHTML(raw,res);if(n.innerHTML!==h)n.innerHTML=h;
     }
   });
@@ -4662,16 +4826,19 @@ function consText(m,p){
     const hN=c.w[mv.home.n]||0,aN=c.w[mv.away.n]||0,tot=hN+aN;
     if(tot<5)return "";
     const hp=Math.round(hN/tot*100);
-    let kline='\ud83c\udfdf '+tot+' colleagues called it: '+seg(mv.home.n,hp,p&&p.w===mv.home.n)+' \u00b7 '+seg(mv.away.n,100-hp,p&&p.w===mv.away.n);
+    let kline='<div class="cons-bar"><i class="h" style="width:'+hp+'%"></i><i class="a" style="width:'+(100-hp)+'%"></i></div>'
+      +'\ud83c\udfdf '+tot+' colleagues called it: '+seg(mv.home.n,hp,p&&p.w===mv.home.n)+' \u00b7 '+seg(mv.away.n,100-hp,p&&p.w===mv.away.n);
     if(res&&res.w&&tot>=8){const rp=Math.round((c.w[res.w]||0)/tot*100);
       if(rp<=25)kline+='<span class="c2">\ud83e\udde8 Upset \u2014 only '+rp+'% of the office saw it coming</span>';}
     return kline;
   }
   const tot=c.H+c.D+c.A;if(tot<5)return "";
-  let line='\ud83c\udfdf '+tot+' colleagues called it: '
-    +seg(m.home.n,Math.round(c.H/tot*100),p&&p.o==="H")+' \u00b7 '
-    +seg("Draw",Math.round(c.D/tot*100),p&&p.o==="D")+' \u00b7 '
-    +seg(m.away.n,Math.round(c.A/tot*100),p&&p.o==="A");
+  const pH=Math.round(c.H/tot*100),pD=Math.round(c.D/tot*100),pA=Math.round(c.A/tot*100);
+  let line='<div class="cons-bar"><i class="h" style="width:'+pH+'%"></i><i class="d" style="width:'+pD+'%"></i><i class="a" style="width:'+pA+'%"></i></div>'
+    +'\ud83c\udfdf '+tot+' colleagues called it: '
+    +seg(m.home.n,pH,p&&p.o==="H")+' \u00b7 '
+    +seg("Draw",pD,p&&p.o==="D")+' \u00b7 '
+    +seg(m.away.n,pA,p&&p.o==="A");
   const sc=c.sc||{};
   if(res&&res.h!=null){
     const key=res.h+"-"+res.a,n=sc[key]||0,scoreTxt=res.h+'\u2013'+res.a;
@@ -5143,9 +5310,10 @@ function renderDayBanner(){
     if(settled)got+=rvVerdict(m,p,r).pts;
     else{left++;pot+=m.kn?(koPts(m)+((p.h!=null&&p.a!=null)?koBonus(m):0)):((p.h!=null&&p.a!=null)?5:3);}
   });
-  if(left>0&&got===0)el.innerHTML='Today: up to <b>+'+pot+'</b> riding on your '+left+' pick'+(left===1?'':'s');
-  else if(left>0)el.innerHTML='Today so far: <b>+'+got+'</b> \u00b7 '+left+' still to play <small>up to +'+(got+pot)+' possible</small>';
-  else el.innerHTML='Today: <b>+'+got+'</b> \u2014 all settled \u2713';
+  const pips='<span class="db-pips">'+'\u25b0'.repeat(mine.length-left)+'\u25b1'.repeat(left)+'</span>'; /* settled vs pending pips (mine.length>=1 here) */
+  if(left>0&&got===0)el.innerHTML='Today: up to <b>+'+pot+'</b> riding on your '+left+' pick'+(left===1?'':'s')+pips;
+  else if(left>0)el.innerHTML='Today so far: <b class="db-earn">+'+got+'</b> \u00b7 '+left+' still to play'+pips+' <small>up to +'+(got+pot)+' possible</small>';
+  else el.innerHTML='Today: <b class="db-earn">+'+got+'</b> \u2014 all settled \u2713'+pips;
   el.style.display="block";
 }
 
@@ -5280,26 +5448,31 @@ function flyOff(card,dir,done){
 function bindSwipeGestures(){
   const c=document.getElementById("sw-card");
   if(!c||!window.PointerEvent)return;
-  let sx=0,sy=0,drag=false;
+  let sx=0,sy=0,drag=false,hz=false; /* hz: haptic fired for this threshold crossing */
   const gl=document.getElementById("sw-gl"),gr=document.getElementById("sw-gr");
-  c.addEventListener("pointerdown",e=>{drag=true;c.classList.remove("peek");sx=e.clientX;sy=e.clientY;try{c.setPointerCapture(e.pointerId);}catch(x){}c.style.transition="none";});
+  c.addEventListener("pointerdown",e=>{drag=true;hz=false;c.classList.remove("peek");sx=e.clientX;sy=e.clientY;try{c.setPointerCapture(e.pointerId);}catch(x){}c.style.transition="none";});
   c.addEventListener("pointermove",e=>{
     if(!drag)return;
     const dx=e.clientX-sx,dy=e.clientY-sy;
     c.style.transform="translate("+dx+"px,"+(dy*0.4)+"px) rotate("+(dx*0.05)+"deg)";
     if(gr)gr.style.opacity=Math.min(1,Math.max(0,dx/90));   /* right drag \u2192 away */
     if(gl)gl.style.opacity=Math.min(1,Math.max(0,-dx/90));  /* left drag \u2192 home */
+    const over=Math.abs(dx)>=90; /* commit threshold: one light tick + a border tint toward the side */
+    if(over&&!hz){hz=true;try{navigator.vibrate&&navigator.vibrate(6);}catch(x){}}
+    else if(!over)hz=false;
+    c.style.borderColor=over?(dx>0?"rgba(227,211,163,.85)":"rgba(255,107,107,.6)"):"";
   });
   c.addEventListener("pointerup",e=>{
     if(!drag)return;drag=false;
     const dx=e.clientX-sx,dy=e.clientY-sy;
     if(gl)gl.style.opacity=0;if(gr)gr.style.opacity=0;
+    c.style.borderColor="";
     if(dx>90)return swipeCommit("A");
     if(dx<-90)return swipeCommit("H");
     if(dy<-90)return swipeCommit("D");
     c.style.transition="transform .25s";c.style.transform="";
   });
-  c.addEventListener("pointercancel",()=>{drag=false;c.style.transition="transform .25s";c.style.transform="";if(gl)gl.style.opacity=0;if(gr)gr.style.opacity=0;});
+  c.addEventListener("pointercancel",()=>{drag=false;c.style.transition="transform .25s";c.style.transform="";c.style.borderColor="";if(gl)gl.style.opacity=0;if(gr)gr.style.opacity=0;});
 }
 function liveTick(){
   const now=Date.now()+CLOCK_OFFSET;

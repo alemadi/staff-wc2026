@@ -394,6 +394,16 @@
     <path fill="url(#wcband)" d="M0,12 L0,3 L33,12 L66,3 L99,12 L132,3 L165,12 L198,3 L231,12 L264,3 L297,12 L330,3 L363,12 L396,3 L429,12 L462,3 L495,12 L528,3 L561,12 L594,3 L627,12 L660,3 L693,12 L726,3 L759,12 L792,3 L825,12 L858,3 L891,12 L924,3 L957,12 L990,3 L1023,12 L1056,3 L1089,12 L1122,3 L1155,12 L1188,3 L1200,6 L1200,12 Z"/>
   </svg>
 
+  <!-- ================= TONIGHT IN DOHA ================= -->
+  <section id="tonight">
+    <div class="sec-head">
+      <h2>Tonight in Doha</h2>
+    </div>
+    <p class="sec-sub">Every kickoff in Doha time.</p>
+    <div class="matches" id="tonightGrid"></div>
+    <p class="group-note" id="tonightNote"></p>
+  </section>
+
   <!-- ================= YOUR TEAMS · REMINDERS ================= -->
   <section id="myteams">
     <div class="sec-head">
@@ -449,7 +459,7 @@
         <div class="fboard" role="heading" aria-level="2" aria-label="The Final">
           <span class="flap">T</span><span class="flap">H</span><span class="flap">E</span><span class="flap gap" aria-hidden="true"></span><span class="flap">F</span><span class="flap">I</span><span class="flap">N</span><span class="flap">A</span><span class="flap">L</span>
         </div>
-        <div class="fclock" id="fcount">
+        <div class="fclock" id="fcount" aria-live="polite">
           <span class="flap sm" id="fd1">&ndash;</span><span class="flap sm" id="fd2">&ndash;</span><span class="fdot" aria-hidden="true">·</span><span class="flap sm" id="fh1">&ndash;</span><span class="flap sm" id="fh2">&ndash;</span><span class="fdot" aria-hidden="true">·</span><span class="flap sm" id="fm1">&ndash;</span><span class="flap sm" id="fm2">&ndash;</span><span class="fdot" aria-hidden="true">·</span><span class="flap sm" id="fs1">&ndash;</span><span class="flap sm" id="fs2">&ndash;</span>
         </div>
         <div class="fclock-labels" id="fclock-labels"><span>days</span><span>hrs</span><span>min</span><span>sec</span></div>
@@ -468,7 +478,7 @@
 
     <div class="fanzone">
       <div class="fz-in">
-        <div class="fz-eyebrow">Official Fanzone · Every Match</div>
+        <div class="fz-eyebrow">Official Fanzone · Every Match<span class="fz-live" id="fzLive" hidden><span class="dot"></span> SCREENING TONIGHT</span></div>
         <div class="fz-title">
           Visit Qatar Fanzone — Al Maha Island
         </div>
@@ -546,7 +556,7 @@
       <span><i style="background:var(--grape)"></i>Official fanzone</span>
       <span><i style="background:var(--turq)"></i>Hotel screenings</span>
       <span><i style="background:#ef3340"></i>Restaurants &amp; lounges</span>
-      <span id="loc-note"></span>
+      <span id="loc-note" role="status"></span>
     </div>
     <noscript><p class="foot-note">Enable JavaScript to browse the hotel list.</p></noscript>
 
@@ -624,6 +634,17 @@ const VENUES = [
 
 const gmaps = n => "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(n + " Qatar");
 
+/* honour reduced-motion in JS-driven scrolls too (watch.html has no global kill-switch) */
+const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* user location (set by "Near me") → haversine distances on the venue cards */
+var meLL = null;
+function havKm(la1, lo1, la2, lo2){
+  const p = Math.PI / 180, s1 = Math.sin((la2 - la1) * p / 2), s2 = Math.sin((lo2 - lo1) * p / 2);
+  return 2 * 6371 * Math.asin(Math.sqrt(s1 * s1 + Math.cos(la1 * p) * Math.cos(la2 * p) * s2 * s2));
+}
+const fmtKm = km => km < 10 ? km.toFixed(1) : String(Math.round(km));
+
 /* ---- the map (Leaflet + Carto dark tiles, no API key needed) ---- */
 let map = null, cluster = null;
 const markers = {};
@@ -680,7 +701,7 @@ if (window.L && L.markerClusterGroup) {
       meMarker.setLatLng(e.latlng);
       meRing.setLatLng(e.latlng).setRadius(Math.min(e.accuracy / 2, 400));
     } else {
-      meRing = L.circle(e.latlng, { radius: Math.min(e.accuracy / 2, 400), stroke: false, fillColor: "#D9B45B", fillOpacity: .12 }).addTo(map);
+      meRing = L.circle(e.latlng, { radius: Math.min(e.accuracy / 2, 400), stroke: false, fillColor: "#b49759", fillOpacity: .12 }).addTo(map);
       meMarker = L.marker(e.latlng, {
         icon: L.divIcon({ className: "", html: '<div class="dot-me"></div>', iconSize: [14,14], iconAnchor: [7,7] }),
         zIndexOffset: 1200
@@ -690,6 +711,7 @@ if (window.L && L.markerClusterGroup) {
     try{ var _ic=meMarker._icon&&meMarker._icon.querySelector(".dot-me");
       if(_ic){_ic.classList.remove("found");void _ic.offsetWidth;_ic.classList.add("found");} }catch(_e){} /* 'found you' pop */
     locNote.textContent = "Location shown on your device only \u2014 nothing is sent or stored.";
+    meLL = e.latlng; render(q.value);                       /* re-render cards with ~distances */
   });
 
   map.on("locationerror", function(){
@@ -735,13 +757,14 @@ function render(filter){
     const card = document.createElement("div");
     card.className = "venue";
     card.title = "Show on map";
-    card.innerHTML = '<div class="name"></div>' + (v.at ? '<div class="at"></div>' : '') +
+    card.innerHTML = '<div class="name"><i class="v-dot' + (v.t === "food" ? " fd" : "") + '"></i><span class="nm"></span>' + (meLL ? '<span class="v-dist"></span>' : '') + '</div>' + (v.at ? '<div class="at"></div>' : '') +
       "<a target=\"_blank\" rel=\"noopener\" href=\"" + gmaps(v.n + " " + (v.at || "").split("\u00b7")[0]) + "\">Open in Maps \u2197</a>";
-    card.querySelector(".name").textContent = v.n;
+    card.querySelector(".nm").textContent = v.n;
+    if (meLL) card.querySelector(".v-dist").textContent = "\u00b7 ~" + fmtKm(havKm(meLL.lat, meLL.lng, v.lat, v.lng)) + " km";
     if (v.at) card.querySelector(".at").textContent = v.at;
     card.addEventListener("click", e => {
       if (e.target.tagName === "A" || !map) return;
-      document.getElementById("map").scrollIntoView({ behavior: "smooth", block: "center" });
+      document.getElementById("map").scrollIntoView({ behavior: RM ? "auto" : "smooth", block: "center" });
       cluster.zoomToShowLayer(markers[v.n], () => markers[v.n].openPopup());
     });
     grid.appendChild(card);
@@ -797,6 +820,16 @@ render("");
   }
   tick();
   const iv = setInterval(tick, 1000);
+})();
+
+/* one-shot departures-board entrance for the Final flaps (born class drops on
+   animationend so it never fights the .tick flip transform) */
+(function(){
+  document.querySelectorAll("#final .flap").forEach(function(el, i){
+    el.style.animationDelay = Math.min(i * 0.05, 0.5) + "s";
+    el.addEventListener("animationend", function(){ el.classList.remove("born"); el.style.animationDelay = ""; }, { once: true });
+    el.classList.add("born");
+  });
 })();
 </script>
 <script>
@@ -968,7 +1001,7 @@ function loadBracket(){
     if(!res[0]) return;                                   // bracket not seeded yet — keep the group-stage view
     applyBracket(res[0], res[1]);
     if(aliveSet){ Array.from(sel).forEach(function(t){ if(!aliveSet.has(t)) sel.delete(t); }); saveSel(); }
-    renderPicker(); renderMatches();
+    renderPicker(); renderMatches(); renderTonight();
   });
 }
 
@@ -1059,7 +1092,7 @@ function renderMatches(){
     var s=Date.parse(m.ko), end=s+125*60000;
     var live = now>=s && now<=end;
     var isNext = m.id===nextId;
-    var cls = 'match'+(live?' live':(isNext?' next':''));
+    var cls = 'match'+(live?' live':(isNext?' next':''))+(m.tag==='qatar'?' qat':'');
     var status = live ? 'Live now' : (isNext ? 'Up next' : (RLAB[m.round]||m.round));
     var acts = (s>now)
       ? '<div class="acts">'+
@@ -1093,10 +1126,76 @@ function renderMatches(){
 addAll.onclick   = function(e){ e.preventDefault(); var ahead=myMatches().filter(function(m){ return Date.parse(m.ko) > Date.now(); }); if(ahead.length) downloadICS('my-world-cup-2026.ics', icsDoc(ahead)); };
 clearBtn.onclick = function(){ sel = new Set(); saveSel(); renderPicker(); renderMatches(); };
 
+/* ---- Tonight in Doha: night window runs 12:00 today Doha → 11:59 next morning (UTC+3, no DST) ---- */
+var LIVE_MS = 150*60000;
+function nightWindow(now){
+  var d = new Date(now + 3*3600e3);                         // shift so UTC getters read Doha wall clock
+  var start = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 12, 0, 0) - 3*3600e3;
+  if(now < start) start -= 864e5;                           // before noon Doha → still last night's window
+  return [start, start + 864e5];
+}
+function nextFixture(now){
+  var best=null, bs=Infinity;
+  FIX.forEach(function(m){ var s=Date.parse(m.ko); if(s>now && s<bs){ bs=s; best=m; } });
+  return best;
+}
+function renderTonight(){
+  var tg=document.getElementById('tonightGrid'), tn=document.getElementById('tonightNote');
+  var hero=document.getElementById('hero-now'), fzB=document.getElementById('fzLive');
+  var now=Date.now(), w=nightWindow(now);
+  var list=FIX.filter(function(m){ var s=Date.parse(m.ko); return s>=w[0] && s<w[1]; })
+              .sort(function(a,b){ return Date.parse(a.ko)-Date.parse(b.ko); });
+  var nextId=null, ns=Infinity, liveM=null;
+  list.forEach(function(m){ var s=Date.parse(m.ko); if(s>now && s<ns){ ns=s; nextId=m.id; } });
+  FIX.forEach(function(m){ var s=Date.parse(m.ko); if(now>=s && now<=s+LIVE_MS && (!liveM || s<Date.parse(liveM.ko))) liveM=m; });
+  if(tg && tn){
+    if(list.length){
+      tg.innerHTML = list.map(function(m){
+        var s=Date.parse(m.ko), live=now>=s && now<=s+LIVE_MS;
+        var cls='match'+(live?' live':(m.id===nextId?' next':''))+(m.tag==='qatar'?' qat':'')+((s+LIVE_MS<now)?' done':'');
+        var status=live?'Live now':(m.id===nextId?'Up next':(RLAB[m.round]||m.round));
+        return '<article class="'+cls+'">'+
+          '<div class="pill"><span class="dot"></span><span>'+status+'</span></div>'+
+          '<div class="opp">'+flag(m.home)+' '+esc(m.home)+' <span class="vs">v</span> '+flag(m.away)+' '+esc(m.away)+'</div>'+
+          '<div class="meta">'+(RLAB[m.round]||m.round)+' · '+fmtDay(s)+(m.venue?(' · '+esc(m.venue)):'')+'</div>'+
+          '<div class="ko"><b>'+fmtTime(s)+'</b><small>Doha</small></div>'+
+        '</article>';
+      }).join('');
+      tn.textContent='';
+    } else {
+      tg.innerHTML='';
+      var nf=nextFixture(now);
+      tn.textContent = nf
+        ? 'No matches tonight — next kickoff '+nf.home+' v '+nf.away+' · '+fmtDay(Date.parse(nf.ko))+' '+fmtTime(Date.parse(nf.ko))+'.'
+        : 'No matches tonight — the tournament is over.';
+    }
+  }
+  if(hero){
+    if(liveM){
+      var mins=Math.max(1, Math.min(Math.floor((now-Date.parse(liveM.ko))/60000), 150));
+      hero.classList.add('live');
+      hero.textContent='● LIVE — '+liveM.home+' v '+liveM.away+' · '+mins+'’';
+    } else {
+      hero.classList.remove('live');
+      var nx=nextFixture(now);
+      if(nx){
+        var s2=Date.parse(nx.ko);
+        var when=(s2>=w[0] && s2<w[1]) ? ('tonight '+fmtTime(s2)) : (fmtDay(s2)+' '+fmtTime(s2));
+        hero.textContent='Next kickoff: '+nx.home+' v '+nx.away+' · '+when;
+      } else hero.textContent='';
+    }
+  }
+  if(fzB){
+    var hr=new Date(now + 3*3600e3).getUTCHours();          // fanzone open 6:00 PM – 7:00 AM Doha
+    fzB.hidden = !(hr>=18 || hr<7);
+  }
+}
+
 renderPicker();
 renderMatches();
+renderTonight();
 loadBracket();
-setInterval(renderMatches, 60000);                          // keep "Up next / Live now" fresh
+setInterval(function(){ renderMatches(); renderTonight(); }, 60000); // keep "Up next / Live now" fresh
 
 })();
 </script>
