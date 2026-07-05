@@ -348,7 +348,7 @@ begin
   end if;
 
   if p_op = 'set' then
-    if p_key is null or p_key !~ '^wc:(results|kteams|player:[a-z0-9._]{1,30})$' then
+    if p_key is null or p_key !~ '^wc:(results|kteams|powerups_live|player:[a-z0-9._]{1,30})$' then
       raise exception 'bad_key';
     end if;
     if p_value is null or length(p_value) > 100000 then
@@ -371,7 +371,7 @@ begin
     return 'ok';
 
   elsif p_op = 'del' then
-    if p_key is null or p_key !~ '^wc:(results|kteams|player:[a-z0-9._]{1,30})$' then
+    if p_key is null or p_key !~ '^wc:(results|kteams|powerups_live|player:[a-z0-9._]{1,30})$' then
       raise exception 'bad_key';
     end if;
     delete from kv where key = p_key;

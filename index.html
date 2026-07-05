@@ -1699,6 +1699,7 @@
       </div>
       <div id="org-panel" style="display:none">
         <div class="switch-row"><div class="txt"><b>🎬 Demo mode</b><span>Populate the leaderboard with a sample field for a pitch. Presentation only — saves nothing.</span></div><div class="switch" id="demo-switch" onclick="toggleDemo()"></div></div>
+        <div class="switch-row"><div class="txt"><b>⚡ Power-ups — go LIVE</b><span>Turns on Captain’s Armband / Streak Shield / Upset Bonus for everyone. Flip this ONLY after deploying the Wave-B <code>standings.sql</code> + <code>protect.sql</code> (launch runbook) — otherwise the leaderboard won’t score chips. Off = fully dormant.</span></div><div class="switch" id="pu-switch" onclick="togglePowerups()"></div></div>
         <div class="org-note">Group rounds: results auto-confirm about 30 minutes after full time — no action needed on most nights. You can correct any score and Save; your value always wins and is never overwritten. Finished matches also arrive prefilled here from the live feed. Knockout rounds now auto-confirm the same way — the winner and the final score (after extra time; penalties don't change the score) land about 30 minutes after full time, and the next round fills itself in automatically. You can still set or correct any winner/score yourself; your value always wins.</div>
         <select class="input org-pick" id="org-round" onchange="renderResultsEditor()"></select>
         <div id="res-list"></div>
@@ -2053,6 +2054,10 @@ function streakMoment(run){
    Own chips only pre-lock; other players' chips surface exclusively through the Room,
    which already gates on locked matches (seal-safe by construction). */
 function puPreview(){try{return /[?&#]powerups\b/.test(location.search+location.hash);}catch(e){return false;}}
+/* WAVE B master switch — power-ups (arm UI + ⚡/🛡/🦅 scoring) stay fully dormant until the organizer
+   flips wc:powerups_live, which the launch runbook does in lock-step with deploying the Wave-B
+   standings()/protect.sql. So the client can never score chips the live standings() would ignore. */
+function puLive(){return !!state.puLive;}
 function puChips(){return (state.player&&state.player.chips)||null;}   /* own power-up context for scoreFor/rvVerdict */
 function puRoundLabel(rnd){return rnd==="qf"?"Quarter-final":(rnd==="sf"?"Semi-final":"Final");}
 function puArmedId(rnd){const c=puChips();return (c&&c[rnd])||null;}
@@ -2061,6 +2066,7 @@ function puMatchName(m){if(!m)return "";const v=fxView(m);return esc(v.home.n+" 
    it moves freely until the match it sits on locks — then it's committed (protect.sql
    enforces the same rule server-side). Writes ride persistPlayer like any pick. */
 function puArmRow(id){
+  if(!puLive()&&!puPreview())return "";                 /* dormant until launch (?powerups still previews the UI) */
   const m=FIXBYID[id],rnd=m?puRound(+id.slice(1)):null;
   if(!m||!rnd)return "";
   const cur=puArmedId(rnd),here=cur===id;
@@ -2073,6 +2079,7 @@ function puArmRow(id){
     '<span class="pu-armnote">'+note+'</span></div>';
 }
 function armBand(id){
+  if(!puLive()){toast("⚡ Power-ups aren’t live yet — they unlock at the quarter-finals");return;}
   if(!state.player||state.demo){toast("Join the pool to use power-ups ⚡");return;}
   const m=FIXBYID[id],rnd=m?puRound(+id.slice(1)):null;
   if(!m||!rnd)return;
@@ -2143,7 +2150,7 @@ function puKitHTML(slots,shield,demo){
 }
 function mePowerKit(){
   if(puPreview())return puKitHTML(PU_DEMO_SLOTS,PU_DEMO_SHIELD,true);
-  if(!state.player)return "";
+  if(!puLive()||!state.player)return "";                /* kit hidden until power-ups go live */
   const us=puShieldUsedOn(state.player.predictions,state.results);
   const sh=us?{used:true,tx:"spent on <b>"+puMatchName(FIXBYID[us])+"</b> — your streak carried on"}
              :{used:false,tx:"ready — your first streak-breaking miss from the QF on is ignored, once"};
@@ -2440,7 +2447,7 @@ setInterval(function(){
 },30000);
 function champLocked(){if(/[?&]champlock\b/.test(location.search))return true;return new Date(CHAMP_LOCK).getTime()<=Date.now()+CLOCK_OFFSET;}
 
-let state={view:"matches",meSlug:null,player:null,results:{},kteams:{},org:false,demo:false,filter:"MD1"};
+let state={view:"matches",meSlug:null,player:null,results:{},kteams:{},org:false,demo:false,puLive:false,filter:"MD1"};
 
 function slug(s){return s.trim().toLowerCase().replace(/[\s"'\/\\]+/g,"-").replace(/-+/g,"-").slice(0,60);}
 function initials(name){const p=name.trim().split(/\s+/);return ((p[0]||"")[0]||"?").toUpperCase()+((p[1]||"")[0]||"").toUpperCase();}
@@ -2532,6 +2539,7 @@ function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;","
    🦅 upset +2. Omit the arg entirely = pre-power-up math, byte-for-byte the old ladder.
    MUST stay tier-for-tier identical to standings() in sql/standings.sql. */
 function scoreFor(preds,results,champ,chips){
+  if(!puLive())chips=undefined;                         /* WAVE B master switch — dormant ⇒ pre-power-up ladder, byte-for-byte */
   const pu=(chips!==undefined),ch=(pu&&chips)?chips:{};
   let pts=0,exact=0,correct=0,scored=0;
   for(const id in results){
@@ -3847,10 +3855,26 @@ async function unlockOrg(){
   else toast("Incorrect access code");
 }
 function lockOrg(){state.org=false;state.orgCode=null;lsDel("wc:org");showOrg();toast("Organizer panel locked 🔒");}
+/* WAVE B launch switch — writes wc:powerups_live. Needs the Wave-B protect.sql deployed (its org_exec
+   allowlist now permits this key); until then the write fails and we say so. Turning it on activates
+   the arm UI + ⚡/🛡/🦅 scoring for everyone on their next load. */
+async function togglePowerups(){
+  if(!state.org){toast("Unlock the organizer panel first");return;}
+  const on=!state.puLive;
+  if(on&&!confirm("Take power-ups LIVE for all players?\n\nOnly do this AFTER you have deployed the Wave-B standings.sql + protect.sql (launch runbook). Until then the leaderboard will not score chips and players' own cards will disagree with it.\n\nGo live now?"))return;
+  const okw=await orgSet("wc:powerups_live",on);
+  if(!okw){toast("Couldn’t set the flag — deploy the updated protect.sql first, or set wc:powerups_live in the SQL editor");return;}
+  state.puLive=on;
+  const ps=document.getElementById("pu-switch");if(ps)ps.classList.toggle("on",on);
+  bustStandings();
+  try{go(state.view||"me");}catch(e){}
+  toast(on?"⚡ Power-ups are LIVE — armbands can be set on QF/SF/Final cards":"Power-ups switched off — everything reverts to the base ladder");
+}
 function showOrg(){
   document.getElementById("org-locked").style.display=state.org?"none":"block";
   document.getElementById("org-panel").style.display=state.org?"block":"none";
   document.getElementById("demo-switch").classList.toggle("on",state.demo);
+  {const ps=document.getElementById("pu-switch");if(ps)ps.classList.toggle("on",!!state.puLive);}
   if(state.org){
     const sel=document.getElementById("org-round");
     if(!sel.options.length){sel.innerHTML=ROUNDS.map(([k,l])=>'<option value="'+k+'">'+l+'</option>').join("");}
@@ -5834,6 +5858,7 @@ let LB_PREV={};
    \u26a1\u00d72 marker when the armband doubled this match, \ud83e\udd85 +2 upset folded into pts. Omit = old behavior.
    Room rows pass each blob's chips; own card/reveal paths pass state.player.chips. */
 function rvVerdict(m,p,r,chips){
+  if(!puLive())chips=undefined;                         /* WAVE B master switch — dormant ⇒ no ⚡/🦅 on any surface */
   if(m.kn){
     const ok=!!(p.w&&r.w&&p.w===r.w);
     const wpts=ok?koPts(m):0,bpts=koScoreHit(p,r)?koBonus(m):0; /* winner ladder + independent final-score bonus, matching scoreFor */
@@ -6421,6 +6446,7 @@ function tvLoop(){
 (async function init(){
   state.results=await getJSON("wc:results",true)||{};
   state.kteams=await getJSON("wc:kteams",true)||{};
+  state.puLive=!!(await getJSON("wc:powerups_live",true));   /* WAVE B launch gate — off until the organizer flips it (see runbook) */
   state.org=false; /* org actions are server-verified per call — unlock fresh each load */
   const me=await getJSON("wc:me",false);
   if(me){const p=await getJSON("wc:player:"+me,true);if(p){state.player=p;state.meSlug=me;}}

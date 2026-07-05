@@ -5,6 +5,30 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-07-05 (Doha) — WAVE B launch gate: a master switch so the power-up UI/scoring can't get ahead of the SQL deploy
+
+**Commits:** this commit (`index.html` + `sql/protect.sql` + `sql/standings.sql` + changelog). **Frontend behaviour gate + two repo-only SQL edits (NOT yet deployed).** Seal-safe: no live DB scoring change; the live `standings()` / `save_picks` are untouched by this commit.
+
+**Why (readiness audit + live-DB check):** the Wave-B power-up surfaces were wired to self-activate at **QF-pairing time** — the ⚡ arm row, the "Power-up kit", and the chip-aware paths in `scoreFor()`/`rvVerdict()` all turn on the moment a QF card becomes `koReady` (i.e. once the robot confirms the R16 winners), with **no launch flag**. A live read of the production project confirmed the exposure is real and imminent: the `wc-autoconfirm` cron robot is **active**, R16 is in progress (results through `k18`; `k19–k24` pending), **686 players**, and the Wave-B SQL is **not deployed** (`wc_rank` absent; `standings()` / `save_picks` carry no chip/upset logic; `wc:powerups_live` unset). So as soon as R16 finished, arm rows would appear, `save_picks` would silently strip the chip (a visible "won't stick" dud), and — worse — the **automatic** 🦅 upset +2 and 🛡 streak-shield in the client scorer would fire for *every* player at k≥25 (they apply whenever `scoreFor`/`rvVerdict` get any chips arg, armed or not), doubling/shifting the Me-card / reveal / brag figures while the server leaderboard (old `standings()`) ignored them — a visible per-player points-vs-rank mismatch across the knockouts. (0 players currently hold chips, so this gate is a pure no-op today.)
+
+**What changed — `index.html` (frontend master switch):**
+- New `puLive()` reading a `state.puLive` loaded once at boot from **`wc:powerups_live`** (public kv read; default **OFF**). One dormant switch the organizer controls.
+- **Scoring gated at the source:** `scoreFor()` and `rvVerdict()` each begin with `if(!puLive())chips=undefined;`. Because both already treat `chips===undefined` as the pre-power-up ladder, this makes the armband/upset/shield **inert until launch across every caller at once** (leaderboard fallback, export, Room, H2H, reveal, brag, Me) without touching ~15 call sites. When live, the powered math is unchanged.
+- **UI gated:** the ⚡ arm row (`puArmRow`) and the "Power-up kit" (`mePowerKit`) are hidden until live; `armBand()` refuses to arm and explains why. `?powerups` still previews the UI for screenshots.
+- **Organizer LIVE toggle:** a new switch in Organizer tools (`togglePowerups()`) flips `wc:powerups_live` with a confirm that spells out the prerequisite (deploy the Wave-B SQL first). It surfaces a clear error if the write is rejected (i.e. the new `protect.sql` isn't deployed yet).
+
+**What changed — SQL (repo-only; applied as part of the launch runbook, NOT by this commit):**
+- `sql/protect.sql`: `org_exec`'s key allowlist now also permits **`wc:powerups_live`** (so the toggle can write it). Additive; ignored by the currently-deployed function.
+- `sql/standings.sql`: the `wc_rank` seed is now **idempotent** (`on conflict (team) do update set r=excluded.r`, was `do nothing`) — re-running the file re-applies whatever ranks it holds, so the file is the single source of truth and an edit-then-re-run can't leave stale ranks. No effect pre-QF (the upset CTE is `k≥25`-gated).
+
+**Launch runbook (revised — the switch replaces "hope the timing lines up"):** ① deploy `sql/protect.sql` then `sql/standings.sql` (finalise the real FIFA numbers in **both** `wc_rank` *and* `PU_RANK` first); snapshot-diff `standings()` — must be byte-identical pre-QF. ② **before R16 finishes**, flip **Organizer tools → ⚡ Power-ups → go LIVE** (or `insert into kv(key,value) values('wc:powerups_live','true') on conflict (key) do update set value=excluded.value;`). Players pick it up on their next load. To pause: flip it off (or `delete from kv where key='wc:powerups_live'`).
+
+**Verified:** `node --check` clean; a VM harness that loads the real `index.html` script and calls the actual `scoreFor()`/`rvVerdict()` confirms — OFF ignores chips (QF pick scores 12 with and without chips, byte-for-byte the base ladder), ON doubles (24), and `rvVerdict` ON is exactly 2× OFF; the full script also boots against a stubbed DOM with no error. Live check: `wc:powerups_live` unset and 0 players hold chips, so shipping this changes nothing visible until the organizer launches.
+
+**Rollback:** `git revert <this commit>` — frontend returns to the always-on-at-`koReady` arm UI; the two SQL edits are repo-only/undeployed. If `wc:powerups_live` was ever set: `delete from kv where key='wc:powerups_live';` (and, if the new `protect.sql` was deployed, re-run the prior `protect.sql`/`standings.sql` from `git show <prev>:sql/...`).
+
+---
+
 ## 2026-07-02 (Doha) — Live match-card no longer collapses; Me-card derby de-duplicated
 
 **Commits:** this commit (`index.html` + changelog). **Frontend only — one CSS scope fix + one CSS guard + a small `meNeighbours` guard; no DB / scoring / sync / lock-logic / state change.** Seal-safe.

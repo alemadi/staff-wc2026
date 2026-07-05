@@ -59,9 +59,10 @@
 -- >>> ORGANIZER-EDITABLE BEFORE LAUNCH <<<
 -- The r values below are a plausible June-2026 FIFA ranking. Before pasting on
 -- launch day, update them to the real 25-June-2026 FIFA release AND mirror any
--- change into PU_RANK in index.html (the two must stay identical). Re-running
--- this file never clobbers manual edits (ON CONFLICT DO NOTHING); to bulk-reset
--- instead: delete from wc_rank; then re-run this insert.
+-- change into PU_RANK in index.html (the two must stay identical). The seed is
+-- idempotent (ON CONFLICT DO UPDATE): re-running this file re-applies whatever
+-- numbers it currently holds, so the file is the single source of truth — edit
+-- the values here and re-run to update the live ranks (no delete needed).
 -- ----------------------------------------------------------------------------
 create table if not exists wc_rank(team text primary key, r int not null);
 insert into wc_rank(team, r) values
@@ -73,7 +74,7 @@ insert into wc_rank(team, r) values
  ('Paraguay',40),('Tunisia',42),('Czechia',43),('Ivory Coast',44),('Sweden',45),('Uzbekistan',51),
  ('Qatar',54),('Iraq',57),('Saudi Arabia',59),('DR Congo',60),('South Africa',62),('Jordan',64),
  ('Bosnia & H.',69),('Ghana',71),('Cape Verde',73),('Curaçao',82),('Haiti',85),('New Zealand',87)
-on conflict (team) do nothing;
+on conflict (team) do update set r=excluded.r;
 -- walled like the other engine tables; standings() reads it as definer
 alter table public.wc_rank enable row level security;
 revoke all on table public.wc_rank from anon, authenticated;
