@@ -5,6 +5,23 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-07-06 (Doha) — MAIN DEPLOY: 📤 Share Tray — the always-visible door to every card
+
+**Commits:** this commit (changelog) on top of the tray commit, then `main` fast-forwarded and pushed — the immediate follow-up to today's share-card-pack deploy, on the organizer's feedback that the cards **"aren't visible and they wouldn't know of it"**. Rebased onto the ⚡ power-ups-LIVE spotlight tip (`0a35119`; clean — the spotlight card had already kept the 📤 item, and the cons-bar removal didn't touch the split chip). **Frontend only — no DB change.**
+
+**Why:** every card in the pack is moment-gated by design, but its only always-on entry was the brag row buried at the bottom of the Me card, plus a one-shot What's-new item. Gating the cards is right; gating the *discovery* was not.
+
+**What:**
+- **📤 Share hub** — a header button next to the userchip, visible on every view (signed-in, non-demo; hidden on `?tv`), wearing the house NEW dot until first open (`wc:seen:share`, via the existing `updateNewDots` family).
+- **The tray** (`openShareTray`) — a sheet listing every card the player qualifies for **right now** as tappable tiles (slip · office split for the next counted fixture · standing card · streak · perfect day · milestone club · climb · title belts · Squad MVP · squad card · catch-me · Maldives · champion · road to the final · receipt · same-brain · brag-my-last-call · podium at FT), each a thin caller of the existing share functions — zero new data paths (cached standings + counts-tier consensus, the same reads every view uses). Below them, a short **"still to unlock"** rack (max 4, greyed: tap → toast the unlock hint) so the gates read as goals, not absences.
+- The What's-new 📤 item's `wnGoBrags()` now opens the tray instead of scrolling to the brag row.
+
+**Verified (rebased tree, `tests/share-cards/run.mjs` now 39 checks, ALL GREEN):** hub visible after boot with the NEW dot; dot clears on first open; tray lists the nine expected tiles in the seeded QF world + the locked podium; tapping a tile closes the tray and builds the 1080×1350 card; all ten cards + every prior surface re-green over the merged spotlight/cons-bar code; zero page errors; `node --check` clean.
+
+**Rollback:** `git push origin +0a35119:main` (client-only). Local state: `wc:seen:share` marker only.
+
+---
+
 ## 2026-07-06 (Doha) — ⚡ POWER-UPS LIVE (launch step ④ complete) + combined launch spotlight
 
 **Commits:** this commit (`index.html` + changelog), rebased onto the share-card deploy tip (`1d5c866`; conflicts = changelog ordering + the What's-new card, resolved by merging the three announcements into ONE launch card), then `main` fast-forwarded and pushed — the whole sequence **on the organizer's explicit instruction** ("you flip it please" for the flag, then "push to main" for the spotlight). **The live DB change below is APPLIED (2026-07-06 evening Doha, via the connector).**
