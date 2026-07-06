@@ -1149,6 +1149,15 @@
   .me-squad .sq-derby .row b{color:var(--cream)}
   .me-squad .sq-derby .ar{color:var(--gold);font-size:11px;flex:none;width:14px;text-align:center}
   .me-squad .sq-derby .up .ar{color:var(--ok)}
+  /* Squad board — inside-one-department standings (Departments → tap a squad) */
+  .dept-row.tap{cursor:pointer}
+  .dept-row.tap:hover{border-color:rgba(180,151,89,.45)}
+  .dept-row .dept-go{flex:none;color:var(--faint);font-size:19px;line-height:1;margin-left:2px}
+  .sq-mini{background:none;border:0;padding:0;font:inherit;color:var(--gb);font-size:11px;font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+  .sqb-back{margin:0 0 12px}
+  .sqb-hd{margin-bottom:10px}
+  .me-squad .sq-you.tap{cursor:pointer;display:flex;align-items:center;gap:8px}
+  .me-squad .sq-you.tap .sq-go{margin-left:auto;flex:none;color:var(--gold);font-size:11px;font-weight:800;white-space:nowrap}
   .room-row .pp-n .rr{display:inline-block;min-width:22px;font-style:normal;font-weight:800;color:var(--faint);font-size:11px;margin-right:6px}
   .room-row.mine .pp-n .rr{color:var(--gold)}
 
@@ -3796,6 +3805,7 @@ function saveScore(id,h,a){
 async function persistPlayer(){const ok=await savePicksRPC();if(!ok&&lsGet("wc:pin")){toast("⚠️ Connection hiccup — retrying your save automatically…");setTimeout(queueSave,10000);}}
 
 let LB_SHOWN=100;
+let LB_SQUAD=null,SQ_SHOWN=60; /* squad board: the department whose inner standings are open + its row window */
 /* Rank order everywhere: points, then most predictions, then exact, then correct */
 function cmpSt(a,b){return (b.pts|0)-(a.pts|0)||((b.predicted|0)-(a.predicted|0))||((b.exact|0)-(a.exact|0))||((b.correct|0)-(a.correct|0));}
 function moveHTML(d){
@@ -3879,14 +3889,14 @@ function lbRowHTML(r,i,PT){
   var streakChip="";
   if(r.me&&state.player&&!state.demo){try{const run=koStreakCurrent(state.player.predictions,state.results);if(run>=2)streakChip='<span class="lb-streak">\ud83d\udd25\u00d7'+run+'</span>';}catch(e){}}
   return '<div class="lb-row '+(r.me?"me":"")+'" style="animation-delay:'+Math.min(i*0.03,0.5)+'s"><div class="rank">'+r.rank+'</div>'+moveHTML(r.dRank)+'<div class="avatar">'+avatarFill(r.name)+'</div>'+
-    '<div class="lb-info"><div class="n">'+esc(r.name)+(r.me?'<span class="youtag">YOU</span>':'')+streakChip+titleChip(r.slug)+(r.rv?'<span class="rivtag">\ud83c\udfaf RIVAL</span>':'')+(r.dby?'<span class="derbytag">\u2694\ufe0f DERBY</span>':'')+(r.demo?'<span class="demotag">demo</span>':'')+'</div><div class="d">'+esc(r.dept||"")+'</div>'+
+    '<div class="lb-info"><div class="n">'+esc(r.name)+(r.me?'<span class="youtag">YOU</span>':'')+streakChip+titleChip(r.slug)+(r.rv?'<span class="rivtag">\ud83c\udfaf RIVAL</span>':'')+(r.dby?'<span class="derbytag">\u2694\ufe0f DERBY</span>':'')+(r.demo?'<span class="demotag">demo</span>':'')+'</div><div class="d">'+esc(r.sub!=null?r.sub:(r.dept||""))+'</div>'+ /* squad board swaps the dept subline for the office rank */
     '<div class="lb-stats"><span>◎ <b>'+r.exact+'</b> exact</span><span>✓ <b>'+r.correct+'</b> correct</span><span>'+r.predicted+'/'+PT+' picked</span></div></div>'+
     '<div class="lb-pts"><b>'+'<span class="ptsn" data-pslug="'+r.slug+'">'+r.pts+'</span>'+'</b><span>pts</span></div></div>';
 }
 function lbMore(){LB_SHOWN+=200;renderLeaderboard();}
 async function renderLeaderboard(){
   const body=document.getElementById("lb-body");
-  animGate(body,"lb:"+LB_MODE+(state.demo?":demo":"")); /* mode switches animate; the consensus enrich + live heartbeat re-render silently */
+  animGate(body,"lb:"+LB_MODE+(LB_MODE==="dept"&&LB_SQUAD?":sq:"+LB_SQUAD:"")+(state.demo?":demo":"")); /* mode switches animate; the consensus enrich + live heartbeat re-render silently */
   document.getElementById("demo-banner").style.display=state.demo?"flex":"none";
   const lbl=document.getElementById("lb-live");   /* honest Live tag: pulse only while a match is actually live */
   if(lbl)lbl.innerHTML=FIXTURES.some(isLive)?'<span class="pulse"></span> Live':'Standings';
@@ -4123,7 +4133,7 @@ function meSquad(st){
     '<div class="sq-id"><div class="sq-rank">'+rankTag+' of '+N+' squads</div><div class="sq-name">'+esc(myDept)+'</div>'+
     '<div class="sq-sub">'+me.n+' players · '+avg+' avg · Σ '+me.sum+' pts</div></div>'+
     '<button class="sq-share" onclick="shareSquad()" title="Share your squad card" aria-label="Share your squad card">📤</button></div>'+
-    (myInDept?('<div class="sq-you">You’re <b>#'+myInDept+'</b> of '+mates.length+' in '+esc(myDept)+(pctTop<=20?' — top <b>'+pctTop+'%</b> of your squad 🔑':'')+'</div>'):'')+
+    (myInDept?('<div class="sq-you tap" role="button" tabindex="0" data-d="'+esc(myDept)+'" onclick="goSquad(this.dataset.d)" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();goSquad(this.dataset.d)}"><span>You’re <b>#'+myInDept+'</b> of '+mates.length+' in '+esc(myDept)+(pctTop<=20?' — top <b>'+pctTop+'%</b> of your squad 🔑':'')+'</span><span class="sq-go">Squad board ›</span></div>'):'')+
     '<div class="sq-derby">'+derby+'</div></div>';
 }
 /* MATCHNIGHT F2 — Derby of the Day: auto-rivalry vs the row directly above you
@@ -5131,7 +5141,7 @@ function tickCountdown(){
 let LB_MODE="people";
 (function(){
   const lm=document.getElementById("lbmode");
-  if(lm)lm.querySelectorAll("button").forEach(b=>b.onclick=()=>{LB_MODE=b.dataset.m;
+  if(lm)lm.querySelectorAll("button").forEach(b=>b.onclick=()=>{LB_MODE=b.dataset.m;LB_SQUAD=null; /* a mode tap always lands on the squad LEAGUE, not a stale inner board */
     lm.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));if(b.dataset.m==="room")markSeen("room");if(b.dataset.m==="awards")markSeen("awards");if(b.dataset.m==="nerds")markSeen("nerds");renderLeaderboard();});
 })();
 
@@ -5272,6 +5282,7 @@ function deptCup(lg,myDept){
     '<div class="dc-stake">'+stake+'</div></div>';
 }
 async function renderDept(body){
+  if(LB_SQUAD){await renderSquad(body);return;}
   const rows=await fetchStandings();
   const lg=deptLeague(rows);
   /* C4 — per-dept participation (from slim standings; shown only when high, per the negative-social-proof boundary) */
@@ -5279,18 +5290,73 @@ async function renderDept(body){
   if(!lg.ranked.length){body.innerHTML='<div class="empty"><div class="ic">\ud83c\udfe2</div><b>No squads ranked yet</b><span>Departments join the league once they have '+DEPT_MIN+'+ players.</span></div>';return;}
   const myDept=state.player?deptKey(state.player.dept):null;
   const med=["\ud83e\udd47","\ud83e\udd48","\ud83e\udd49"];
-  let html=deptCup(lg,myDept)+'<div class="dept-note">\ud83c\udfe2 <b>Department leagues</b> \u2014 your squad vs the rest of the bank. Ranked by <b>average points per player</b> (fair across squad sizes); ties broken by total. Squads need '+DEPT_MIN+'+ players to rank.</div>';
+  let html=deptCup(lg,myDept)+'<div class="dept-note">\ud83c\udfe2 <b>Department leagues</b> \u2014 your squad vs the rest of the bank. Ranked by <b>average points per player</b> (fair across squad sizes); ties broken by total. Squads need '+DEPT_MIN+'+ players to rank. <b>Tap a squad</b> to open its board.</div>';
   lg.ranked.forEach((x,i)=>{
     const mine=x.d===myDept;
     let gap='';   /* rows 1-3: avg gap subline (display only \u2014 ranking math untouched) */
     if(i===0&&lg.ranked[1]){const d=Math.round((x.avg-lg.ranked[1].avg)*10)/10;if(d>0)gap='<div class="lb-stats"><span>\u25b2 <b>'+d.toFixed(1)+'</b> avg clear of '+esc(lg.ranked[1].d)+'</span></div>';}
     else if(i>0&&i<3){const up=lg.ranked[i-1],d=Math.round((up.avg-x.avg)*10)/10;gap='<div class="lb-stats"><span>'+(d>0?('\u25b2 <b>'+d.toFixed(1)+'</b> avg to catch '+esc(up.d)):('level on avg with '+esc(up.d)))+'</span></div>';}
     const pm=playMap[x.d],ppct=(pm&&pm.tot)?Math.round(pm.play/pm.tot*100):0,playTxt=(ppct>=60)?' \u00b7 <span class="dept-play">'+ppct+'% playing</span>':'';
-    html+='<div class="lb-row dept-row'+(mine?' me':'')+(i===0?' lead':'')+(i<3?' dept-top':'')+'" style="animation-delay:'+Math.min(i*0.03,0.4)+'s"><div class="rank">'+(i<3?med[i]:(i+1))+'</div>'+
+    html+='<div class="lb-row dept-row tap'+(mine?' me':'')+(i===0?' lead':'')+(i<3?' dept-top':'')+'" style="animation-delay:'+Math.min(i*0.03,0.4)+'s" role="button" tabindex="0" data-d="'+esc(x.d)+'" onclick="openSquad(this.dataset.d)" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openSquad(this.dataset.d)}" aria-label="Open the '+esc(x.d)+' squad board"><div class="rank">'+(i<3?med[i]:(i+1))+'</div>'+
       '<div class="avatar deptbadge">'+deptAvatarFill(x.d)+'</div>'+
       '<div class="lb-info"><div class="n">'+esc(x.d)+(mine?'<span class="youtag">YOUR SQUAD</span>':'')+'</div><div class="d">'+x.n+' players \u00b7 \u03a3 '+x.sum+' pts'+playTxt+'</div>'+gap+'</div>'+
-      '<div class="lb-pts"><b>'+(Math.round(x.avg*10)/10)+'</b><span>avg</span></div></div>';});
-  if(lg.small.length)html+='<div class="dept-note" style="margin-top:12px">Not yet ranked (under '+DEPT_MIN+' players): '+lg.small.map(x=>esc(x.d)+' ('+x.n+')').join(' \u00b7 ')+'</div>';
+      '<div class="lb-pts"><b>'+(Math.round(x.avg*10)/10)+'</b><span>avg</span></div><div class="dept-go">\u203a</div></div>';});
+  if(lg.small.length)html+='<div class="dept-note" style="margin-top:12px">Not yet ranked (under '+DEPT_MIN+' players): '+lg.small.map(x=>'<button type="button" class="sq-mini" data-d="'+esc(x.d)+'" onclick="openSquad(this.dataset.d)">'+esc(x.d)+' ('+x.n+')</button>').join(' \u00b7 ')+'</div>';
+  body.innerHTML=html;
+}
+/* ===== SQUAD BOARD \u2014 inside ONE department: every player of that squad ranked =====
+   Opened by tapping a squad on the Departments board, or "Squad board \u203a" on the Me
+   card's squad block. Same slim standings + the office scoring order (cmpSt) as the
+   People board \u2014 no new pull, no picks read, seal-safe. Ranks are within-squad
+   (tie-aware); each row's subline shows the player's office-wide rank instead of the
+   (redundant) department name. Overnight \u25b2\u25bc arrows are within-squad too, derived from
+   the same rank snapshot the People board uses. */
+function openSquad(d){LB_SQUAD=d;SQ_SHOWN=60;renderLeaderboard();window.scrollTo(0,0);}
+function closeSquad(){LB_SQUAD=null;renderLeaderboard();window.scrollTo(0,0);}
+function sqMore(){SQ_SHOWN=1e9;renderLeaderboard();}
+function goSquad(d){ /* deep link from the Me card \u2014 flips the board to Departments first */
+  LB_MODE="dept";LB_SQUAD=d;SQ_SHOWN=60;
+  const lm=document.getElementById("lbmode");if(lm)lm.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.m==="dept"));
+  go("leaderboard");
+}
+async function renderSquad(body){
+  const rows=await fetchStandings();
+  const d=deptKey(LB_SQUAD);
+  const back='<button class="btn btn-ghost btn-sm sqb-back" onclick="closeSquad()">\u2039 All squads</button>';
+  const mates=rows.filter(r=>deptKey(r.dept)===d).map(r=>({name:r.name,dept:r.dept,slug:r.slug,pts:r.pts|0,exact:r.exact|0,correct:r.correct|0,predicted:r.predicted|0,me:r.slug===state.meSlug}))
+    .sort((a,b)=>cmpSt(a,b)||(a.name||"").localeCompare(b.name||""));
+  if(!mates.length){body.innerHTML=back+'<div class="empty"><div class="ic">\ud83c\udfe2</div><b>Nobody on the board yet</b><span>No '+esc(d)+' players have joined the pool.</span></div>';return;}
+  /* office-wide ranks (tie-aware, same convention as the People board) for the sublines */
+  const all=rows.slice().sort((a,b)=>cmpSt(a,b)||(a.name||"").localeCompare(b.name||""));
+  let oRank=0,oPrev=null;const officeRk={};
+  all.forEach((r,i)=>{if(oPrev===null||cmpSt(r,oPrev)!==0){oRank=i+1;oPrev=r;}officeRk[r.slug]=oRank;});
+  computeHonours(all); /* title chips (\u2b50 Squad Captain on the leader, \ud83d\udc51/\ud83d\udd2e/\u2026) stay in sync on this board */
+  if(CONFIGURED&&!state.demo&&!CONS.full){consensusFull().then(function(){if(state.view==="leaderboard"&&LB_MODE==="dept"&&LB_SQUAD)renderLeaderboard();}).catch(function(){});}
+  /* within-squad ranks + overnight movement (prev office snapshot reordered inside the squad) */
+  let rank=0,prevR=null;mates.forEach((r,i)=>{if(prevR===null||cmpSt(r,prevR)!==0){rank=i+1;prevR=r;}r.rank=rank;r.dRank=null;r.sub='#'+officeRk[r.slug]+' in the office';});
+  try{const snap=await rankSnap();
+    if(snap&&snap.ranks){
+      const had=mates.filter(r=>snap.ranks[r.slug]!=null).slice().sort((a,b)=>snap.ranks[a.slug]-snap.ranks[b.slug]);
+      const pr={};had.forEach((r,i)=>pr[r.slug]=i+1);
+      mates.forEach((r,i)=>{if(pr[r.slug]!=null)r.dRank=pr[r.slug]-(i+1);});
+    }}catch(e){}
+  const lg=deptLeague(rows);
+  const idx=lg.ranked.findIndex(x=>x.d===d);
+  const sum=mates.reduce((p,q)=>p+q.pts,0),avg=Math.round(sum/mates.length*10)/10;
+  const playing=mates.filter(r=>r.predicted>0).length,ppct=Math.round(playing/mates.length*100);
+  const rankTag=idx>=0?((idx<3?["\ud83e\udd47","\ud83e\udd48","\ud83e\udd49"][idx]:'#'+(idx+1))+' of '+lg.ranked.length+' squads'):('Unranked \u2014 squads rank at '+DEPT_MIN+'+ players');
+  const mine=state.player&&!state.demo&&deptKey(state.player.dept)===d;
+  let html=back+'<div class="me-squad sqb-hd"><div class="sq-top"><div class="avatar deptbadge sq-badge">'+deptAvatarFill(d)+'</div>'+
+    '<div class="sq-id"><div class="sq-rank">'+rankTag+'</div><div class="sq-name">'+esc(d)+'</div>'+
+    '<div class="sq-sub">'+mates.length+' player'+(mates.length===1?'':'s')+' \u00b7 '+avg+' avg \u00b7 \u03a3 '+sum+' pts'+(ppct>=60?' \u00b7 <span class="dept-play">'+ppct+'% playing</span>':'')+'</div></div>'+
+    (mine?'<button class="sq-share" onclick="shareSquad()" title="Share your squad card" aria-label="Share your squad card">\ud83d\udce4</button>':'')+'</div></div>';
+  const PT=predTotal();
+  const lim=Math.min(mates.length,SQ_SHOWN);
+  for(let i=0;i<lim;i++)html+=lbRowHTML(mates[i],i,PT);
+  const meIdx=mates.findIndex(r=>r.me);
+  if(meIdx>=lim)html+='<div class="lb-gap"><span>\u22ef you\u2019re here \u2193</span></div>'+lbRowHTML(mates[meIdx],lim,PT);
+  if(mates.length>lim)html+='<button class="lb-more" onclick="sqMore()">Show all '+mates.length+'</button>';
+  html+='<div class="dept-note" style="margin-top:12px">Ranks are within '+esc(d)+' \u2014 the office scoring order (points \u00b7 predictions \u00b7 exacts \u00b7 corrects). Each row shows the player\u2019s office-wide rank underneath.</div>';
   body.innerHTML=html;
 }
 

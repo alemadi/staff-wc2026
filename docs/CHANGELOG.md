@@ -5,6 +5,25 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-07-06 (Doha) — MAIN DEPLOY · SQUAD BOARD: tap into any department to see its own leaderboard
+
+**Commits:** this commit (`index.html` + `tests/squad-board/run.mjs` + changelog) on `claude/squad-leaderboard-w7p21r`, **rebased onto `main` `50270be`** (Nerds batch five, then Trophy Room pass 2 — both landed in parallel mid-flight; `index.html` auto-merged each time, the changelog conflicts resolved keeping all sides) and **pushed to `main` on the organizer's "Push to main"**. **Frontend only — no DB / scoring / sync change, zero new backend traffic.** Organizer ask: a squad leaderboard, "to see the leaderboard of own department."
+
+**Why:** the Departments board ranks squad vs squad and the Me card says "You're #4 of 78 in Group Risk" — but there was no way to see the 77 other names. The within-squad race (who at YOUR desk is above you) is the most talkable rivalry in the office and it was invisible.
+
+**What (Leaderboard → Departments → tap a squad, or Me → "Squad board ›"):**
+- **Every squad row on the Departments board is now a door** (`role="button"`, keyboard-operable, chevron + "Tap a squad to open its board" note); the sub-threshold squads in the "not yet ranked" note become tappable pills (`.sq-mini`). Dept names travel via `data-d` — no inline-string quoting of user-ish text.
+- **The squad board (`renderSquad`, state `LB_SQUAD`)** — inside ONE department: a back button ("‹ All squads"), a squad-identity header reusing the Me card's `.me-squad` kit (crest, league position "🥈 of 13 squads" or "Unranked — squads rank at 5+ players", `n players · avg · Σ pts`, the `≥60%` participation chip, and the 📤 `shareSquad` button **only on your own squad**), then every player of that squad as standard `lbRowHTML` rows: **within-squad tie-aware ranks** (same `cmpSt` order as the office), the **office-wide rank as each row's subline** (new `r.sub` override in `lbRowHTML` — the dept name would be redundant here), **within-squad overnight ▲▼** (the People board's `rankSnap` office snapshot re-ordered inside the squad), YOU highlight, streak chip and title chips (`computeHonours` runs on the full standings, so ⭐ Squad Captain sits on the leader; the consensus enrich re-renders in place like People mode).
+- **Windowing:** 60 rows + the "⋯ you're here ↓" bridge + "Show all N" (`SQ_SHOWN`) — a 146-strong desk doesn't paint a wall on entry.
+- **Navigation contract:** mode pills always land on the LEAGUE (`LB_SQUAD=null` on any pill tap — never a stale inner board); `openSquad`/`closeSquad` scroll to top; `animGate` signature includes the open squad so entering/leaving animates as a view change; the Me card's "You're #N of M" line becomes the deep link (`goSquad` — flips the pill to Departments and opens your squad).
+- Data path: the same cached slim `standings()` rows + `rankSnap` every board already reads — **no new pull, no picks read, no `@ig` rendered — seal-safe by construction**. Demo mode untouched (Departments is already non-demo).
+
+**Verified:** `node --check` clean. New headless proof `tests/squad-board/run.mjs` (87 players / 4 departments / a within-squad points tie / an overnight leader swap) — **33/33**: league order + all rows tappable; the board's header (name, medal position, `8 players · 766.3 avg · Σ 6130`), within-squad order = `cmpSt`, tie-aware ranks `1,2,2,4…`, office-rank sublines, ▲1/▼1 on the swapped pair, ⭐ Squad Captain on the leader, no share button on a foreign squad; back → league; the 3-player squad opens "Unranked"; the 70-strong squad windows to 60 + bridge + "Show all 70" (expander verified); mode pills reset a stale inner board; the Me-card deep link lands on the right board with the Departments pill on; zero page errors. Screenshot eyeballed at 390px. Regressions: `nerd-stats` ALL GREEN · `perf-boot` ALL GREEN · `share-cards` 106 PASS + only the **pre-existing** 340px header overlap (identical on base).
+
+**Rollback:** `git revert <this commit>` — frontend-only; isolated additions (`renderSquad`/`openSquad`/`closeSquad`/`goSquad`/`sqMore`, `LB_SQUAD`/`SQ_SHOWN`, one CSS block) plus small touches to `renderDept` rows, `lbRowHTML` (`r.sub`), `meSquad` (tappable line), the mode-pill handler and the `animGate` signature.
+
+---
+
 ## 2026-07-06 (Doha) — MAIN DEPLOY: TROPHY ROOM pass 2 — the cabinet + chasing packs + dept ladder + race distance
 
 **Commits:** this commit (`index.html` + `tests/nerd-stats/run.mjs` + changelog) on `claude/trophy-room-improvements-k87hgr`, cut from `1441487` and **rebased onto `main` `9163d81` (Nerds batch five)** after main moved in flight — `index.html` and the nerd suite auto-merged (disjoint regions: this pass lives in `renderAwards`, batch five in `renderNerds`/`consensusCompute`); this changelog was the only conflict, both entries kept. **Fast-forwarded to `main` on the organizer's explicit "Push to main".** **Frontend only — no DB / scoring / sync change, zero new backend traffic.** Organizer ask: make the Trophy Room more interesting.
