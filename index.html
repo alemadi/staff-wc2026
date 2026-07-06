@@ -1569,6 +1569,31 @@
   .wr-hint{text-align:center;font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-top:10px}
   .wr-loading{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.06em}
   .tv .ft-ctas{display:none} /* kiosk: celebration reads, controls hide */
+  /* ===== TROPHY ROOM pass — live award races (Leaderboard → 🏆 Awards) ===== */
+  .lbmode{flex-wrap:wrap} /* four mode pills now — wrap instead of overflowing 390px */
+  .aw-card{background:var(--glass);border:1px solid var(--line);border-radius:14px;padding:13px 14px;margin-bottom:10px}
+  .aw-card.crowned{border-color:rgba(180,151,89,.4);background:linear-gradient(120deg,rgba(180,151,89,.08),var(--glass) 65%)}
+  .aw-hd{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .aw-ic{font-size:22px;flex:none}
+  .aw-t{flex:1;min-width:0}
+  .aw-t b{display:block;font-size:14px;color:var(--cream);letter-spacing:.02em}
+  .aw-t span{display:block;font-size:10.5px;color:var(--muted);line-height:1.35;margin-top:1px;font-weight:600}
+  .aw-prz{flex:none;font-size:9.5px;font-weight:800;letter-spacing:.07em;color:var(--gold-bright);background:rgba(180,151,89,.12);border:1px solid rgba(180,151,89,.35);border-radius:99px;padding:3px 9px;white-space:nowrap}
+  .aw-row{display:flex;align-items:center;gap:9px;padding:6.5px 0;border-top:1px solid rgba(255,255,255,.05)}
+  .aw-hd+.aw-row{border-top:0}
+  .aw-rk{flex:none;width:24px;text-align:center;font-size:13.5px;font-weight:800;color:var(--muted)}
+  .aw-row .avatar{width:27px;height:27px;font-size:10.5px;flex:none}
+  .aw-nm{flex:1;min-width:0;font-size:12.5px;font-weight:700;color:var(--cream);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .aw-nm .youtag{margin-left:6px;vertical-align:middle}
+  .aw-row.me .aw-nm{color:var(--gold-bright)}
+  .aw-v{flex:none;font-size:12px;font-weight:800;color:var(--gold-bright)}
+  .aw-v small{font-size:9.5px;font-weight:700;color:var(--muted);margin-left:3px;letter-spacing:.04em}
+  .aw-you{display:block;margin-top:9px;font-size:11.5px;font-weight:700;color:var(--muted);background:rgba(180,151,89,.07);border:1px solid rgba(180,151,89,.25);border-radius:9px;padding:7px 10px;line-height:1.45}
+  .aw-you b{color:var(--gold-bright)}
+  .aw-pend{font-size:11.5px;color:var(--faint);font-weight:600;padding:6px 0 2px}
+  .aw-pend .pulse{margin-right:6px}
+  .aw-unclaimed{margin-top:7px;font-size:10.5px;font-weight:700;color:var(--faint)}
+  .tv .aw-you{display:none} /* kiosk: races read, personal lines hide */
 </style>
 </head>
 <body>
@@ -1755,8 +1780,8 @@
   <!-- LEADERBOARD -->
   <section class="view" id="view-leaderboard">
     <div class="sec-title"><h2>Leaderboard</h2><span class="live tag" id="lb-live"><span class="pulse"></span> Live</span></div>
-    <div class="lbmode" id="lbmode"><button type="button" data-m="people" class="on">People</button><button type="button" data-m="dept">Departments</button><button type="button" data-m="room">🏟 The Room<i class="tnew" id="room-new" style="display:none">NEW</i></button></div>
-    <div class="prize-strip">🥇 <b>Maldives trip</b> · 🥈 60,000 pts · 🥉 40,000 pts<span class="ps-note">QNB Life Rewards · prizes for the top three at the final whistle</span></div>
+    <div class="lbmode" id="lbmode"><button type="button" data-m="people" class="on">People</button><button type="button" data-m="dept">Departments</button><button type="button" data-m="room">🏟 The Room<i class="tnew" id="room-new" style="display:none">NEW</i></button><button type="button" data-m="awards">🏆 Awards<i class="tnew" id="aw-new" style="display:none">NEW</i></button></div>
+    <div class="prize-strip">🥇 <b>Maldives trip</b> · 🥈 60,000 pts · 🥉 40,000 pts<span class="ps-note">QNB Life Rewards · prizes for the top three at the final whistle · 🏆 office titles crowned in the Trophy Room</span></div>
     <div id="demo-banner" class="demo-banner" style="display:none">🎬 Demo mode — sample players shown for presentation. Nothing here is saved.</div>
     <div id="lb-body"></div>
     <button class="btn btn-ghost btn-sm" style="margin:10px auto 0;display:flex" onclick="renderLeaderboard()">↻ Refresh standings</button>
@@ -1827,11 +1852,11 @@
     <div class="wn-card">
       <div class="wn-spark" aria-hidden="true">✨</div>
       <div class="wn-h">What’s new</div>
-      <div class="wn-sub">Power-ups land at the <b>Quarter-finals</b> — the same kit for every player, automatically.</div>
-      <button class="wn-item" onclick="wnGoFaq('power-up')"><span class="wn-ic">⚡</span><span class="wn-tx"><b>Captain’s Armband</b><span>One per round from the QF — arm a match before it locks and its advance + exact points count double.</span></span><span class="wn-go">›</span></button>
-      <button class="wn-item" onclick="wnGoFaq('Streak Shield')"><span class="wn-ic">🛡</span><span class="wn-tx"><b>Streak Shield</b><span>Automatic, once: your first streak-breaking miss from the QF is forgiven — the run stays alive.</span></span><span class="wn-go">›</span></button>
-      <button class="wn-item" onclick="wnGoFaq('Upset Bonus')"><span class="wn-ic">🦅</span><span class="wn-tx"><b>Upset Bonus</b><span>+2 on top when you back the lower-ranked team through — fixed FIFA ranking, published in-app.</span></span><span class="wn-go">›</span></button>
-      <div class="wn-more">Nothing already scored changes — everything up to the QF stays exactly as it was.</div>
+      <div class="wn-sub">The <b>Trophy Room</b> is open — more than the podium gets crowned at the final whistle, and every race is live <b>now</b>.</div>
+      <button class="wn-item" onclick="wnGoAwards()"><span class="wn-ic">🏆</span><span class="wn-tx"><b>The Trophy Room</b><span>Leaderboard → 🏆 Awards: the live top-3 in every race — and exactly how far you are from each crown.</span></span><span class="wn-go">›</span></button>
+      <button class="wn-item" onclick="wnGoFaq('titles')"><span class="wn-ic">🔮</span><span class="wn-tx"><b>Four office titles</b><span>Oracle · Trailblazer · Hot Hand · Perfectionist — awarded at full time. Most exacts is still winnable in the last week.</span></span><span class="wn-go">›</span></button>
+      <button class="wn-item" onclick="wnGoAwards()"><span class="wn-ic">⭐</span><span class="wn-tx"><b>The Department Cup</b><span>Best average per player takes the squad crown — every pick you get right lifts your whole department.</span></span><span class="wn-go">›</span></button>
+      <div class="wn-more">Titles never move points — the main board alone decides 🥇🥈🥉. Ties: higher total points, then the title is shared. Definitions locked today.</div>
       <button class="wn-ok" onclick="dismissWhatsNew()">Got it</button>
     </div>
   </div>
@@ -3458,7 +3483,7 @@ const TITLE_DEFS=[
   {key:'frontrunner',emoji:'👑',label:'Frontrunner',desc:'Top of the leaderboard right now'},
   {key:'oracle',emoji:'🔮',label:'Oracle',desc:'Most exact scores called in the pool'},
   {key:'trailblazer',emoji:'🧭',label:'Trailblazer',desc:'Called the most upsets the office missed'},
-  {key:'hothand',emoji:'🔥',label:'Hot Hand',desc:'On the longest run of correct calls'},
+  {key:'hothand',emoji:'🔥',label:'Hot Hand',desc:'Longest run of correct calls at any point'},
   {key:'perfectionist',emoji:'💎',label:'Perfectionist',desc:'Most perfect matchdays — every call right'},
   {key:'captain',emoji:'⭐',label:'Squad Captain',desc:'Leading their department'},
   {key:'climber',emoji:'🚀',label:'Climber',desc:'Biggest climb up the table since yesterday'}
@@ -3484,10 +3509,19 @@ function computeHonours(rows){
     const byDept={};list.forEach(function(r){const d=((r.dept||'').trim());if(!d)return;(byDept[d]=byDept[d]||[]).push(r);});
     Object.keys(byDept).forEach(function(d){const a=byDept[d];if(a.length<3)return;a.sort(function(x,y){return cmpSt(x,y);});if(a[0]&&a[0].pts>0)holders['captain_'+d]={slug:a[0].slug,name:a[0].name,value:a[0].pts,_title:'captain'};});
   }
-  try{if(CONS){
-    if(CONS.bestUpset&&CONS.bestUpset.slug&&CONS.bestUpset.n>=2)assign('trailblazer',CONS.bestUpset.slug,CONS.bestUpset.name,CONS.bestUpset.n);
-    if(CONS.best&&CONS.best.slug&&CONS.best.streak>=3)assign('hothand',CONS.best.slug,CONS.best.name,CONS.best.streak);
-    if(CONS.bestPerfect&&CONS.bestPerfect.slug&&CONS.bestPerfect.n>=1)assign('perfectionist',CONS.bestPerfect.slug,CONS.bestPerfect.name,CONS.bestPerfect.n);
+  try{if(CONS&&CONS.tops){
+    /* TROPHY ROOM contract: race winners come from the full sorted lists, ties broken by
+       total points (the published rule) — so the chip, the Awards races and the FT roll
+       all crown the same person. Hot Hand counts the best run at ANY point, not just a
+       run still alive today. */
+    const pmap={};list.forEach(function(r){pmap[r.slug]=r.pts|0;});
+    const topOf=function(arr,floor){if(!arr||!arr.length||arr[0].v<floor)return null;
+      let t=arr.filter(function(x){return x.v===arr[0].v;});
+      if(t.length>1)t=t.slice().sort(function(a,b){return (pmap[b.slug]||0)-(pmap[a.slug]||0)||(a.name||"").localeCompare(b.name||"");});
+      return t[0];};
+    const tb=topOf(CONS.tops.upset,2);if(tb)assign('trailblazer',tb.slug,tb.name,tb.v);
+    const hh=topOf(CONS.tops.streak,3);if(hh)assign('hothand',hh.slug,hh.name,hh.v);
+    const pf=topOf(CONS.tops.perfect,1);if(pf)assign('perfectionist',pf.slug,pf.name,pf.v);
   }}catch(e){}
   HONOURS_FULL=holders;
   const order=['frontrunner','oracle','trailblazer','hothand','perfectionist','climber'];
@@ -3532,6 +3566,7 @@ async function renderLeaderboard(){
   const rvSlug=state.demo?null:await getJSON("wc:rival",false);
   if(LB_MODE==="dept"&&!state.demo){await renderDept(body);return;}
   if(LB_MODE==="room"&&!state.demo){await renderRoom(body);return;}
+  if(LB_MODE==="awards"&&!state.demo){await renderAwards(body);return;}
   let rows=[];
   if(state.demo){ /* demo: client-side scoring against demo results + demo players (never cached) */
     const players=await sbulkJSON("wc:player:");
@@ -3609,7 +3644,7 @@ function startLbTicker(rows){
     if(avg>0&&(!bd||avg>bd.avg))bd={d:d,avg:avg};}
   if(bd)facts.push('\ud83c\udfe2 Sharpest department: <b>'+esc(bd.d)+'</b> \u2014 '+bd.avg.toFixed(1)+' pts avg');
   if(CONFIGURED)consensusFull().then(function(c){
-    if(c.best&&c.best.streak>=3)facts.push('\ud83d\udd25 Hot hand: <b>'+esc((c.best.name||"").split(" ")[0])+'</b> \u2014 '+c.best.streak+' correct in a row');
+    if(c.best&&c.best.streak>=3)facts.push('\ud83d\udd25 In form: <b>'+esc((c.best.name||"").split(" ")[0])+'</b> \u2014 '+c.best.streak+' correct in a row right now'); /* current run \u2014 the Hot Hand TITLE is the record run (Trophy Room) */
     if(c.bestUpset&&c.bestUpset.n>=2)facts.push('\ud83d\udde1 Upset hunter: <b>'+esc(c.bestUpset.name)+'</b> \u2014 '+c.bestUpset.n+' shocks called');
     if(c.perfectN>=1)facts.push('\ud83d\udd2e <b>'+c.perfectN+'</b> colleague'+(c.perfectN===1?'':'s')+' still perfect \u2014 not a single miss');
   }).catch(function(){});
@@ -4763,7 +4798,7 @@ let LB_MODE="people";
 (function(){
   const lm=document.getElementById("lbmode");
   if(lm)lm.querySelectorAll("button").forEach(b=>b.onclick=()=>{LB_MODE=b.dataset.m;
-    lm.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));if(b.dataset.m==="room")markSeen("room");renderLeaderboard();});
+    lm.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));if(b.dataset.m==="room")markSeen("room");if(b.dataset.m==="awards")markSeen("awards");renderLeaderboard();});
 })();
 
 function renderPulse(){
@@ -4921,6 +4956,102 @@ async function renderDept(body){
       '<div class="lb-info"><div class="n">'+esc(x.d)+(mine?'<span class="youtag">YOUR SQUAD</span>':'')+'</div><div class="d">'+x.n+' players \u00b7 \u03a3 '+x.sum+' pts'+playTxt+'</div>'+gap+'</div>'+
       '<div class="lb-pts"><b>'+(Math.round(x.avg*10)/10)+'</b><span>avg</span></div></div>';});
   if(lg.small.length)html+='<div class="dept-note" style="margin-top:12px">Not yet ranked (under '+DEPT_MIN+' players): '+lg.small.map(x=>esc(x.d)+' ('+x.n+')').join(' \u00b7 ')+'</div>';
+  body.innerHTML=html;
+}
+
+/* ===== TROPHY ROOM (Leaderboard \u2192 \ud83c\udfc6 Awards) \u2014 every prize as a LIVE race =====
+   Announced 6 Jul: alongside the podium (main prizes \u2014 main board, unchanged), four
+   office titles and the Department Cup are crowned at the final whistle. This view
+   shows each race's live top-3 and where YOU sit, so the ~680 players who can't
+   reach the podium still have something real to chase. Reads only the slim
+   standings + the consensus analytics already in hand \u2014 no new pull, no scoring
+   change, seal-safe (settled results only). Published tie rule, everywhere the
+   same: level numbers \u2192 higher total points \u2192 a dead heat shares the title. */
+const AW_RACES=[
+  {key:'oracle',emoji:'\ud83d\udd2e',label:'Oracle',desc:'Most exact scores called in the pool',unit:'exact',floor:1,floorTxt:'an exact score'},
+  {key:'trailblazer',emoji:'\ud83e\udded',label:'Trailblazer',desc:'Most correct calls the office majority got wrong',unit:'shock',floor:2,floorTxt:'2 shocks called'},
+  {key:'hothand',emoji:'\ud83d\udd25',label:'Hot Hand',desc:'Longest run of correct calls \u2014 at any point',unit:'run',floor:3,floorTxt:'a \u00d73 run'},
+  {key:'perfectionist',emoji:'\ud83d\udc8e',label:'Perfectionist',desc:'Most perfect matchdays \u2014 every call right',unit:'day',floor:1,floorTxt:'a perfect matchday'}
+];
+function awValTxt(unit,v){
+  if(unit==='run')return '\u00d7'+v;
+  return String(v);
+}
+function awValChip(unit,v){
+  const lab={exact:'EXACT',shock:(v===1?'SHOCK':'SHOCKS'),run:'RUN',day:(v===1?'PERFECT DAY':'PERFECT DAYS')}[unit]||'';
+  return '<b class="aw-v">'+awValTxt(unit,v)+(lab?'<small>'+lab+'</small>':'')+'</b>';
+}
+function awRowHTML(i,name,slug,valHTML){
+  const me=!!state.meSlug&&slug===state.meSlug;
+  return '<div class="aw-row'+(me?' me':'')+'"><span class="aw-rk">'+['\ud83e\udd47','\ud83e\udd48','\ud83e\udd49'][i]+'</span><div class="avatar">'+avatarFill(name)+'</div><div class="aw-nm">'+esc(name)+(me?'<span class="youtag">YOU</span>':'')+'</div>'+valHTML+'</div>';
+}
+async function renderAwards(body){
+  const rows=await fetchStandings();
+  if(!rows.length){body.innerHTML='<div class="empty"><div class="ic">\ud83c\udfc6</div><b>The Trophy Room opens with the first points</b><span>Lock in picks under \u201cMatches\u201d to start the races.</span></div>';return;}
+  const pmap={};rows.forEach(function(r){pmap[r.slug]=r.pts|0;});
+  const sortRace=function(arr){return arr.sort(function(a,b){return b.v-a.v||(pmap[b.slug]||0)-(pmap[a.slug]||0)||(a.name||"").localeCompare(b.name||"");});};
+  const first=function(nm){return esc((nm||"").split(" ")[0]);};
+  const sorted=rows.slice().sort(function(a,b){return cmpSt(a,b)||(a.name||"").localeCompare(b.name||"");});
+  const meRow=state.meSlug?rows.find(function(r){return r.slug===state.meSlug;}):null;
+  const c=(CONS.full&&CONS.tops)?CONS:null;
+  if(!c&&CONFIGURED&&!state.demo)consensusFull().then(function(){if(state.view==="leaderboard"&&LB_MODE==="awards")renderLeaderboard();}).catch(function(){});
+  let html='<div class="dept-note">\ud83c\udfc6 <b>The Trophy Room</b> \u2014 everything on offer at the final whistle, every race live. Titles are honours on top: they never move points, and the main board alone decides \ud83e\udd47\ud83e\udd48\ud83e\udd49.</div>';
+  /* the podium \u2014 main prizes, straight from the board */
+  html+='<div class="aw-card crowned"><div class="aw-hd"><span class="aw-ic">\ud83c\udfdd\ufe0f</span><div class="aw-t"><b>The Podium</b><span>\ud83e\udd47 Maldives trip \u00b7 \ud83e\udd48 60,000 pts \u00b7 \ud83e\udd49 40,000 pts \u2014 decided by the main board alone</span></div><span class="aw-prz">QNB LIFE REWARDS</span></div>';
+  for(let i=0;i<3&&i<sorted.length;i++){const r=sorted[i];html+=awRowHTML(i,r.name,r.slug,'<b class="aw-v">'+r.pts+'<small>PTS</small></b>');}
+  if(state.player&&meRow){
+    const meIdx=sorted.findIndex(function(r){return r.slug===state.meSlug;});
+    if(meIdx>=0&&meIdx<3)html+='<span class="aw-you">\ud83d\udc51 <b>You\u2019re on the podium</b> \u2014 '+ordinal(meIdx+1)+' \u00b7 hold it to the whistle</span>';
+    else if(meIdx>=3&&sorted[2]){const g=(sorted[2].pts|0)-(meRow.pts|0);
+      html+='<span class="aw-you">You: <b>'+ordinal(meIdx+1)+'</b> \u00b7 '+(g>0?('<b>'+g+'</b> pts off the podium'):'level on points with 3rd \u2014 tiebreakers split it')+'</span>';}
+  }
+  html+='</div>';
+  /* the four office titles */
+  AW_RACES.forEach(function(rc){
+    html+='<div class="aw-card"><div class="aw-hd"><span class="aw-ic">'+rc.emoji+'</span><div class="aw-t"><b>'+rc.label+'</b><span>'+rc.desc+'</span></div><span class="aw-prz">CROWNED AT FT</span></div>';
+    let arr=null;
+    if(rc.key==='oracle')arr=sortRace(rows.filter(function(r){return (r.exact|0)>0;}).map(function(r){return{slug:r.slug,name:r.name,v:r.exact|0};}));
+    else if(c)arr=sortRace(c.tops[{trailblazer:'upset',hothand:'streak',perfectionist:'perfect'}[rc.key]].slice());
+    if(arr===null)html+='<div class="aw-pend"><span class="pulse"></span>Counting every call in the office\u2026</div>';
+    else if(!arr.length)html+='<div class="aw-pend">Unclaimed \u2014 the race is wide open. First to '+rc.floorTxt+' takes it.</div>';
+    else{
+      arr.slice(0,3).forEach(function(x,i){html+=awRowHTML(i,x.name,x.slug,awValChip(rc.unit,x.v));});
+      if(arr[0].v<rc.floor)html+='<div class="aw-unclaimed">Still unclaimed \u2014 the title needs '+rc.floorTxt+'.</div>';
+      const myV=rc.key==='oracle'?(meRow?(meRow.exact|0):null):((c&&c.mine)?c.mine[{trailblazer:'upset',hothand:'streak',perfectionist:'perfect'}[rc.key]]:null);
+      if(state.player&&myV!=null){
+        const lead=arr[0];
+        if(lead.slug===state.meSlug){
+          const snd=arr.find(function(x){return x.slug!==state.meSlug;});
+          html+='<span class="aw-you">\ud83d\udc51 <b>You hold it</b>'+(snd?((lead.v-snd.v)>0?(' \u00b7 '+awValTxt(rc.unit,lead.v-snd.v)+' clear of '+first(snd.name)):(' \u00b7 level with '+first(snd.name)+' \u2014 points break the tie')):'')+'</span>';
+        }else{
+          const g=lead.v-myV;
+          html+='<span class="aw-you">You: <b>'+awValTxt(rc.unit,myV)+'</b> \u00b7 '+(g>0?(awValTxt(rc.unit,g)+' behind '+first(lead.name)):('level with '+first(lead.name)+' \u2014 points break the tie'))+'</span>';
+        }
+      }
+    }
+    html+='</div>';
+  });
+  /* the Department Cup */
+  const lg=deptLeague(rows);
+  html+='<div class="aw-card"><div class="aw-hd"><span class="aw-ic">\u2b50</span><div class="aw-t"><b>Department Cup</b><span>Best average points per player \u2014 every pick lifts your whole squad</span></div><span class="aw-prz">CROWNED AT FT</span></div>';
+  if(!lg.ranked.length)html+='<div class="aw-pend">No squads ranked yet \u2014 departments join with '+DEPT_MIN+'+ players.</div>';
+  else{
+    lg.ranked.slice(0,3).forEach(function(x,i){
+      const mine=!!(state.player&&deptKey(state.player.dept)===x.d);
+      html+='<div class="aw-row'+(mine?' me':'')+'"><span class="aw-rk">'+['\ud83e\udd47','\ud83e\udd48','\ud83e\udd49'][i]+'</span><div class="avatar deptbadge">'+deptAvatarFill(x.d)+'</div><div class="aw-nm">'+esc(x.d)+(mine?'<span class="youtag">YOUR SQUAD</span>':'')+'</div><b class="aw-v">'+(Math.round(x.avg*10)/10)+'<small>AVG</small></b></div>';
+    });
+    if(state.player){
+      const myD=deptKey(state.player.dept);
+      const mi=lg.ranked.findIndex(function(x){return x.d===myD;});
+      if(mi===0)html+='<span class="aw-you">\ud83d\udc51 <b>'+esc(myD)+'</b> hold the crown \u2014 defend it</span>';
+      else if(mi>0)html+='<span class="aw-you">Your squad: <b>'+esc(myD)+'</b> \u2014 '+ordinal(mi+1)+' of '+lg.ranked.length+' \u00b7 '+(Math.round((lg.ranked[mi-1].avg-lg.ranked[mi].avg)*10)/10).toFixed(1)+' avg to climb</span>';
+      else{const sm=lg.small.find(function(x){return x.d===myD;});
+        if(sm)html+='<span class="aw-you">Your squad (<b>'+esc(myD)+'</b> \u00b7 '+sm.n+') needs '+DEPT_MIN+'+ players to rank</span>';}
+    }
+  }
+  html+='</div>';
+  html+='<div class="dept-note" style="margin-top:12px">Crowned at the <b>final whistle</b> over all 104 matches. Ties: level numbers \u2192 higher total points \u2192 a dead heat shares the title. Definitions locked 6 Jul \u2014 no moving goalposts.</div>'+
+    '<button class="faq-link" onclick="openFaq(\'titles\')">See the full definitions \u203a</button>';
   body.innerHTML=html;
 }
 
@@ -5615,11 +5746,12 @@ async function ftFill(){
     const lg=deptLeague(st);
     if(lg.ranked.length)html+='<div class="ft-dept"><span class="avatar deptbadge ft-db">'+deptAvatarFill(lg.ranked[0].d)+'</span><span>🏆 <b>'+esc(lg.ranked[0].d)+'</b> take the department cup · '+(Math.round(lg.ranked[0].avg*10)/10)+' avg</span></div>';
     computeHonours(st);
-    const roll=[],seen={};
-    Object.keys(HONOURS_FULL||{}).forEach(function(k){
-      if(k.indexOf('captain_')===0)return; /* every dept has a captain — the roll keeps the six office-wide titles */
-      const h=HONOURS_FULL[k];const def=TITLE_DEFS.find(function(t){return t.key===k;});if(!h||!def)return;
-      const id=k+"·"+h.slug;if(seen[id])return;seen[id]=1;
+    /* the roll = the four ANNOUNCED end-of-tournament titles (the Trophy Room contract),
+       in the announced order. Frontrunner is the podium above it; Climber is a daily stat;
+       captains are per-dept — none of those are awards. */
+    const roll=[];
+    ['oracle','trailblazer','hothand','perfectionist'].forEach(function(k){
+      const h=(HONOURS_FULL||{})[k];const def=TITLE_DEFS.find(function(t){return t.key===k;});if(!h||!def)return;
       roll.push('<span>'+def.emoji+' <b>'+esc(def.label)+'</b> '+esc(h.name)+'</span>');
     });
     if(roll.length)html+='<div class="ft-roll">'+roll.join("")+'</div>';
@@ -6096,6 +6228,9 @@ async function consensusCompute(){
     let best={name:"",streak:0,hits:0,slug:""};const pday={};
     let bestPerfect={name:"",slug:"",n:0};
     let officeHits=0,officeTot=0,perfectN=0;
+    /* TROPHY ROOM — full race lists (not just the leader) + my own numbers, so the
+       award races can show a live top-3 and a "you" line without a second pull. */
+    const stA=[],pfA=[],upA=[];const mine={streak:0,perfect:0,upset:0};
     players.forEach(function(p){
       if(!p)return;
       if(p.champ){champN++;cm[p.champ]=(cm[p.champ]||0)+1;}
@@ -6115,11 +6250,18 @@ async function consensusCompute(){
         const k=dayKey(f.ko);(byDay[k]=byDay[k]||[]).push(!!hit);});
       let stk=0;for(let i=seq.length-1;i>=0;i--){if(seq[i])stk++;else break;}
       if(stk>best.streak||(stk===best.streak&&hits>best.hits))best={name:p.name||p.slug||"",streak:stk,hits:hits,slug:p.slug||""};
+      /* best-EVER run (chronological max) — the Hot Hand award counts a run wherever it
+         happened, so a group-stage ×7 isn't erased the day it breaks (current run stays
+         in `best` for the "in form" pulse line). */
+      let runBest=0,runCur=0;for(let i=0;i<seq.length;i++){if(seq[i]){runCur++;if(runCur>runBest)runBest=runCur;}else runCur=0;}
+      if(runBest>0)stA.push({slug:p.slug||"",name:p.name||p.slug||"",v:runBest});
       officeHits+=hits;officeTot+=seq.length;
       if(seq.length>=3&&hits===seq.length)perfectN++;
       let myPerfect=0;
       for(const k in byDay){const a=byDay[k];if(a.length>=2&&a.every(function(x){return x;})){pday[k]=(pday[k]||0)+1;myPerfect++;}}
       if(myPerfect>bestPerfect.n)bestPerfect={name:p.name||p.slug||"",slug:p.slug||"",n:myPerfect};
+      if(myPerfect>0)pfA.push({slug:p.slug||"",name:p.name||p.slug||"",v:myPerfect});
+      if(state.meSlug&&p.slug===state.meSlug){mine.streak=runBest;mine.perfect=myPerfect;}
     });
     /* second pass (needs the finished map): upset hunters + department form by day */
     const resPct={};
@@ -6146,6 +6288,8 @@ async function consensusCompute(){
         if(vp)ptsBy[dk]=(ptsBy[dk]||0)+vp;
         if(hit&&resPct[f.id]!=null&&resPct[f.id]<=30)up++;});
       if(up>bestUp.n)bestUp={name:p.name||p.slug||"",n:up,slug:p.slug||""};
+      if(up>0)upA.push({slug:p.slug||"",name:p.name||p.slug||"",v:up});
+      if(state.meSlug&&p.slug===state.meSlug)mine.upset=up;
       for(const k in ptsBy){const cur=dayTop[k];
         if(!cur||ptsBy[k]>cur.pts)dayTop[k]={name:p.name||p.slug||"",slug:p.slug||"",pts:ptsBy[k]};}
       if(mp&&p.slug!==state.meSlug){let nn=0;
@@ -6154,7 +6298,8 @@ async function consensusCompute(){
           if(m.kn){if(a.w&&a.w===bq.w)nn++;}
           else{if(a.o&&a.o===bq.o)nn++;}}
         if(nn>twin.n)twin={name:p.name||p.slug||"",slug:p.slug||"",n:nn};}});
-    CONS={t:Date.now(),map:map,n:players.length,champN:champN,champMap:cm,best:best,bestPerfect:bestPerfect,perfectByDay:pday,bestUpset:bestUp,deptByDay:deptDay,dayTop:dayTop,dayHit:dayHit,twin:twin,perfectN:perfectN,officeHit:{h:officeHits,t:officeTot},full:true,fullT:Date.now(),rk:Object.keys(state.results).length,busy:null,busyF:null};
+    const byV=function(a,b){return b.v-a.v;};stA.sort(byV);pfA.sort(byV);upA.sort(byV);
+    CONS={t:Date.now(),map:map,n:players.length,champN:champN,champMap:cm,best:best,bestPerfect:bestPerfect,perfectByDay:pday,bestUpset:bestUp,deptByDay:deptDay,dayTop:dayTop,dayHit:dayHit,twin:twin,perfectN:perfectN,officeHit:{h:officeHits,t:officeTot},tops:{streak:stA,perfect:pfA,upset:upA},mine:(state.meSlug?mine:null),full:true,fullT:Date.now(),rk:Object.keys(state.results).length,busy:null,busyF:null};
     return CONS;
 }
 function consText(m,p){
@@ -6302,7 +6447,7 @@ const FAQ_ITEMS=[
  {q:"I got the score right but only received 3 points?",a:"Exact-score points need both number boxes filled before kickoff. If one was empty, only your result pick counted."},
  {q:"When do results and points appear?",a:"Scores post and points update about 30 minutes after the final whistle \u2014 automatically. Next time you open the app, the morning reveal replays how your picks did."},
  {q:"What do the \u25b2\u25bc arrows mean?",a:"Your movement since yesterday\u2019s standings snapshot. Big jumps in week one are normal \u2014 everyone starts level."},
- {q:"What are the titles next to names? (\ud83d\udc51 \ud83d\udd2e \ud83e\udded \u2026)",a:"Office honours \u2014 each one held by a single person at a time. Tap any title on the leaderboard to see what it means; here\u2019s the full set.\n\n\ud83d\udc51 Frontrunner \u2014 top of the leaderboard right now.\n\ud83d\udd2e Oracle \u2014 most exact scores called in the whole pool.\n\ud83e\udded Trailblazer \u2014 called the most upsets the office missed.\n\ud83d\udd25 Hot Hand \u2014 on the longest run of correct calls.\n\ud83d\udc8e Perfectionist \u2014 most perfect matchdays, every call right.\n\u2b50 Squad Captain \u2014 leading their department.\n\ud83d\ude80 Climber \u2014 the biggest jump up the table since yesterday.\n\nThey update automatically as the standings move, so they change hands through the tournament. Most players hold none \u2014 that\u2019s the point. Win one and it shows next to your name and on your Me card."},
+ {q:"What are the titles next to names \u2014 and the awards at full time? (\ud83d\udc51 \ud83d\udd2e \ud83e\udded \u2026)",a:"Office honours \u2014 each held by one person at a time, live. Four of them are end-of-tournament AWARDS: whoever holds them at the final whistle is crowned alongside the podium. Leaderboard \u2192 \ud83c\udfc6 Awards (the Trophy Room) shows every race live \u2014 the top three and how far you are.\n\nThe four awards, crowned at full time:\n\ud83d\udd2e Oracle \u2014 most exact scores called in the whole pool.\n\ud83e\udded Trailblazer \u2014 most correct calls where the office majority went the other way (counted on matches with 8+ picks where 30% or fewer called it).\n\ud83d\udd25 Hot Hand \u2014 the longest run of correct calls at ANY point of the tournament; a run that later broke still counts. Needs at least \u00d73.\n\ud83d\udc8e Perfectionist \u2014 most perfect matchdays: 2+ of your matches settled that day, every call right.\n\n\u2b50 The Department Cup is decided at the whistle too \u2014 best average points per player, squads of 5+.\n\nLive-only honours (never awarded \u2014 they just describe today): \ud83d\udc51 Frontrunner \u2014 top of the board right now. \u2b50 Squad Captain \u2014 leading their department. \ud83d\ude80 Climber \u2014 biggest jump since yesterday.\n\nThe fine print: ties are broken by higher total points; a genuine dead heat shares the title. Titles never change anyone\u2019s points \u2014 the main leaderboard alone decides \ud83e\udd47\ud83e\udd48\ud83e\udd49 and the top-three prizes. Definitions locked 6 July \u2014 no moving goalposts."},
  {q:"What\u2019s a rival?",a:"Pick anyone from the dropdown in your Me tab. During live matches the pulse bar shows both your provisional points, head to head."},
  {q:"How are ties broken?",a:"Tied points are broken by: most predictions made, then most exact scores, then most correct results, then earliest sign-up."},
  {q:"Is my Instagram handle visible to others?",a:"Sign-in only. Other players see your display name and department; handles are never shown on the leaderboard."},
@@ -6334,13 +6479,14 @@ function toggleFaq(i){
    per player (localStorage-gated by version), deep-links into each new feature,
    and never nags. Persistent NEW dots on the Leaderboard nav + The Room toggle
    catch stragglers and self-clear once the surface is visited. */
-const WHATSNEW_VER="2026-07-02-powerups";
+const WHATSNEW_VER="2026-07-06-trophy-room";
 function seenKey(k){try{return localStorage.getItem("wc:seen:"+k)==="1";}catch(e){return true;}}
 function markSeen(k){try{localStorage.setItem("wc:seen:"+k,"1");}catch(e){}updateNewDots();}
 function updateNewDots(){
   const on=!!state.player&&!state.demo;
   const ld=document.getElementById("lb-new");if(ld)ld.style.display=(on&&!seenKey("lb"))?"":"none";
   const rn=document.getElementById("room-new");if(rn)rn.style.display=(on&&!seenKey("room"))?"":"none";
+  const an=document.getElementById("aw-new");if(an)an.style.display=(on&&!seenKey("awards"))?"":"none";
 }
 function maybeWhatsNew(){
   if(!state.player||state.demo)return false;
@@ -6366,6 +6512,13 @@ function wnGoSquad(){
   dismissWhatsNew();
   go("me");
   setTimeout(function(){const el=document.querySelector(".me-squad");if(el&&el.scrollIntoView)el.scrollIntoView({behavior:"smooth",block:"center"});},350);
+}
+function wnGoAwards(){ /* TROPHY ROOM — spotlight deep link straight into the award races */
+  dismissWhatsNew();
+  LB_MODE="awards";
+  const lm=document.getElementById("lbmode");if(lm)lm.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.m==="awards"));
+  markSeen("lb");markSeen("awards");
+  go("leaderboard");
 }
 function wnGoFaq(which){dismissWhatsNew();openFaq(which);} /* WAVE B — spotlight items deep-link into the FAQ */
 
@@ -6601,7 +6754,9 @@ function revealOfficeLines(){
   if(hb)out.push('\ud83d\udc94 '+hb.n+' colleagues backed '+esc(hb.who)+' \u2014 hearts broken');
   if(lastDay&&CONS.dayHit&&CONS.dayHit[lastDay]&&CONS.dayHit[lastDay].tot>=10)
     out.push('\ud83d\udcca The office hit '+Math.round(CONS.dayHit[lastDay].hit/CONS.dayHit[lastDay].tot*100)+'% of the day\u2019s calls');
-  if(CONS.best&&CONS.best.streak>=3)
+  if(CONS.tops&&CONS.tops.streak&&CONS.tops.streak[0]&&CONS.tops.streak[0].v>=3)
+    out.push('\ud83d\udd25 Longest run: '+esc((CONS.tops.streak[0].name||"").split(" ")[0])+' \u2014 '+CONS.tops.streak[0].v+' correct in a row'); /* the record run, matching the Hot Hand title */
+  else if(CONS.best&&CONS.best.streak>=3)
     out.push('\ud83d\udd25 Longest run: '+esc((CONS.best.name||"").split(" ")[0])+' \u2014 '+CONS.best.streak+' correct in a row');
   /* department of the day: best hit rate on the last revealed matchday */
   if(lastDay&&CONS.deptByDay&&CONS.deptByDay[lastDay]){
@@ -7001,9 +7156,10 @@ function tvMode(){try{return /(^|[?&#])tv\b/i.test(location.search+location.hash
 let TV_T=null,TV_HOLD=0;
 function tvLoop(){
   if(TV_T)return;                                     /* handle stored — the interval can never double */
-  const seq=["people","dept","room"];let i=0;
-  /* 22s per step ⇒ a full people→dept→room lap is 66s; the Room's blob pull rides the
-     60s PP_CACHE, so ONE kiosk device costs ≤1 pull/min — acceptable. */
+  const seq=["people","dept","awards","room"];let i=0;
+  /* 22s per step ⇒ a full people→dept→awards→room lap is 88s; the Room's blob pull rides
+     the 60s PP_CACHE (awards reads standings cache + CONS already in hand), so ONE kiosk
+     device still costs ≤1 pull/min — acceptable. */
   TV_T=setInterval(function(){
     if(Date.now()<TV_HOLD)return;                     /* someone's at the screen — hold, resume after 90s */
     if(state.demo)return;
