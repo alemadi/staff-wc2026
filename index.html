@@ -1178,12 +1178,6 @@
   /* M4 — Match of the Day hero */
   .match-card.mod{border-color:rgba(180,151,89,.5);background:linear-gradient(135deg,rgba(180,151,89,.14),rgba(180,151,89,.03)),var(--glass);box-shadow:0 0 0 1px rgba(180,151,89,.2),0 18px 48px -24px rgba(180,151,89,.8);cursor:pointer}
   .mod-tag{display:inline-block;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:800;color:#181106;background:linear-gradient(115deg,var(--gold-deep),var(--gold));border-radius:6px;padding:2px 8px;margin:0 0 11px 6px;vertical-align:top}
-  /* M5 — consensus split bar (same k-floored numbers as the text) */
-  .cons-bar{height:6px;border-radius:99px;overflow:hidden;display:flex;gap:2px;margin:8px auto 2px;max-width:280px;background:rgba(255,255,255,.05)}
-  .cons-bar i{display:block;height:100%}
-  .cons-bar .h{background:linear-gradient(90deg,var(--gold-deep),var(--gold-bright))}
-  .cons-bar .d{background:rgba(244,238,227,.25)}
-  .cons-bar .a{background:rgba(239,51,64,.55)}
   /* M6 — locked-card anticipation line */
   .stakeline b{color:var(--gold-bright)}
   /* M7 — exact-score celebration on settled cards */
@@ -6956,8 +6950,7 @@ function consText(m,p){
     const hN=c.w[mv.home.n]||0,aN=c.w[mv.away.n]||0,tot=hN+aN;
     if(tot<5)return "";
     const hp=Math.round(hN/tot*100);
-    let kline='<div class="cons-bar"><i class="h" style="width:'+hp+'%"></i><i class="a" style="width:'+(100-hp)+'%"></i></div>'
-      +'\ud83c\udfdf '+tot+' colleagues called it: '+seg(mv.home.n,hp,p&&p.w===mv.home.n)+' \u00b7 '+seg(mv.away.n,100-hp,p&&p.w===mv.away.n);
+    let kline='\ud83c\udfdf '+tot+' colleagues called it: '+seg(mv.home.n,hp,p&&p.w===mv.home.n)+' \u00b7 '+seg(mv.away.n,100-hp,p&&p.w===mv.away.n);
     if(res&&res.w&&tot>=8){const rp=Math.round((c.w[res.w]||0)/tot*100);
       if(rp<=25)kline+='<span class="c2">\ud83e\udde8 Upset \u2014 only '+rp+'% of the office saw it coming</span>';}
     if(!res&&tot>=8)kline+='<button class="cons-share" onclick="event.stopPropagation();shareSplit(\''+m.id+'\')">\ud83d\udce4 Share the split</button>'; /* 2026-07-06 artifact pack */
@@ -6965,8 +6958,7 @@ function consText(m,p){
   }
   const tot=c.H+c.D+c.A;if(tot<5)return "";
   const pH=Math.round(c.H/tot*100),pD=Math.round(c.D/tot*100),pA=Math.round(c.A/tot*100);
-  let line='<div class="cons-bar"><i class="h" style="width:'+pH+'%"></i><i class="d" style="width:'+pD+'%"></i><i class="a" style="width:'+pA+'%"></i></div>'
-    +'\ud83c\udfdf '+tot+' colleagues called it: '
+  let line='\ud83c\udfdf '+tot+' colleagues called it: '
     +seg(m.home.n,pH,p&&p.o==="H")+' \u00b7 '
     +seg("Draw",pD,p&&p.o==="D")+' \u00b7 '
     +seg(m.away.n,pA,p&&p.o==="A");
