@@ -5,6 +5,16 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-07-06 (Doha) — MAIN DEPLOY: Trophy Room ships to production
+
+**Commits:** this commit, then `main` fast-forwarded `f148d7a` → this tip and pushed **on the organizer's explicit "push main"**. Ships the TROPHY ROOM pass (entry below) to staffchallenge26.com via the Pages action: the 🏆 Awards leaderboard mode with live award races, the award contract in the FAQ, the rewritten What's-new spotlight (`WHATSNEW_VER` → `2026-07-06-trophy-room` — every player sees it once on next open), the Hot-Hand-is-the-record-run title change, and the FT ceremony roll aligned to the four announced titles. **Frontend only — the live DB is untouched by this push**; scoring proven unchanged (27/27 Wave-B vectors, entry below).
+
+**Verify after push:** Pages action green; prod `index.html` (cache-busted) contains `renderAwards` and `2026-07-06-trophy-room`.
+
+**Rollback:** `git push origin +f148d7a:main` (client-only — nothing server-side changed with this push).
+
+---
+
 ## 2026-07-06 (Doha) — TROPHY ROOM: end-of-tournament awards announced + every race live (Leaderboard → 🏆 Awards)
 
 **Commits:** this commit (`index.html` + changelog), on branch `claude/intelligent-maxwell-nza6n6` — **NOT yet merged to main.** **Frontend only — no DB / scoring-math / sync-protocol / lock-logic change.** Seal-safe: reads only the slim standings, settled results, and the consensus analytics tier already in hand — zero new data pulls. New state: one localStorage key (`wc:seen:awards`, the NEW-dot marker) + the `wc:whatsnew` version bump.
