@@ -1772,6 +1772,12 @@
   .nrd-belt .bv{flex:none;font-family:var(--font-d);font-size:17px;color:var(--gold-bright)}
   .aw-race{display:block;margin-top:7px;font-size:10.5px;font-weight:700;color:var(--muted)}
   .aw-race b{color:var(--gold-bright)}
+  /* batch 5: sticky jump chips over the (now long) nerds panel */
+  .nrd-jump{position:sticky;top:0;z-index:6;display:flex;gap:6px;overflow-x:auto;padding:8px 2px;margin:0 0 10px;background:linear-gradient(180deg,rgba(8,8,10,.94),rgba(8,8,10,.8));backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line-2);scrollbar-width:none}
+  .nrd-jump::-webkit-scrollbar{display:none}
+  .nrd-jump button{flex:none;font:inherit;font-size:15px;line-height:1;padding:7px 9px;border-radius:10px;border:1px solid var(--line);background:var(--glass);cursor:pointer;transition:.15s}
+  .nrd-jump button:active{background:rgba(180,151,89,.2);border-color:var(--gold-deep)}
+  .nrd-jump ~ .aw-card{scroll-margin-top:64px}
   /* ===== PERF ===== */
   /* Long lists: skip layout+paint for offscreen cards (104 matches / 100+ board rows).
      contain-intrinsic-size ≈ a typical card so the scrollbar stays honest; the `auto`
@@ -5703,6 +5709,50 @@ async function renderNerds(body){
     }
   }
   html+='</div>';
+  /* THE SCORELINE STOCK MARKET — what each popular exact-score ticket actually paid (settled group, floored) */
+  html+='<div class="aw-card"><div class="aw-hd"><span class="aw-ic">🎫</span><div class="aw-t"><b>The scoreline stock market</b><span>Tickets bought vs tickets paid — the +2 exact market, priced</span></div></div>';
+  if(!c)html+=pend;
+  else{
+    const called={};let calledTot=0;const paidK={};
+    settled.forEach(function(f){if(f.kn)return;const cc=c.map[f.id];if(!cc)return;
+      const tot=cc.H+cc.D+cc.A;if(tot<5)return;
+      const r=state.results[f.id],rk=r.h+"-"+r.a;
+      for(const k in cc.sc){called[k]=(called[k]||0)+cc.sc[k];calledTot+=cc.sc[k];if(k===rk)paidK[k]=(paidK[k]||0)+cc.sc[k];}});
+    if(calledTot<50)html+='<div class="aw-pend">Too few settled scoreline tickets to price the market yet.</div>';
+    else{
+      const ks=Object.keys(called).sort(function(a,b){return called[b]-called[a]||a.localeCompare(b);}).slice(0,6);
+      const ev=function(k){return (paidK[k]||0)/called[k]*2;};
+      ks.forEach(function(k){
+        html+='<div class="nrd-crown"><span class="dt">'+k.replace("-","–")+'</span><span class="nm">'+nrdN(called[k])+' tickets · '+nrdN(paidK[k]||0)+' paid</span><span class="pt">'+ev(k).toFixed(2)+'/tkt</span></div>';});
+      const liquid=ks.filter(function(k){return called[k]>=30;});
+      if(liquid.length>=2){
+        const best=liquid.slice().sort(function(a,b){return ev(b)-ev(a);})[0],bust=liquid.slice().sort(function(a,b){return ev(a)-ev(b);})[0];
+        html+='<div class="nrd-line" style="margin-top:4px">💹 Best value: <b>'+best.replace("-","–")+'</b> at <b>'+ev(best).toFixed(2)+'</b> pts a ticket · biggest bust: <b>'+bust.replace("-","–")+'</b> at '+ev(bust).toFixed(2)+'</div>';}
+      html+='<div class="nrd-line">🧾 A ticket = one exact-score call on a settled match; it pays <b>+2</b> when the final score lands exactly</div>';
+    }
+  }
+  html+='</div>';
+  /* THE DRAW BLIND SPOT — the office vs the draw, everyone's worst market (settled group, floored) */
+  html+='<div class="aw-card"><div class="aw-hd"><span class="aw-ic">🙈</span><div class="aw-t"><b>The draw blind spot</b><span>How the office does when it dares to call a draw — and when it should have</span></div></div>';
+  if(!c)html+=pend;
+  else{
+    let dC=0,dH=0,oC=0,oH=0,ghost=0;
+    settled.forEach(function(f){if(f.kn)return;const cc=c.map[f.id];if(!cc)return;
+      const tot=cc.H+cc.D+cc.A;if(tot<5)return;
+      const r=state.results[f.id],ro=r.h>r.a?"H":(r.h<r.a?"A":"D");
+      dC+=cc.D;oC+=cc.H+cc.A;
+      if(ro==="D"){dH+=cc.D;if(cc.D/tot<0.10)ghost++;}
+      else if(ro==="H")oH+=cc.H;else oH+=cc.A;});
+    if(dC<30)html+='<div class="aw-pend">The office has barely dared to call a draw yet — no data, which is itself the finding.</div>';
+    else{
+      const meter=function(lab,pcv,alt){return '<div class="nrd-meter"><div class="lab"><span>'+lab+'</span><b>'+pcv+'%</b></div><div class="nrd-track"><i'+(alt?' class="alt"':'')+' style="width:'+pcv+'%"></i></div></div>';};
+      const dp=nrdPct(dH,dC),op=nrdPct(oH,oC);
+      html+=meter('Draw calls that landed · '+nrdN(dC)+' calls',dp,false)+meter('Win calls that landed · '+nrdN(oC)+' calls',op,true);
+      html+='<div class="nrd-line">'+(dp<op-5?('🙈 The blind spot is real — draw calls land <b>'+(op-dp)+'</b> points less often than win calls'):dp>op+5?('🦉 Draw whisperers — the office is actually <b>'+(dp-op)+'</b> points sharper on draws'):'⚖️ No blind spot — the office reads draws as well as wins')+'</div>';
+      if(ghost>0)html+='<div class="nrd-line">👻 <b>'+ghost+'</b> draw'+(ghost===1?'':'s')+' landed that fewer than 10% of the office saw coming</div>';
+    }
+  }
+  html+='</div>';
   /* GOALS BY ROUND — the tournament tightening (or blowing open) as the stakes climb; public scores only */
   {
     const rb={};
@@ -5728,6 +5778,40 @@ async function renderNerds(body){
       html+='<div class="nrd-line">🌋 Wildest round: <b>'+longR[peak]+'</b> at <b>'+gpm(peak).toFixed(2)+'</b> goals a game</div>';
       html+='</div>';
     }
+  }
+  /* HOME-SOIL BIAS — does the office over-back the listed home side, and which grounds serve goals */
+  {
+    const vCity=function(v){const p=(v||"").split(",");return (p[1]||p[0]||"").trim();};
+    const vCtry=function(cy){return /Mexico City|Guadalajara|Monterrey/.test(cy)?"Mexico":(/Toronto|Vancouver/.test(cy)?"Canada":"USA");};
+    /* venue goals: public scores only, all settled matches with a scoreline */
+    const byCity={},byCtry={};
+    settled.forEach(function(f){const r=state.results[f.id];if(r.h==null||r.a==null||!f.v)return;
+      const cy=vCity(f.v),co=vCtry(cy);
+      (byCity[cy]=byCity[cy]||{g:0,m:0}).g+=r.h+r.a;byCity[cy].m++;
+      (byCtry[co]=byCtry[co]||{g:0,m:0}).g+=r.h+r.a;byCtry[co].m++;});
+    let hotCity=null;for(const cy in byCity){if(byCity[cy].m>=3&&(!hotCity||byCity[cy].g/byCity[cy].m>byCity[hotCity].g/byCity[hotCity].m))hotCity=cy;}
+    html+='<div class="aw-card"><div class="aw-hd"><span class="aw-ic">🏟</span><div class="aw-t"><b>Home-soil bias</b><span>The listed home side: how hard it’s backed vs how often it wins — plus the grounds</span></div></div>';
+    if(!c)html+=pend;
+    else{
+      let hPick=0,pTot=0,hWin=0,mTot=0;
+      settled.forEach(function(f){if(f.kn)return;const cc=c.map[f.id];if(!cc)return;
+        const tot=cc.H+cc.D+cc.A;if(tot<5)return;
+        const r=state.results[f.id];
+        hPick+=cc.H;pTot+=tot;mTot++;if(r.h>r.a)hWin++;});
+      if(pTot<50)html+='<div class="aw-pend">Not enough settled group calls to read the bias yet.</div>';
+      else{
+        const meter=function(lab,pcv,alt){return '<div class="nrd-meter"><div class="lab"><span>'+lab+'</span><b>'+pcv+'%</b></div><div class="nrd-track"><i'+(alt?' class="alt"':'')+' style="width:'+pcv+'%"></i></div></div>';};
+        const bp=nrdPct(hPick,pTot),wp=nrdPct(hWin,mTot);
+        html+=meter('Office calls on the home side',bp,false)+meter('Home sides actually winning · '+mTot+' matches',wp,true);
+        html+='<div class="nrd-line">'+(bp>wp+4?('🏠 Home-side bias confirmed — backed <b>'+(bp-wp)+'</b> points harder than it delivers'):wp>bp+4?('🛫 The office under-rates the home slot by <b>'+(wp-bp)+'</b> points'):'⚖️ No bias — the office prices the home slot about right')+'</div>';
+      }
+    }
+    const ctys=["Mexico","USA","Canada"].filter(function(k){return byCtry[k]&&byCtry[k].m>=3;});
+    if(ctys.length>=2){
+      html+='<div class="nrd-tiles" style="grid-template-columns:repeat('+ctys.length+',1fr);margin-top:10px">'+ctys.map(function(k){
+        return '<div class="nrd-tile"><b>'+(byCtry[k].g/byCtry[k].m).toFixed(2)+'</b><span>goals/match · '+k+'</span></div>';}).join('')+'</div>';}
+    if(hotCity)html+='<div class="nrd-line">🌶 Hottest ground: <b>'+esc(hotCity)+'</b> — '+(byCity[hotCity].g/byCity[hotCity].m).toFixed(2)+' goals a match over '+byCity[hotCity].m+'</div>';
+    html+='</div>';
   }
   /* THE FAVOURITE TAX — how hard the office backs the FIFA favourite vs how often favourites deliver */
   html+='<div class="aw-card"><div class="aw-hd"><span class="aw-ic">🏷️</span><div class="aw-t"><b>The favourite tax</b><span>Office chalk appetite vs what favourites actually deliver — FIFA ranks, 11 Jun</span></div></div>';
@@ -5786,6 +5870,30 @@ async function renderNerds(body){
         return '<i class="'+(k===bestD?'hot':'')+'" style="height:'+Math.max(2,pc)+'%">'+(k===bestD?'<em>'+pc+'%</em>':'')+'</i>';}).join('')
         +'</div><div class="nrd-ax"><span>'+dfmt(days[0])+'</span><span>'+dfmt(days[days.length-1])+'</span></div>';
       html+='<div class="nrd-line">🗓 Sharpest matchday: <b>'+dfmt(bestD)+'</b> — the office hit <b>'+nrdPct(c.dayHit[bestD].hit,c.dayHit[bestD].tot)+'%</b> over '+nrdN(c.dayHit[bestD].tot)+' calls</div>';
+    }
+  }
+  html+='</div>';
+  /* THE GRAVEYARD SHIFT — office accuracy by Doha kickoff hour (a North American World Cup hurts here) */
+  html+='<div class="aw-card"><div class="aw-hd"><span class="aw-ic">🌙</span><div class="aw-t"><b>The graveyard shift</b><span>Office accuracy by Doha kickoff hour — how good are the 3am calls?</span></div></div>';
+  if(!c)html+=pend;
+  else{
+    const fHr=new Intl.DateTimeFormat("en-GB",{timeZone:QZ,hour:"2-digit",hour12:false});
+    const SLOTS=[{k:"day",lab:"☀️ Daytime · 07–17"},{k:"eve",lab:"🌆 Evening · 18–23"},{k:"late",lab:"🌙 Late · 00–02"},{k:"grave",lab:"🧟 Graveyard · 03–06"}];
+    const slotOf=function(iso){const h=(+fHr.format(new Date(iso)))%24;return h>=7&&h<=17?"day":(h>=18?"eve":(h<=2?"late":"grave"));};
+    const sl={};
+    settled.forEach(function(f){const cc=c.map[f.id];if(!cc)return;const r=state.results[f.id],v=fxView(f);
+      let ok,tot;
+      if(f.kn){const hN=cc.w[v.home.n]||0,aN=cc.w[v.away.n]||0;tot=hN+aN;if(tot<8)return;ok=cc.w[r.w]||0;}
+      else{tot=cc.H+cc.D+cc.A;if(tot<5)return;ok=cc[r.h>r.a?"H":(r.h<r.a?"A":"D")];}
+      const s=slotOf(f.ko),o=sl[s]||(sl[s]={ok:0,t:0,m:0});o.ok+=ok;o.t+=tot;o.m++;});
+    const showS=SLOTS.filter(function(s){return sl[s.k]&&sl[s.k].t>=20;});
+    if(showS.length<2)html+='<div class="aw-pend">Not enough settled calls across the clock to compare shifts yet.</div>';
+    else{
+      const meter=function(lab,pcv,alt){return '<div class="nrd-meter"><div class="lab"><span>'+lab+'</span><b>'+pcv+'%</b></div><div class="nrd-track"><i'+(alt?' class="alt"':'')+' style="width:'+pcv+'%"></i></div></div>';};
+      showS.forEach(function(s,i){const o=sl[s.k];html+=meter(s.lab+' · '+o.m+' matches',nrdPct(o.ok,o.t),i%2===1);});
+      const gv=sl.grave&&sl.grave.t>=20?nrdPct(sl.grave.ok,sl.grave.t):null;
+      const ev2=sl.eve&&sl.eve.t>=20?nrdPct(sl.eve.ok,sl.eve.t):null;
+      if(gv!=null&&ev2!=null)html+='<div class="nrd-line">'+(ev2-gv>4?('🧟 The graveyard shift is real — the office loses <b>'+(ev2-gv)+'</b> points of accuracy after 3am. Sleep is a skill'):gv-ev2>4?('🦉 Night owls — the 3am calls are actually <b>'+(gv-ev2)+'</b> points sharper than prime time'):'😐 No excuse available — the office calls 3am football as well as prime time')+'</div>';
     }
   }
   html+='</div>';
@@ -5937,6 +6045,46 @@ async function renderNerds(body){
       html+='<span class="aw-you">Your ticket: <b>'+esc(state.player.champ)+'</b> — '+(dead(state.player.champ)?'💀 already out. It happens to the best of us':('alive, riding with <b>'+share+'%</b> of the office'))+'</span>';}
   }
   html+='</div>';
+  /* THE ARMBAND LEDGER — power-up economics: armed, cashed, burned, and the points minted (⚡ live only) */
+  if(puLive()){
+    html+='<div class="aw-card"><div class="aw-hd"><span class="aw-ic">⚡</span><div class="aw-t"><b>The armband ledger</b><span>Every armband in the office — armed, cashed, burned, and the points it minted</span></div></div>';
+    if(!c||!c.chips)html+=pend;
+    else{
+      const ch=c.chips,armedTot=ch.armed.qf+ch.armed.sf+ch.armed.fin;
+      if(!armedTot)html+='<div class="aw-pend">No armbands armed yet — the office is sitting on its power-ups.</div>';
+      else{
+        /* 🦅 upset payout, office-wide: correct winner picks on settled upset ties (k-floored like consText) */
+        let upN=0,upPts=0;
+        settled.forEach(function(f){if(!f.kn)return;const cc=c.map[f.id];if(!cc)return;
+          const r=state.results[f.id],v=fxView(f);
+          const hN=cc.w[v.home.n]||0,aN=cc.w[v.away.n]||0;if(hN+aN<8)return;
+          if(!upsetWin(f,r))return;
+          const n=cc.w[r.w]||0;upN+=n;upPts+=n*PU_UPSET;});
+        html+='<div class="nrd-tiles">'
+          +'<div class="nrd-tile"><b>'+nrdN(armedTot)+'</b><span>armbands armed</span></div>'
+          +'<div class="nrd-tile"><b>'+nrdN(ch.cashed)+'</b><span>cashed</span></div>'
+          +'<div class="nrd-tile"><b>'+nrdN(ch.burned)+'</b><span>burned</span></div>'
+          +'<div class="nrd-tile"><b>'+nrdN(ch.pending)+'</b><span>still riding</span></div>'
+          +'<div class="nrd-tile"><b>'+nrdN(ch.doubled)+'</b><span>bonus pts minted</span></div>'
+          +'<div class="nrd-tile"><b>'+nrdN(upPts)+'</b><span>upset pts paid</span></div>'
+          +'</div>';
+        html+='<div class="nrd-line">🎽 Armed by round: QF <b>'+ch.armed.qf+'</b> · SF <b>'+ch.armed.sf+'</b> · Final <b>'+ch.armed.fin+'</b></div>';
+        if(ch.cashed+ch.burned>0)html+='<div class="nrd-line">📒 Settled armbands: <b>'+nrdPct(ch.cashed,ch.cashed+ch.burned)+'%</b> cashed — '+(ch.cashed>=ch.burned?'the office arms wisely':'the office arms with its heart, not its head')+'</div>';
+        if(upN>0)html+='<div class="nrd-line">🦅 <b>'+nrdN(upN)+'</b> correct shock calls have banked the flat +'+PU_UPSET+' upset bonus</div>';
+        if(state.player&&state.player.chips){
+          const mine2=[];["qf","sf","fin"].forEach(function(rd){const id=state.player.chips[rd];if(!id)return;
+            const r=state.results[id],lab={qf:'QF',sf:'SF',fin:'Final'}[rd];
+            if(!(r&&r.w!=null)){mine2.push(lab+' armband riding on '+id.toUpperCase());return;}
+            const v=state.player.predictions&&state.player.predictions[id];const m=FIXBYID[id];let kp=0;
+            if(v&&v.w&&v.w===r.w&&m)kp+=koPts(m);
+            if(v&&koScoreHit(v,r)&&m)kp+=koBonus(m);
+            mine2.push(lab+' armband '+(kp>0?('cashed — +'+kp+' bonus'):'burned'));});
+          if(mine2.length)html+='<span class="aw-you">Your book: '+mine2.join(' · ')+'</span>';
+        }
+      }
+    }
+    html+='</div>';
+  }
   /* STILL ALIVE — the mathematical points ceiling, and who can still catch the leader */
   {
     const fieldN=playing.length;
@@ -6000,6 +6148,30 @@ async function renderNerds(body){
     }
   }
   html+='</div>';
+  /* THE FOUNDING MEMBERS — points by join-order tercile: does showing up early pay? */
+  html+='<div class="aw-card"><div class="aw-hd"><span class="aw-ic">📜</span><div class="aw-t"><b>The founding members</b><span>The field split by join order — do the day-one sickos actually win?</span></div></div>';
+  if(!c||!c.joinMap)html+=pend;
+  else{
+    const js=playing.map(function(r){return {pts:r.pts|0,j:c.joinMap[r.slug]};}).filter(function(x){return x.j;});
+    if(js.length<15)html+='<div class="aw-pend">Too few join dates on file to split the field yet.</div>';
+    else{
+      js.sort(function(a,b){return a.j-b.j;});
+      const n3=Math.floor(js.length/3);
+      const ters=[{lab:'🌅 Founding third',a:js.slice(0,n3)},{lab:'🌤 Middle third',a:js.slice(n3,2*n3)},{lab:'⏰ Deadline third',a:js.slice(2*n3)}];
+      const avg=function(a){return a.reduce(function(s,x){return s+x.pts;},0)/a.length;};
+      let tMax=1;ters.forEach(function(t){t.v=avg(t.a);if(t.v>tMax)tMax=t.v;});
+      ters.forEach(function(t){
+        html+='<div class="nrd-meter"><div class="lab"><span>'+t.lab+' · '+t.a.length+'</span><b>'+t.v.toFixed(1)+'</b></div><div class="nrd-track"><i style="width:'+Math.max(2,(t.v/tMax*100)).toFixed(1)+'%"></i></div></div>';});
+      const d0=ters[0].v-ters[2].v;
+      html+='<div class="nrd-line">'+(d0>5?('🌅 Showing up early pays — the founding third averages <b>'+Math.round(d0)+'</b> pts more than the deadline crowd'):d0<-5?('⏰ FOMO is a strategy — the deadline third is out-scoring the founders by <b>'+Math.round(-d0)+'</b> on average'):'⚖️ Join date doesn’t matter — the founders and the deadline crowd are level')+'</div>';
+      if(state.meSlug&&c.joinMap[state.meSlug]){
+        const all=Object.values(c.joinMap).sort(function(a,b){return a-b;});
+        const myRank=all.indexOf(c.joinMap[state.meSlug])+1;
+        if(myRank>0)html+='<span class="aw-you">You were the <b>'+ordinal(myRank)+'</b> to join, of '+all.length+'</span>';
+      }
+    }
+  }
+  html+='</div>';
   /* NERD CORNER — loose numbers with nowhere else to live */
   html+='<div class="aw-card"><div class="aw-hd"><span class="aw-ic">🥼</span><div class="aw-t"><b>Nerd corner</b><span>Loose numbers with nowhere else to live</span></div></div>';
   html+='<div class="nrd-line">⚽ <b>'+nrdN(goals)+'</b> goals across '+gN+' finished scorelines · '+draws+' group-stage draws in '+gDone+' ('+nrdPct(draws,gDone)+'%)</div>';
@@ -6010,6 +6182,22 @@ async function renderNerds(body){
   html+='</div>';
   html+='<div class="dept-note" style="margin-top:12px">🧪 Methodology, for the truly committed: settled matches only, the same k-anonymity floors as everywhere (5+ calls group · 8+ knockout), recomputed live in your browser from the data the leaderboard already reads. No cookies were harmed.</div>';
   body.innerHTML=html;
+  /* sticky jump chips — the panel is a long scroll now; one emoji chip per card */
+  (function(){
+    const cards=body.querySelectorAll('.aw-card');
+    if(cards.length<8)return;
+    const row=document.createElement('div');row.className='nrd-jump';
+    row.setAttribute('role','navigation');row.setAttribute('aria-label','Jump to a stat card');
+    cards.forEach(function(cd){
+      const ic=cd.querySelector('.aw-ic'),tt=cd.querySelector('.aw-t b');if(!ic||!tt)return;
+      const b=document.createElement('button');b.type='button';
+      b.textContent=ic.textContent;b.title=tt.textContent;b.setAttribute('aria-label',tt.textContent);
+      b.onclick=function(){cd.scrollIntoView({behavior:'smooth',block:'start'});};
+      row.appendChild(b);});
+    const intro=body.querySelector('.dept-note');
+    if(intro&&intro.nextSibling)body.insertBefore(row,intro.nextSibling);
+    else body.insertBefore(row,body.firstChild);
+  })();
 }
 
 /* ===== "The Room" — player-facing picks & consensus (swarm-designed, seal-safe) =====
@@ -7937,6 +8125,8 @@ async function consensusCompute(){
        award races can show a live top-3 and a "you" line without a second pull. */
     const stA=[],pfA=[],upA=[];const mine={streak:0,perfect:0,upset:0};
     const perP=[]; /* anonymous {c:hits,n:settled calls} per player — no slug, no name; feeds the raffle-or-racetrack variance card */
+    const chipLed={armed:{qf:0,sf:0,fin:0},cashed:0,burned:0,pending:0,doubled:0}; /* aggregate armband ledger — counts + points only, no identities */
+    const joinMap={}; /* slug → joinedAt ms; the join-cohort card aggregates by tercile, never names a cohort member */
     players.forEach(function(p){
       if(!p)return;
       if(p.champ){champN++;cm[p.champ]=(cm[p.champ]||0)+1;}
@@ -7963,6 +8153,15 @@ async function consensusCompute(){
       if(runBest>0)stA.push({slug:p.slug||"",name:p.name||p.slug||"",v:runBest});
       officeHits+=hits;officeTot+=seq.length;
       if(seq.length>0)perP.push({c:hits,n:seq.length});
+      if(p.slug&&p.joinedAt)joinMap[p.slug]=+p.joinedAt;
+      if(p.chips)["qf","sf","fin"].forEach(function(rd){const id=p.chips[rd];if(!id)return;
+        chipLed.armed[rd]++;
+        const m=FIXBYID[id],r=state.results[id];
+        if(!(r&&r.w!=null)){chipLed.pending++;return;}
+        const v=pr[id];let kp=0;
+        if(v&&v.w&&v.w===r.w&&m)kp+=koPts(m);
+        if(v&&koScoreHit(v,r)&&m)kp+=koBonus(m);
+        if(kp>0){chipLed.cashed++;chipLed.doubled+=kp;}else chipLed.burned++;});
       if(seq.length>=3&&hits===seq.length)perfectN++;
       let myPerfect=0;
       for(const k in byDay){const a=byDay[k];if(a.length>=2&&a.every(function(x){return x;})){pday[k]=(pday[k]||0)+1;myPerfect++;}}
@@ -8006,7 +8205,7 @@ async function consensusCompute(){
           else{if(a.o&&a.o===bq.o)nn++;}}
         if(nn>twin.n)twin={name:p.name||p.slug||"",slug:p.slug||"",n:nn};}});
     const byV=function(a,b){return b.v-a.v;};stA.sort(byV);pfA.sort(byV);upA.sort(byV);
-    CONS={t:Date.now(),map:map,n:players.length,champN:champN,champMap:cm,best:best,bestPerfect:bestPerfect,perfectByDay:pday,bestUpset:bestUp,deptByDay:deptDay,dayTop:dayTop,dayHit:dayHit,twin:twin,perfectN:perfectN,officeHit:{h:officeHits,t:officeTot},perP:perP,tops:{streak:stA,perfect:pfA,upset:upA},mine:(state.meSlug?mine:null),full:true,fullT:Date.now(),rk:Object.keys(state.results).length,busy:null,busyF:null};
+    CONS={t:Date.now(),map:map,n:players.length,champN:champN,champMap:cm,best:best,bestPerfect:bestPerfect,perfectByDay:pday,bestUpset:bestUp,deptByDay:deptDay,dayTop:dayTop,dayHit:dayHit,twin:twin,perfectN:perfectN,officeHit:{h:officeHits,t:officeTot},perP:perP,chips:chipLed,joinMap:joinMap,tops:{streak:stA,perfect:pfA,upset:upA},mine:(state.meSlug?mine:null),full:true,fullT:Date.now(),rk:Object.keys(state.results).length,busy:null,busyF:null};
     return CONS;
 }
 function consText(m,p){

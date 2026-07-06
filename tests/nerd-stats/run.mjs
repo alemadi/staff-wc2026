@@ -32,7 +32,9 @@ const world = await pgA.evaluate(()=>({
   fixtures: FIXTURES.map(f=>({id:f.id,ko:f.ko,kn:!!f.kn,round:f.round,tag:f.tag||null,h:f.home&&f.home.n,a:f.away&&f.away.n})),
   bracket: BRACKET, fl: FL, wnVer: (typeof WHATSNEW_VER!=='undefined')?WHATSNEW_VER:'',
   KO_PTS: (typeof KO_PTS!=='undefined')?KO_PTS:null, KO_BONUS: (typeof KO_BONUS!=='undefined')?KO_BONUS:null,
-  PU_RANK: (typeof PU_RANK!=='undefined')?PU_RANK:{}, QZ: (typeof QZ!=='undefined')?QZ:'Asia/Qatar'
+  PU_RANK: (typeof PU_RANK!=='undefined')?PU_RANK:{}, QZ: (typeof QZ!=='undefined')?QZ:'Asia/Qatar',
+  PU_FROM_K: (typeof PU_FROM_K!=='undefined')?PU_FROM_K:25, PU_UPSET: (typeof PU_UPSET!=='undefined')?PU_UPSET:2,
+  venues: FIXTURES.map(f=>({id:f.id, v:f.v||''}))
 }));
 await ctxA.close();
 console.log('scraped fixtures:', world.fixtures.length, '· KO_PTS', JSON.stringify(world.KO_PTS));
@@ -120,7 +122,13 @@ function scoreOf(p){
 }
 const standings = blobs.map(p=>{ const s=scoreOf(p); return {slug:p.slug,name:p.name,dept:p.dept,pts:s.pts,exact:s.exact,correct:s.correct,predicted:s.predicted}; });
 
-const KV = { 'wc:results': results_, 'wc:kteams': kteams, 'wc:powerups_live': false };
+/* batch-5 seed: power-ups LIVE, armbands armed, join dates spread over 48 days */
+blobs.forEach((b,idx)=>{ b.joinedAt = Date.UTC(2026,4,20) + idx*86400000; });    // May 20 + idx days, in blobs order
+blobs[0].chips = { qf: qf0.id };          // settled armband — cashed/burned per the hash-derived pick; the expectation block recomputes it
+blobs[1].chips = { qf: qfs[1].id };       // unsettled → pending
+blobs[2].chips = { qf: qf0.id };          // second settled armband (outcome recomputed, not assumed)
+blobs[5].chips = { fin: 'k32' };          // Final armband → pending
+const KV = { 'wc:results': results_, 'wc:kteams': kteams, 'wc:powerups_live': true };
 blobs.forEach(b=>{ KV['wc:player:'+b.slug]=b; });
 
 /* ---------- EXPECTED values, recomputed here independently of the page ---------- */
@@ -159,7 +167,10 @@ const roundLong={MD1:'Matchday 1',MD2:'Matchday 2',MD3:'Matchday 3',R32:'Round o
 let expPeak=null; ROUND_ORDER.forEach(k=>{ if(!rb[k])return; const g=rb[k].g/rb[k].m; if(expPeak==null||g>rb[expPeak].g/rb[expPeak].m)expPeak=k; });
 // STILL ALIVE: remMax + aliveN (from the standings array we built)
 const unsettled = world.fixtures.filter(f=>{ const r=results_[f.id]; return !(r&&(f.kn?r.w!=null:r.h!=null)); });
-let expRemMax=0; unsettled.forEach(f=>{ if(!f.kn){expRemMax+=5;return;} expRemMax += koPtsOf(f)+koBonusOf(f); });   // powerups off
+let expRemMax=0; unsettled.forEach(f=>{ if(!f.kn){expRemMax+=5;return;}
+  let k=koPtsOf(f)+koBonusOf(f);
+  if(/^k[0-9]+$/.test(f.id) && (+f.id.slice(1))>=world.PU_FROM_K) k+=world.PU_UPSET;   // powerups LIVE in this seed
+  expRemMax+=k; });
 if(!results_._champ) expRemMax += 25;
 const playingRows = standings.filter(r=>(r.predicted|0)>0);
 const L = playingRows.reduce((m,r)=>Math.max(m,r.pts),0);
@@ -260,6 +271,55 @@ const oracleArr=standings.filter(r=>r.exact>0).map(r=>({name:r.name,v:r.exact,pt
   .sort((a,b)=>b.v-a.v||b.pts-a.pts||a.name.localeCompare(b.name));
 const expOracleLead=oracleArr[0], expHotLead=Math.max(...runsAll);
 console.log('EXPECTED b4:', JSON.stringify({expMult,expSkill,expQual,expMD1,expCushion,expTop5,expBrk,oracle:expOracleLead&&expOracleLead.v,hot:expHotLead}));
+/* ---- batch-5 expectations ---- */
+// ARMBAND LEDGER (mirrors consensusCompute's chipLed)
+let expArmed=0,expCashed=0,expBurned=0,expPendCh=0,expDoubled=0;
+blobs.forEach(b=>{ if(!b.chips)return; ['qf','sf','fin'].forEach(rd=>{ const id=b.chips[rd]; if(!id)return;
+  expArmed++;
+  const f=fxById[id], r=results_[id];
+  if(!(r&&r.w!=null)){ expPendCh++; return; }
+  const v=b.predictions[id]; let kp=0;
+  if(v&&v.w&&v.w===r.w&&f)kp+=koPtsOf(f);
+  if(v&&v.h!=null&&+v.h===r.h&&+v.a===r.a&&f)kp+=koBonusOf(f);
+  if(kp>0){expCashed++;expDoubled+=kp;}else expBurned++; }); });
+// GRAVEYARD SHIFT: office accuracy by Doha kickoff slot (floored)
+const fHr=new Intl.DateTimeFormat('en-GB',{timeZone:world.QZ,hour:'2-digit',hour12:false});
+const slotOf=iso=>{ const h=(+fHr.format(new Date(iso)))%24; return h>=7&&h<=17?'day':(h>=18?'eve':(h<=2?'late':'grave')); };
+const slots={};
+settledFx.forEach(f=>{ const c=officeCounts(f), r=results_[f.id];
+  let ok,tot;
+  if(f.kn){ if(c.tot<8)return; tot=c.tot; ok=(r.w===c.home?c.hN:(r.w===c.away?c.aN:0)); }
+  else{ if(c.tot<5)return; tot=c.tot; const ro=outcomeOf(r); ok=ro==='H'?c.H:(ro==='D'?c.D:c.A); }
+  const s=slotOf(f.ko); (slots[s]=slots[s]||{ok:0,t:0,m:0}); slots[s].ok+=ok; slots[s].t+=tot; slots[s].m++; });
+const slotOrder=['day','eve','late','grave'].filter(k=>slots[k]&&slots[k].t>=20);
+const expSlotN=slotOrder.length;
+const expSlot0=slotOrder.length?Math.round(slots[slotOrder[0]].ok/slots[slotOrder[0]].t*100):null;
+// SCORELINE STOCK MARKET: tickets on '2-0' (called + paid), from the blobs directly
+let expT20=0,expP20=0;
+settledFx.forEach(f=>{ if(f.kn)return; const c=officeCounts(f); if(c.tot<5)return; const r=results_[f.id];
+  blobs.forEach(b=>{ const v=b.predictions[f.id]; if(!v||v.h==null||v.a==null)return;
+    const k=(+v.h)+'-'+(+v.a); if(k!=='2-0')return; expT20++; if(r.h===2&&r.a===0)expP20++; }); });
+const expEV20=(expP20/Math.max(1,expT20)*2).toFixed(2);
+// HOME-SOIL BIAS: office H-share vs actual home wins (floored settled group)
+let hPick=0,pTot=0,hWin=0,mTot2=0;
+settledFx.forEach(f=>{ if(f.kn)return; const c=officeCounts(f); if(c.tot<5)return;
+  hPick+=c.H; pTot+=c.tot; mTot2++; if(results_[f.id].h>results_[f.id].a)hWin++; });
+const expHB=Math.round(hPick/pTot*100), expHW=Math.round(hWin/mTot2*100);
+// DRAW BLIND SPOT
+let dC=0,dH=0,oC=0,oH=0,expGhost=0;
+settledFx.forEach(f=>{ if(f.kn)return; const c=officeCounts(f); if(c.tot<5)return;
+  const r=results_[f.id], ro=outcomeOf(r);
+  dC+=c.D; oC+=c.H+c.A;
+  if(ro==='D'){ dH+=c.D; if(c.D/c.tot<0.10)expGhost++; }
+  else if(ro==='H')oH+=c.H; else oH+=c.A; });
+const expDrawAcc=Math.round(dH/dC*100), expWinAcc=Math.round(oH/oC*100);
+// FOUNDING MEMBERS: join-order terciles over playing rows
+const joined={}; blobs.forEach(b=>{ joined[b.slug]=b.joinedAt; });
+const js5=playingRows.map(r=>({pts:r.pts|0,j:joined[r.slug]})).filter(x=>x.j).sort((a,b)=>a.j-b.j);
+const n35=Math.floor(js5.length/3);
+const terAvg=a=>(a.reduce((s,x)=>s+x.pts,0)/a.length).toFixed(1);
+const expTer=[terAvg(js5.slice(0,n35)),terAvg(js5.slice(n35,2*n35)),terAvg(js5.slice(2*n35))];
+console.log('EXPECTED b5:', JSON.stringify({expArmed,expCashed,expBurned,expPendCh,expDoubled,expSlotN,expSlot0,expT20,expP20,expEV20,expHB,expHW,expDrawAcc,expWinAcc,expGhost,expTer,remMaxNow:expRemMax}));
 
 const meRow = standings.find(r=>r.slug==='khalid-almannai');
 console.log('EXPECTED:', JSON.stringify({settled:settledIds.length, crowd:expCrowdPct+'% /'+expCrowdTot, payTotal, expRideS, expFadeS, expVolPct, peak:expPeak, remMax:expRemMax, aliveN:expAliveN+'/'+playingRows.length, desks:expDesks, deadPct:expDeadPct, mePts:meRow.pts, drawPct:expDrawPct, gpm:(expGoals/expGN).toFixed(2)}));
@@ -370,6 +430,20 @@ const got = await pg.evaluate(()=>{
              tiles: cardByTitle('The photo finish')?Array.from(cardByTitle('The photo finish').querySelectorAll('.nrd-tile b')).map(x=>text(x)):[] },
     belts: { txt: cardTxt('The belt races'), pend: cardPend('The belt races'),
              rows: cardByTitle('The belt races')?Array.from(cardByTitle('The belt races').querySelectorAll('.nrd-belt')).map(x=>text(x)):[] },
+    ledger: { txt: cardTxt('The armband ledger'), pend: cardPend('The armband ledger'),
+              tiles: cardByTitle('The armband ledger')?Array.from(cardByTitle('The armband ledger').querySelectorAll('.nrd-tile b')).map(x=>text(x)):[] },
+    grave: { txt: cardTxt('The graveyard shift'), pend: cardPend('The graveyard shift'),
+             meters: cardByTitle('The graveyard shift')?Array.from(cardByTitle('The graveyard shift').querySelectorAll('.nrd-meter .lab')).map(x=>text(x)):[] },
+    market5: { txt: cardTxt('The scoreline stock market'), pend: cardPend('The scoreline stock market'),
+               rows: cardByTitle('The scoreline stock market')?Array.from(cardByTitle('The scoreline stock market').querySelectorAll('.nrd-crown')).map(x=>text(x)):[] },
+    homesoil: { txt: cardTxt('Home-soil bias'), pend: cardPend('Home-soil bias'),
+                meters: cardByTitle('Home-soil bias')?Array.from(cardByTitle('Home-soil bias').querySelectorAll('.nrd-meter .lab')).map(x=>text(x)):[] },
+    blind: { txt: cardTxt('The draw blind spot'), pend: cardPend('The draw blind spot'),
+             meters: cardByTitle('The draw blind spot')?Array.from(cardByTitle('The draw blind spot').querySelectorAll('.nrd-meter .lab')).map(x=>text(x)):[] },
+    founding: { txt: cardTxt('The founding members'), pend: cardPend('The founding members'),
+                meters: cardByTitle('The founding members')?Array.from(cardByTitle('The founding members').querySelectorAll('.nrd-meter .lab')).map(x=>text(x)):[] },
+    jump: { present: !!$('.nrd-jump'), chips: $$('.nrd-jump button').length, cards: $$('.aw-card').length,
+            firstTitle: $('.nrd-jump button')?$('.nrd-jump button').title:null },
     yous: $$('.aw-you').map(y=>text(y)),
   };
 });
@@ -379,9 +453,36 @@ console.log(JSON.stringify(got,null,1).slice(0,3600));
 if(got.onPill && got.onPill.includes('Nerds')) pass('mode pill switched'); else fail('mode pill not on');
 if(got.badgeAfter===false) pass('NEW badge cleared after visit'); else fail('NEW badge still on after click');
 if(got.tiles===6) pass('6 KPI tiles'); else fail('tiles='+got.tiles);
-['The points curve','Desk spread','Raffle or racetrack?','The hive mind','The payoff matrix','The overconfidence curve','The herd-o-meter','The scoreline lab','The markets lab','Goals by round','The favourite tax','The form curve','The predictability ladder','The streak spectrum','Stage wins','The photo finish','The belt races','The champion market','Still alive','Swing matches','Nerd corner'].forEach(t=>{
+['The points curve','Desk spread','Raffle or racetrack?','The hive mind','The payoff matrix','The overconfidence curve','The herd-o-meter','The scoreline lab','The markets lab','The scoreline stock market','The draw blind spot','Goals by round','Home-soil bias','The favourite tax','The form curve','The graveyard shift','The predictability ladder','The streak spectrum','Stage wins','The photo finish','The belt races','The champion market','The armband ledger','Still alive','Swing matches','The founding members','Nerd corner'].forEach(t=>{
   if(got.titles.includes(t)) pass('card present: '+t); else fail('card MISSING: '+t);
 });
+// batch 5 numeric checks
+if(!got.ledger.pend && got.ledger.tiles.join('|')===[expArmed,expCashed,expBurned,expPendCh,expDoubled,0].join('|'))
+  pass('armband ledger tiles = '+[expArmed,expCashed,expBurned,expPendCh,expDoubled,0].join('/'));
+else fail('ledger tiles='+JSON.stringify(got.ledger.tiles)+' expected '+[expArmed,expCashed,expBurned,expPendCh,expDoubled,0]);
+if(!got.grave.pend && got.grave.meters.length===expSlotN && (expSlot0==null||got.grave.meters[0].endsWith(expSlot0+'%')))
+  pass('graveyard shift: '+expSlotN+' slots, first = '+expSlot0+'%');
+else fail('grave meters='+JSON.stringify(got.grave.meters)+' expected '+expSlotN+' slots / '+expSlot0+'%');
+const row20=got.market5.rows.find(x=>x.startsWith('2–0'));
+if(!got.market5.pend && row20 && row20.includes(expT20+' tickets · '+expP20+' paid') && row20.endsWith(expEV20+'/tkt'))
+  pass('stock market 2–0: '+expT20+' tickets, '+expP20+' paid, EV '+expEV20);
+else fail('market row "'+row20+'" expected '+expT20+'/'+expP20+'/'+expEV20);
+const hbM=got.homesoil.meters.find(x=>/home side$/.test(x)||/calls on the home side/.test(x));
+const hwM=got.homesoil.meters.find(x=>/actually winning/.test(x));
+if(!got.homesoil.pend && hbM && hbM.includes(expHB+'%') && hwM && hwM.includes(expHW+'%'))
+  pass('home-soil bias: backed '+expHB+'% vs wins '+expHW+'%');
+else fail('homesoil meters='+JSON.stringify(got.homesoil.meters)+' expected '+expHB+'/'+expHW);
+const dM=got.blind.meters.find(x=>/Draw calls/.test(x)), wM=got.blind.meters.find(x=>/Win calls/.test(x));
+if(!got.blind.pend && dM && dM.includes(expDrawAcc+'%') && wM && wM.includes(expWinAcc+'%'))
+  pass('draw blind spot: draws '+expDrawAcc+'% vs wins '+expWinAcc+'%');
+else fail('blind meters='+JSON.stringify(got.blind.meters)+' expected '+expDrawAcc+'/'+expWinAcc);
+if(!got.founding.pend && got.founding.meters.length===3 && got.founding.meters.every((m,i)=>m.endsWith(expTer[i])))
+  pass('founding members terciles = '+expTer.join(' / '));
+else fail('founding meters='+JSON.stringify(got.founding.meters)+' expected '+expTer.join('/'));
+if(got.yous.some(y=>/1st.*to join/.test(y))) pass('founding: "1st to join" personal line'); else fail('join-rank line missing: '+got.yous.join(' | '));
+if(got.jump.present && got.jump.chips===got.jump.cards && got.jump.firstTitle==='The points curve')
+  pass('jump chips: '+got.jump.chips+' chips = '+got.jump.cards+' cards, first → The points curve');
+else fail('jump: present='+got.jump.present+' chips='+got.jump.chips+' cards='+got.jump.cards+' first='+got.jump.firstTitle);
 // batch 4 numeric checks
 if(!got.raffle.pend && got.raffle.n==='n = '+expQual && got.raffle.tiles[0]==='×'+expMult && got.raffle.tiles[1]===expSkill+'%')
   pass('raffle-or-racetrack: ×'+expMult+' spread, '+expSkill+'% skill, n='+expQual);

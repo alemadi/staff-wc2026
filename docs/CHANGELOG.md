@@ -5,6 +5,33 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-07-06 (Doha) — MAIN DEPLOY: STATS FOR NERDS · batch five — six fresh-angle cards + sticky jump chips
+
+**Commits:** this commit (`index.html` + `tests/nerd-stats/run.mjs` + changelog) on `claude/stats-for-nerds-3yajyc`, rebased onto `main` `1441487` (the banner-rework deploy — disjoint), **fast-forwarded to `main` on the organizer's explicit "Push"**. `main` had not moved since the rebase — clean FF. **Frontend only — no DB / scoring / sync change, zero new backend traffic.**
+
+**Shared-code touches (the two to review), both additive in `consensusCompute()`:**
+- `CONS.chips` — an aggregate armband ledger `{armed:{qf,sf,fin}, cashed, burned, pending, doubled}`: counts and points only, no identities; computed from data already in the loop.
+- `CONS.joinMap` — `{slug: joinedAt-ms}`; the founding-members card aggregates it into join-order terciles and never names a cohort member.
+Both verified non-breaking by the full share-cards suite (drives every existing `consensusFull` consumer).
+
+**Six new Nerds cards (panel now 27):**
+- **The armband ledger** (⚡, tiles; renders only while power-ups are live) — armbands armed by round, cashed vs burned, bonus points minted by the ×2, plus the office-wide 🦅 upset payout (k-floored) and your own armband book.
+- **The graveyard shift** (🌙, meters) — office accuracy by **Doha kickoff hour** (daytime / evening / late / 03–06 graveyard); quantifies whether the 3am calls are worse. ≥20 calls per slot.
+- **The scoreline stock market** (🎫, ticket rows) — each popular exact-score "ticket": bought vs paid and the points-per-ticket EV of the +2 market; best value vs biggest bust among liquid (30+) scorelines.
+- **Home-soil bias** (🏟, meters + tiles) — office calls on the listed home side vs home sides actually winning, goals/match by host country (MEX/USA/CAN, ≥3 matches each), hottest ground (≥3). Venue part reads public scores only.
+- **The draw blind spot** (🙈, meters) — accuracy of draw calls vs win calls, plus 👻 draws that landed with <10% backing.
+- **The founding members** (📜, meters) — the playing field split into join-order terciles: average points founding vs middle vs deadline third, and your own join rank (you-line only).
+
+**Sticky jump chips:** the panel is 27 cards long, so `renderNerds` now injects a sticky emoji chip row (one per card, `title`/`aria-label` = card name) under the intro; tap scrolls to the card. Pure display, built post-render from the cards themselves — no per-card markup changes.
+
+**Seal posture unchanged:** settled-only, k-anon floors (5 group / 8 knockout) on every pick-derived number, venue/goals cards read public scores only, names only positive leaders + "you" (`.aw-you`, hidden on `?tv`).
+
+**Verified on this tree:** `node tests/nerd-stats/run.mjs` **ALL GREEN ×2 (73 checks)** — seed upgraded to power-ups LIVE with four armed armbands and join dates spread across 48 days; all 27 cards render and each batch-5 number is **recomputed independently from the seed**: ledger tiles (4 armed / 2 cashed / 0 burned / 2 riding / 12 pts minted / 0 upset-paid — upset payout correctly floor-gated at n<8), graveyard 4 slots with the first at 68%, stock-market 2–0 ticket row (193 bought / 193 paid / 2.00 EV — the seed only buys winning tickets by construction), home bias 53% backed vs 75% delivered, draw accuracy 56% vs win 70%, founding terciles to one decimal, "1st to join" you-line, jump chips = card count with correct first target, and the still-alive ceiling re-derived under live power-ups (134). Regression: `tests/perf-boot/run.mjs` ALL GREEN; `tests/share-cards/run.mjs` green except the **pre-existing** 340px header failure. `node --check` clean on both inline blocks. 390px full-page screenshot of all 27 cards + chip row eyeballed.
+
+**Rollback:** `git push origin +1441487:main` (client-only — nothing server-side changed; reverts `main` to the banner-rework tip, the parent of this commit). The app ships a service worker: a stale shell may need one hard reload / app reopen.
+
+---
+
 ## 2026-07-06 (Doha) — MAIN DEPLOY: the banner rework (what's-new billboard with feature rows) ships to production
 
 **Commits:** this commit (changelog), then `main` fast-forwarded `6eb8660` → this tip and pushed **on the organizer's explicit "Go ahead and push"**. Main had moved under the branch twice (the banner-hub deploy `70711fd` and Nerds batch four `6eb8660`) — **rebased onto the batch-four tip first**; the share-cards test auto-merged, three `index.html` banner hunks resolved in this rework's favour (adopting the hub pass's `xbGoMode` helper), the changelog conflict resolved keeping both sides. Ships the one branch commit below. **Frontend only — no DB / scoring / sync change, zero new backend traffic.**
