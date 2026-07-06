@@ -5,6 +5,12 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-07-06 (Doha) — Copy fix: "day-one sickos" → "day-one diehards" (branch-only, NOT deployed)
+
+**Commits:** this commit (`index.html` + changelog) on `claude/stats-for-nerds-3yajyc`. One word in the founding-members card subtitle, on the organizer's ask ("change the sickos"). No logic, no layout. **Verified:** `tests/nerd-stats/run.mjs` ALL GREEN; `node --check` clean; zero remaining "sickos" greps. **Rollback:** `git revert` this commit.
+
+---
+
 ## 2026-07-06 (Doha) — MAIN DEPLOY · SQUAD BOARD: tap into any department to see its own leaderboard
 
 **Commits:** this commit (`index.html` + `tests/squad-board/run.mjs` + changelog) on `claude/squad-leaderboard-w7p21r`, **rebased onto `main` `50270be`** (Nerds batch five, then Trophy Room pass 2 — both landed in parallel mid-flight; `index.html` auto-merged each time, the changelog conflicts resolved keeping all sides) and **pushed to `main` on the organizer's "Push to main"**. **Frontend only — no DB / scoring / sync change, zero new backend traffic.** Organizer ask: a squad leaderboard, "to see the leaderboard of own department."
@@ -44,7 +50,6 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 **Verified on the shipped (rebased) tree:** `nerd-stats` **ALL GREEN (all 27 batch-five cards + this pass together)** — 13 new assertions recomputed independently from the seed (cabinet shelf order + Oracle/Podium/Dept holders and numbers, pack size/ranks/fold toggle, depth n=48 + pace-31-by-FT line, my rank 10th of 48, dept ladder 5 squads all barred + fold button, distance 97/104 · 93%); the existing race-pulse assertion now targets the 🔥 line specifically (a card can carry two `.aw-race` lines). Regression: `perf-boot` ALL GREEN · `share-cards` green except the **pre-existing** 340px header overlap · `node --check` clean on both inline blocks. Awards + Nerds 390px full-page screenshots eyeballed (the test now saves `awards-390.png` too).
 
 **Rollback:** `git push origin +9163d81:main` (client-only — nothing server-side changed; reverts `main` to the batch-five tip, the parent of this deploy). The app ships a service worker: a stale shell may need one hard reload / app reopen.
-
 ---
 
 ## 2026-07-06 (Doha) — MAIN DEPLOY: STATS FOR NERDS · batch five — six fresh-angle cards + sticky jump chips
