@@ -5,6 +5,16 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-07-06 (Doha) — MAIN DEPLOY (launch step ③): Wave-B client ships to production
+
+**Commits:** this commit, then `main` fast-forwarded `c550879` → this tip and pushed **on the organizer's explicit "push main"**. Ships to staffchallenge26.com via the Pages action: the corrected **11-Jun-2026 FIFA `PU_RANK`** (client upset math now matches the deployed server `wc_rank` byte-for-byte), the committed `tests/wave-b/` parity harness, the server-side flag-gate SQL sources, the step-①/② deploy documentation + rollback dossier, and the revoke-hardened `sql/*.sql`. **No scoring or visual change for players**: `wc:powerups_live` is still unset, so client (`puLive()`) and server (`standings()`) both keep serving the pure base ladder — power-ups appear only at step ④.
+
+**Verified after push:** Pages action green; prod `index.html` (cache-busted) contains `"Argentina":1` in `PU_RANK`.
+
+**Rollback:** `git push origin +c550879:main` (client-only revert; the DB stays on the step-① state documented in the previous entry — the two are independently safe: flag-off keeps either combination byte-identical on output).
+
+---
+
 ## 2026-07-06 (Doha) — WAVE B SQL DEPLOYED LIVE (launch step ① + ②): engine + walls on production, verified inert
 
 **Commits:** this commit (`docs/rollback/2026-07-06-pre-wave-b/*` + `sql/protect.sql` + `sql/standings.sql` revoke-hardening + changelog + handoff addendum). **The live DB change below is APPLIED (2026-07-06 ~07:00–07:30 Doha) — on the organizer's explicit instruction ("i want you to do it. the SQL"), via the Supabase connector instead of the SQL-editor paste.** Power-ups remain **OFF**: `wc:powerups_live` unset, 0 chips held, leaderboard byte-identical before/after.
