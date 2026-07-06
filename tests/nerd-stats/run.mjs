@@ -229,6 +229,37 @@ blobsBySlug.forEach(b=>{ const ptsBy={};
 const stageDays=Object.keys(dayTop).length;
 const stageHolders=new Set(Object.values(dayTop).map(x=>x.slug)).size;
 console.log('EXPECTED b3:', JSON.stringify({expBack,expDeliv,favT,expHerd,hn,expOvCalled,expOvHappened,expRunN,expRunMed,stageDays,stageHolders}));
+/* ---- batch-4 expectations ---- */
+// RAFFLE OR RACETRACK: per-player {hits, engaged calls} (mirrors CONS.perP), variance decomposition
+const perP=[];
+blobs.forEach(b=>{ let hits=0,n=0;
+  doneSorted.forEach(f=>{ const v=b.predictions[f.id]; if(!v)return; if(f.kn?!v.w:!v.o)return;
+    n++; const r=results_[f.id]; if(f.kn?(v.w===r.w):(v.o===outcomeOf(r)))hits++; });
+  if(n>0)perP.push({c:hits,n}); });
+const qual=perP.filter(p=>p.n>=10);
+let C4=0,N4=0; qual.forEach(p=>{C4+=p.c;N4+=p.n;});
+const pb=C4/N4;
+let ov=0,lv=0; qual.forEach(p=>{ const hr=p.c/p.n; ov+=(hr-pb)*(hr-pb); lv+=pb*(1-pb)/p.n; });
+ov/=qual.length; lv/=qual.length;
+const expMult=(ov/lv).toFixed(1), expSkill=Math.max(0,Math.round((1-lv/Math.max(ov,1e-9))*100)), expQual=qual.length;
+// PREDICTABILITY LADDER: weighted office accuracy per round (floored)
+const ra4={};
+settledFx.forEach(f=>{ const c=officeCounts(f), r=results_[f.id];
+  if(f.kn){ if(c.tot<8)return; const ok=(r.w===c.home?c.hN:(r.w===c.away?c.aN:0)); (ra4[f.round]=ra4[f.round]||{ok:0,t:0}); ra4[f.round].ok+=ok; ra4[f.round].t+=c.tot; }
+  else{ if(c.tot<5)return; const ro=outcomeOf(r), ok=ro==='H'?c.H:(ro==='D'?c.D:c.A); (ra4[f.round]=ra4[f.round]||{ok:0,t:0}); ra4[f.round].ok+=ok; ra4[f.round].t+=c.tot; } });
+const ladderRounds=ROUND_ORDER.filter(k=>ra4[k]&&ra4[k].t>=20);
+const expMD1=ladderRounds.includes('MD1')?Math.round(ra4.MD1.ok/ra4.MD1.t*100):null;
+// PHOTO FINISH: from the standings array (page sorts by cmpSt = pts,predicted,exact,correct then name)
+const sortedPF=standings.slice().sort((a,b)=>(b.pts-a.pts)||(b.predicted-a.predicted)||(b.exact-a.exact)||(b.correct-a.correct)||a.name.localeCompare(b.name));
+const T10=sortedPF.slice(0,10).map(r=>r.pts|0);
+const expCushion=T10[0]-T10[1], expTop5=T10[0]-T10[4];
+let bi4=0; for(let i=0;i<9;i++){ if(T10[i]-T10[i+1]>T10[bi4]-T10[bi4+1])bi4=i; }
+const expBrk=T10[bi4]-T10[bi4+1];
+// BELT RACES: oracle leader from standings (v desc, pts desc, name)
+const oracleArr=standings.filter(r=>r.exact>0).map(r=>({name:r.name,v:r.exact,pts:r.pts}))
+  .sort((a,b)=>b.v-a.v||b.pts-a.pts||a.name.localeCompare(b.name));
+const expOracleLead=oracleArr[0], expHotLead=Math.max(...runsAll);
+console.log('EXPECTED b4:', JSON.stringify({expMult,expSkill,expQual,expMD1,expCushion,expTop5,expBrk,oracle:expOracleLead&&expOracleLead.v,hot:expHotLead}));
 
 const meRow = standings.find(r=>r.slug==='khalid-almannai');
 console.log('EXPECTED:', JSON.stringify({settled:settledIds.length, crowd:expCrowdPct+'% /'+expCrowdTot, payTotal, expRideS, expFadeS, expVolPct, peak:expPeak, remMax:expRemMax, aliveN:expAliveN+'/'+playingRows.length, desks:expDesks, deadPct:expDeadPct, mePts:meRow.pts, drawPct:expDrawPct, gpm:(expGoals/expGN).toFixed(2)}));
@@ -329,6 +360,16 @@ const got = await pg.evaluate(()=>{
               bars: (cardByTitle('The streak spectrum')&&cardByTitle('The streak spectrum').querySelector('.nrd-plot'))?cardByTitle('The streak spectrum').querySelector('.nrd-plot').children.length:0 },
     stage: { txt: cardTxt('Stage wins'), pend: cardPend('Stage wins'),
              rows: cardByTitle('Stage wins')?cardByTitle('Stage wins').querySelectorAll('.nrd-crown').length:0 },
+    raffle: { txt: cardTxt('Raffle or racetrack?'), pend: cardPend('Raffle or racetrack?'),
+              n: cardByTitle('Raffle or racetrack?')?text(cardByTitle('Raffle or racetrack?').querySelector('.aw-prz')):null,
+              tiles: cardByTitle('Raffle or racetrack?')?Array.from(cardByTitle('Raffle or racetrack?').querySelectorAll('.nrd-tile b')).map(x=>text(x)):[] },
+    ladder: { txt: cardTxt('The predictability ladder'), pend: cardPend('The predictability ladder'),
+              bars: cardByTitle('The predictability ladder')?cardByTitle('The predictability ladder').querySelectorAll('.nrd-rounds .rc').length:0,
+              firstBar: cardByTitle('The predictability ladder')?text(cardByTitle('The predictability ladder').querySelector('.nrd-rounds .rc em')):null },
+    photo: { txt: cardTxt('The photo finish'), pend: cardPend('The photo finish'),
+             tiles: cardByTitle('The photo finish')?Array.from(cardByTitle('The photo finish').querySelectorAll('.nrd-tile b')).map(x=>text(x)):[] },
+    belts: { txt: cardTxt('The belt races'), pend: cardPend('The belt races'),
+             rows: cardByTitle('The belt races')?Array.from(cardByTitle('The belt races').querySelectorAll('.nrd-belt')).map(x=>text(x)):[] },
     yous: $$('.aw-you').map(y=>text(y)),
   };
 });
@@ -338,9 +379,25 @@ console.log(JSON.stringify(got,null,1).slice(0,3600));
 if(got.onPill && got.onPill.includes('Nerds')) pass('mode pill switched'); else fail('mode pill not on');
 if(got.badgeAfter===false) pass('NEW badge cleared after visit'); else fail('NEW badge still on after click');
 if(got.tiles===6) pass('6 KPI tiles'); else fail('tiles='+got.tiles);
-['The points curve','Desk spread','The hive mind','The payoff matrix','The overconfidence curve','The herd-o-meter','The scoreline lab','The markets lab','Goals by round','The favourite tax','The form curve','The streak spectrum','Stage wins','The champion market','Still alive','Swing matches','Nerd corner'].forEach(t=>{
+['The points curve','Desk spread','Raffle or racetrack?','The hive mind','The payoff matrix','The overconfidence curve','The herd-o-meter','The scoreline lab','The markets lab','Goals by round','The favourite tax','The form curve','The predictability ladder','The streak spectrum','Stage wins','The photo finish','The belt races','The champion market','Still alive','Swing matches','Nerd corner'].forEach(t=>{
   if(got.titles.includes(t)) pass('card present: '+t); else fail('card MISSING: '+t);
 });
+// batch 4 numeric checks
+if(!got.raffle.pend && got.raffle.n==='n = '+expQual && got.raffle.tiles[0]==='×'+expMult && got.raffle.tiles[1]===expSkill+'%')
+  pass('raffle-or-racetrack: ×'+expMult+' spread, '+expSkill+'% skill, n='+expQual);
+else fail('raffle tiles='+JSON.stringify(got.raffle.tiles)+' n="'+got.raffle.n+'" expected ×'+expMult+' / '+expSkill+'% / n='+expQual);
+if(!got.ladder.pend && got.ladder.bars===ladderRounds.length && (expMD1==null||got.ladder.firstBar===expMD1+'%'))
+  pass('predictability ladder: '+got.ladder.bars+' rounds, MD1 = '+got.ladder.firstBar);
+else fail('ladder bars='+got.ladder.bars+'/'+ladderRounds.length+' firstBar='+got.ladder.firstBar+' expected '+expMD1+'%');
+if(!got.photo.pend && got.photo.tiles.join('|')===[expCushion,expTop5,expBrk].join('|'))
+  pass('photo finish: cushion '+expCushion+' · top5 '+expTop5+' · break '+expBrk);
+else fail('photo tiles='+JSON.stringify(got.photo.tiles)+' expected '+[expCushion,expTop5,expBrk]);
+const oracleRow=got.belts.rows.find(x=>/^🔮?\s*Oracle/.test(x)||/Oracle/.test(x));
+if(!got.belts.pend && got.belts.rows.length===4 && oracleRow && oracleRow.includes(expOracleLead.name.split(' ')[0]) && oracleRow.endsWith(String(expOracleLead.v)))
+  pass('belt races: 4 belts, Oracle = '+expOracleLead.name.split(' ')[0]+' at '+expOracleLead.v);
+else fail('belts rows='+JSON.stringify(got.belts.rows).slice(0,300)+' expected Oracle '+expOracleLead.name+' '+expOracleLead.v);
+const hotRow=got.belts.rows.find(x=>/Hot Hand/.test(x));
+if(hotRow && hotRow.endsWith('×'+expHotLead)) pass('belt races: Hot Hand record ×'+expHotLead); else fail('hot row "'+hotRow+'" expected ×'+expHotLead);
 // batch 3 numeric checks
 if(!got.herd.pend && got.herd.meter && got.herd.meter.includes(expHerd+'%') && got.herd.meter.includes(hn+' matches'))
   pass('herd-o-meter avg = '+expHerd+'% over '+hn); else fail('herd meter "'+got.herd.meter+'" expected '+expHerd+'% / '+hn);
@@ -387,6 +444,17 @@ await pg.locator('#lbmode button[data-m="people"]').click();
 await pg.waitForSelector('.podium', {timeout:8000}).then(()=>pass('People mode still renders')).catch(()=>fail('People mode broke'));
 await pg.locator('#lbmode button[data-m="awards"]').click();
 await pg.waitForSelector('.aw-card', {timeout:8000}).then(()=>pass('Awards mode still renders')).catch(()=>fail('Awards mode broke'));
+// Trophy Room race pulse — replicate the oracle race's expected tension line
+await pg.waitForTimeout(400);
+{
+  const co=oracleArr.filter(x=>x.v===oracleArr[0].v).length;
+  const w1=oracleArr.filter(x=>oracleArr[0].v-x.v===1).length;
+  const expectPulse = co>=2 ? (co+'-way dead heat') : (w1>=1 ? (w1+' challenger') : null);
+  const awTxt = await pg.evaluate(()=>{ const hd=Array.from(document.querySelectorAll('.aw-card .aw-t b')).find(b=>b.textContent.trim()==='Oracle');
+    const c=hd&&hd.closest('.aw-card'); const p=c&&c.querySelector('.aw-race'); return p?p.textContent.replace(/\s+/g,' ').trim():null; });
+  if(expectPulse===null){ if(awTxt===null) pass('trophy race pulse: correctly absent for Oracle'); else fail('race pulse should be absent, got "'+awTxt+'"'); }
+  else if(awTxt && awTxt.includes(expectPulse)) pass('trophy race pulse: "'+expectPulse+'" shown on Oracle'); else fail('race pulse "'+awTxt+'" expected to include "'+expectPulse+'"');
+}
 
 /* screenshot for the eyeball pass */
 await pg.locator('#lbmode button[data-m="nerds"]').click();

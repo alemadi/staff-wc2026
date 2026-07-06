@@ -1755,6 +1755,17 @@
   .nrd-crown .nm{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .nrd-crown.me .nm{color:var(--gold-bright)}
   .nrd-crown .pt{flex:none;font-size:10px;font-weight:800;color:#181106;background:linear-gradient(115deg,var(--gd),var(--gold));border-radius:5px;padding:1px 6px}
+  /* batch 4: belt-race tension rows (nerds) + race-pulse line (Trophy Room) */
+  .nrd-belt{display:flex;align-items:center;gap:10px;padding:6.5px 0;border-top:1px solid rgba(255,255,255,.05)}
+  .nrd-belt:first-of-type{border-top:0}
+  .nrd-belt .ic{flex:none;font-size:15px}
+  .nrd-belt .bi{flex:1;min-width:0}
+  .nrd-belt .bi b{display:block;font-size:11.5px;color:var(--cream);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .nrd-belt .bi span{display:block;font-size:10px;color:var(--faint);font-weight:600;margin-top:1px}
+  .nrd-belt .bi span em{font-style:normal;color:var(--gold-bright);font-weight:800}
+  .nrd-belt .bv{flex:none;font-family:var(--font-d);font-size:17px;color:var(--gold-bright)}
+  .aw-race{display:block;margin-top:7px;font-size:10.5px;font-weight:700;color:var(--muted)}
+  .aw-race b{color:var(--gold-bright)}
   /* ===== PERF ===== */
   /* Long lists: skip layout+paint for offscreen cards (104 matches / 100+ board rows).
      contain-intrinsic-size ≈ a typical card so the scrollbar stays honest; the `auto`
@@ -5302,6 +5313,14 @@ async function renderAwards(body){
     else if(!arr.length)html+='<div class="aw-pend">Unclaimed \u2014 the race is wide open. First to '+rc.floorTxt+' takes it.</div>';
     else{
       arr.slice(0,3).forEach(function(x,i){html+=awRowHTML(i,x.name,x.slug,awValChip(rc.unit,x.v));});
+      /* race pulse \u2014 display-only tension read; the race rules themselves are locked */
+      if(arr[0].v>=rc.floor&&arr.length>=2){
+        const co=arr.filter(function(x){return x.v===arr[0].v;}).length;
+        const uw={exact:'exact score',shock:'shock',run:'step',day:'perfect day'}[rc.unit]||'';
+        if(co>=2)html+='<span class="aw-race">\ud83d\udd25 <b>'+co+'-way dead heat</b> at the top \u2014 total points hold the belt</span>';
+        else{const w1=arr.filter(function(x){return arr[0].v-x.v===1;}).length;
+          if(w1>=1)html+='<span class="aw-race">\ud83d\udd25 <b>'+w1+'</b> challenger'+(w1===1?'':'s')+' within one '+uw+' of the belt</span>';}
+      }
       if(arr[0].v<rc.floor)html+='<div class="aw-unclaimed">Still unclaimed \u2014 the title needs '+rc.floorTxt+'.</div>';
       const myV=rc.key==='oracle'?(meRow?(meRow.exact|0):null):((c&&c.mine)?c.mine[{trailblazer:'upset',hothand:'streak',perfectionist:'perfect'}[rc.key]]:null);
       if(state.player&&myV!=null){
@@ -5435,6 +5454,34 @@ async function renderNerds(body){
         html+='</div>';
       }
     }
+  }
+  /* RAFFLE OR RACETRACK — variance decomposition: is the leaderboard spread skill, or coin-flip luck?
+     Observed spread of per-player hit rates vs the spread pure binomial luck would produce if
+     everyone had the same true skill. Anonymous {hits,calls} pairs only (CONS.perP) — no names. */
+  {
+    let rr='';
+    const q=(c&&c.perP)?c.perP.filter(function(p){return p.n>=10;}):null;
+    if(!c||!c.perP)rr=pend;
+    else if(q.length<15)rr='<div class="aw-pend">Needs 15+ colleagues with 10+ settled calls — check back after the next matchday.</div>';
+    else{
+      let C=0,N=0;q.forEach(function(p){C+=p.c;N+=p.n;});
+      const pb=C/N;
+      if(pb<=0||pb>=1)rr='<div class="aw-pend">The office is either perfect or hopeless — variance has nothing left to say.</div>';
+      else{
+        let ov=0,lv=0;
+        q.forEach(function(p){const hr=p.c/p.n;ov+=(hr-pb)*(hr-pb);lv+=pb*(1-pb)/p.n;});
+        ov/=q.length;lv/=q.length;
+        const mult=ov/lv,skillShare=Math.max(0,Math.round((1-lv/Math.max(ov,1e-9))*100));
+        rr='<div class="nrd-tiles" style="grid-template-columns:1fr 1fr">'
+          +'<div class="nrd-tile"><b>×'+mult.toFixed(1)+'</b><span>spread vs pure luck</span></div>'
+          +'<div class="nrd-tile"><b>'+skillShare+'<small>%</small></b><span>of the spread is skill</span></div>'
+          +'</div>';
+        rr+='<div class="nrd-meter"><div class="lab"><span>Skill share of the spread</span><b>'+skillShare+'%</b></div><div class="nrd-track"><i style="width:'+skillShare+'%"></i></div></div>';
+        rr+='<div class="nrd-line">'+(mult>=2?'🏇 A racetrack — colleagues are spread <b>×'+mult.toFixed(1)+'</b> wider than coin-flip luck alone would spread them. Skill is real here':mult>=1.2?'🎯 More racetrack than raffle — real skill separation, with a healthy pour of luck on top':mult>=0.8?'🎰 Basically a raffle (so far) — the spread looks like coin-flip variance. Anyone can win this':'🍀 Spookily uniform — less spread than luck alone would produce. The office is one hive brain')+'</div>';
+        rr+='<div class="nrd-line">🥼 Method: observed variance of per-player hit rates vs the binomial variance a same-skill office would show. '+q.length+' colleagues with 10+ calls, office base rate '+Math.round(pb*100)+'%</div>';
+      }
+    }
+    html+='<div class="aw-card"><div class="aw-hd"><span class="aw-ic">🎰</span><div class="aw-t"><b>Raffle or racetrack?</b><span>Is this pool decided by skill or by luck? The variance knows</span></div>'+((q&&q.length>=15)?'<span class="aw-prz">n = '+q.length+'</span>':'')+'</div>'+rr+'</div>';
   }
   /* HIVE MIND — would blindly following the office majority beat the average colleague? */
   html+='<div class="aw-card"><div class="aw-hd"><span class="aw-ic">🧠</span><div class="aw-t"><b>The hive mind</b><span>One robot that always picks with the office majority — vs the average colleague</span></div>'+(c?'<span class="aw-prz">n = '+c.n+'</span>':'')+'</div>';
@@ -5732,6 +5779,33 @@ async function renderNerds(body){
     }
   }
   html+='</div>';
+  /* THE PREDICTABILITY LADDER — office accuracy by structural round (the form curve is calendar; this is stakes) */
+  html+='<div class="aw-card"><div class="aw-hd"><span class="aw-ic">🪜</span><div class="aw-t"><b>The predictability ladder</b><span>Office accuracy round by round — and the knockout cliff</span></div></div>';
+  if(!c)html+=pend;
+  else{
+    const ra={};
+    settled.forEach(function(f){const cc=c.map[f.id];if(!cc)return;const r=state.results[f.id],v=fxView(f);
+      let ok,tot;
+      if(f.kn){const hN=cc.w[v.home.n]||0,aN=cc.w[v.away.n]||0;tot=hN+aN;if(tot<8)return;ok=cc.w[r.w]||0;}
+      else{tot=cc.H+cc.D+cc.A;if(tot<5)return;ok=cc[r.h>r.a?"H":(r.h<r.a?"A":"D")];}
+      const o=ra[f.round]||(ra[f.round]={ok:0,t:0});o.ok+=ok;o.t+=tot;});
+    const lOrder=ROUNDS.map(function(x){return x[0];}).filter(function(k){return ra[k]&&ra[k].t>=20;});
+    if(lOrder.length<2)html+='<div class="aw-pend">Needs settled matches in two rounds to build the ladder.</div>';
+    else{
+      const shortR2={MD1:"MD1",MD2:"MD2",MD3:"MD3",R32:"R32",R16:"R16",QF:"QF",SF:"SF",FINAL:"FIN"};
+      const acc=function(k){return nrdPct(ra[k].ok,ra[k].t);};
+      let ez=lOrder[0],hd=lOrder[0];lOrder.forEach(function(k){if(acc(k)>acc(ez))ez=k;if(acc(k)<acc(hd))hd=k;});
+      html+='<div class="nrd-rounds" style="height:88px">'+lOrder.map(function(k){
+        return '<div class="rc"><i class="'+(k===ez?'hot':'')+'" style="height:'+Math.max(3,acc(k))+'%"><em>'+acc(k)+'%</em></i></div>';}).join('')+'</div>';
+      html+='<div class="nrd-rlab">'+lOrder.map(function(k){return '<u>'+shortR2[k]+'</u>';}).join('')+'</div>';
+      const grpKeys=["MD1","MD2","MD3"].filter(function(k){return ra[k];}),koKeys=["R32","R16","QF","SF","FINAL"].filter(function(k){return ra[k];});
+      const wavg=function(keys){let ok=0,t=0;keys.forEach(function(k){ok+=ra[k].ok;t+=ra[k].t;});return t?Math.round(ok/t*100):null;};
+      const gAcc=wavg(grpKeys),kAcc=wavg(koKeys);
+      if(gAcc!=null&&kAcc!=null)html+='<div class="nrd-line">'+(kAcc<gAcc-3?('🧗 The knockout cliff is real — office accuracy drops <b>'+(gAcc-kAcc)+'</b> points when the groups end ('+gAcc+'% → '+kAcc+'%)'):kAcc>gAcc+3?('🛗 No cliff — the office actually gets <b>'+(kAcc-gAcc)+'</b> points sharper in the knockouts'):'🪜 A steady ladder — the knockouts read about as well as the groups')+'</div>';
+      html+='<div class="nrd-line">😌 Easiest round to call: <b>'+RLABEL[ez]+'</b> ('+acc(ez)+'%) · hardest: <b>'+RLABEL[hd]+'</b> ('+acc(hd)+'%)</div>';
+    }
+  }
+  html+='</div>';
   /* THE STREAK SPECTRUM — every player's best-ever run as a distribution (Hot Hand shows only the peak) */
   html+='<div class="aw-card"><div class="aw-hd"><span class="aw-ic">🔥</span><div class="aw-t"><b>The streak spectrum</b><span>Everyone’s best run of correct calls — not just the record holder’s</span></div>'+(c&&c.tops&&c.tops.streak?'<span class="aw-prz">n = '+c.tops.streak.length+'</span>':'')+'</div>';
   if(!c||!c.tops||!c.tops.streak)html+=pend;
@@ -5776,6 +5850,50 @@ async function renderNerds(body){
       if(kingDay&&holders[kingS]>=2)html+='<div class="nrd-line">🏵 Most crowns: <b>'+esc((c.dayTop[kingDay].name||"").split(" ")[0])+'</b> with <b>'+holders[kingS]+'</b></div>';
       if(state.meSlug&&holders[state.meSlug])html+='<span class="aw-you">You’ve worn the crown <b>'+holders[state.meSlug]+'</b> time'+(holders[state.meSlug]===1?'':'s')+'</span>';
     }
+  }
+  html+='</div>';
+  /* THE PHOTO FINISH — the shape of the top of the board: compression, cushions, and the natural break */
+  if(sorted.length>=10&&maxP>0){
+    const T=sorted.slice(0,10).map(function(r){return r.pts|0;});
+    const cushion=T[0]-T[1],top5=T[0]-T[4];
+    let bi=0;for(let i=0;i<9;i++){if(T[i]-T[i+1]>T[bi]-T[bi+1])bi=i;}
+    const brk=T[bi]-T[bi+1];
+    html+='<div class="aw-card"><div class="aw-hd"><span class="aw-ic">🏁</span><div class="aw-t"><b>The photo finish</b><span>The shape of the top 10 — gaps, cushions and the natural break</span></div></div>';
+    html+='<div class="nrd-tiles"><div class="nrd-tile"><b>'+cushion+'</b><span>leader’s cushion</span></div><div class="nrd-tile"><b>'+top5+'</b><span>pts cover the top 5</span></div><div class="nrd-tile"><b>'+brk+'</b><span>biggest break</span></div></div>';
+    html+='<div class="nrd-plot" style="height:52px">'+Array.from({length:9},function(_,i){
+      const g=T[i]-T[i+1],h=brk>0?Math.max(3,Math.round(g/brk*100)):3;
+      return '<i class="'+(i===bi&&brk>0?'hot':'')+'" style="height:'+h+'%">'+(i===bi&&brk>0?'<em>'+brk+'</em>':'')+'</i>';}).join('')
+      +'</div><div class="nrd-ax"><span>gap #1→#2</span><span>gap #9→#10</span></div>';
+    const lead1=esc((sorted[0].name||"").split(" ")[0]);
+    html+='<div class="nrd-line">'+(top5<=5?('📸 A genuine photo finish — <b>'+top5+'</b> pts cover the top five. One exact score reorders the podium'):top5<=12?('🔥 Tight at the top — the podium is <b>'+top5+'</b> pts wide and one big matchday flips it'):('🏔 <b>'+lead1+'</b> has daylight — but knockout rounds pay '+(puLive()?'up to 30+':'up to 18')+' a match, so nothing is safe'))+'</div>';
+    if(brk>0&&bi>0)html+='<div class="nrd-line">✂️ The natural break: <b>'+brk+'</b> pts of daylight between '+ordinal(bi+1)+' and '+ordinal(bi+2)+' — that’s where the peloton splits</div>';
+    html+='</div>';
+  }
+  /* THE BELT RACES — how tight each Trophy Room title actually is, as one tension board */
+  html+='<div class="aw-card"><div class="aw-hd"><span class="aw-ic">🥊</span><div class="aw-t"><b>The belt races</b><span>Every office title as a live tension read — full races in the Trophy Room</span></div></div>';
+  if(!c||!c.tops)html+=pend;
+  else{
+    const pmapB={};rows.forEach(function(r){pmapB[r.slug]=r.pts|0;});
+    const srt=function(arr){return arr.slice().sort(function(a,b){return b.v-a.v||(pmapB[b.slug]||0)-(pmapB[a.slug]||0)||(a.name||"").localeCompare(b.name||"");});};
+    const oracleArr=srt(rows.filter(function(r){return (r.exact|0)>0;}).map(function(r){return{slug:r.slug,name:r.name,v:r.exact|0};}));
+    const BELTS=[
+      {ic:'🔮',lab:'Oracle',unit:'exact score',arr:oracleArr,floor:1},
+      {ic:'🧭',lab:'Trailblazer',unit:'shock',arr:srt(c.tops.upset),floor:2},
+      {ic:'🔥',lab:'Hot Hand',unit:'step',arr:srt(c.tops.streak),floor:3},
+      {ic:'💎',lab:'Perfectionist',unit:'perfect day',arr:srt(c.tops.perfect),floor:1}
+    ];
+    BELTS.forEach(function(bl){
+      const arr=bl.arr;
+      if(!arr.length||arr[0].v<bl.floor){
+        html+='<div class="nrd-belt"><span class="ic">'+bl.ic+'</span><div class="bi"><b>'+bl.lab+'</b><span>unclaimed — the race hasn’t started</span></div><span class="bv">—</span></div>';return;}
+      const lead=arr[0],co=arr.filter(function(x){return x.v===lead.v;}).length;
+      const w1=arr.filter(function(x){return lead.v-x.v<=1;}).length-co;
+      let sub;
+      if(co>=2)sub='<em>'+co+'-way dead heat</em> — points split the belt';
+      else{const gap=lead.v-(arr[1]?arr[1].v:0);
+        sub=(gap===0?'level on numbers — points break the tie':('by '+gap+' '+bl.unit+(gap===1?'':'s')))+(w1>0?' · <em>'+w1+'</em> within one':'');}
+      html+='<div class="nrd-belt"><span class="ic">'+bl.ic+'</span><div class="bi"><b>'+bl.lab+' — '+esc((lead.name||"").split(" ")[0])+'</b><span>'+sub+'</span></div><span class="bv">'+(bl.lab==='Hot Hand'?'×':'')+lead.v+'</span></div>';});
+    html+='<div class="nrd-line" style="margin-top:4px">🏛 Belts are honours on top — they never move points. The full races (and where you sit) live in 🏆 Awards.</div>';
   }
   html+='</div>';
   /* THE CHAMPION MARKET — where the +25 tickets sit, and how many are already ash */
@@ -7808,6 +7926,7 @@ async function consensusCompute(){
     /* TROPHY ROOM — full race lists (not just the leader) + my own numbers, so the
        award races can show a live top-3 and a "you" line without a second pull. */
     const stA=[],pfA=[],upA=[];const mine={streak:0,perfect:0,upset:0};
+    const perP=[]; /* anonymous {c:hits,n:settled calls} per player — no slug, no name; feeds the raffle-or-racetrack variance card */
     players.forEach(function(p){
       if(!p)return;
       if(p.champ){champN++;cm[p.champ]=(cm[p.champ]||0)+1;}
@@ -7833,6 +7952,7 @@ async function consensusCompute(){
       let runBest=0,runCur=0;for(let i=0;i<seq.length;i++){if(seq[i]){runCur++;if(runCur>runBest)runBest=runCur;}else runCur=0;}
       if(runBest>0)stA.push({slug:p.slug||"",name:p.name||p.slug||"",v:runBest});
       officeHits+=hits;officeTot+=seq.length;
+      if(seq.length>0)perP.push({c:hits,n:seq.length});
       if(seq.length>=3&&hits===seq.length)perfectN++;
       let myPerfect=0;
       for(const k in byDay){const a=byDay[k];if(a.length>=2&&a.every(function(x){return x;})){pday[k]=(pday[k]||0)+1;myPerfect++;}}
@@ -7876,7 +7996,7 @@ async function consensusCompute(){
           else{if(a.o&&a.o===bq.o)nn++;}}
         if(nn>twin.n)twin={name:p.name||p.slug||"",slug:p.slug||"",n:nn};}});
     const byV=function(a,b){return b.v-a.v;};stA.sort(byV);pfA.sort(byV);upA.sort(byV);
-    CONS={t:Date.now(),map:map,n:players.length,champN:champN,champMap:cm,best:best,bestPerfect:bestPerfect,perfectByDay:pday,bestUpset:bestUp,deptByDay:deptDay,dayTop:dayTop,dayHit:dayHit,twin:twin,perfectN:perfectN,officeHit:{h:officeHits,t:officeTot},tops:{streak:stA,perfect:pfA,upset:upA},mine:(state.meSlug?mine:null),full:true,fullT:Date.now(),rk:Object.keys(state.results).length,busy:null,busyF:null};
+    CONS={t:Date.now(),map:map,n:players.length,champN:champN,champMap:cm,best:best,bestPerfect:bestPerfect,perfectByDay:pday,bestUpset:bestUp,deptByDay:deptDay,dayTop:dayTop,dayHit:dayHit,twin:twin,perfectN:perfectN,officeHit:{h:officeHits,t:officeTot},perP:perP,tops:{streak:stA,perfect:pfA,upset:upA},mine:(state.meSlug?mine:null),full:true,fullT:Date.now(),rk:Object.keys(state.results).length,busy:null,busyF:null};
     return CONS;
 }
 function consText(m,p){

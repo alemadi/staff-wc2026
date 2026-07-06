@@ -5,6 +5,26 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-07-06 (Doha) — MAIN DEPLOY: STATS FOR NERDS · batch four — raffle-or-racetrack + three bench cards + Trophy Room race pulse
+
+**Commits:** this commit (`index.html` + `tests/nerd-stats/run.mjs` + changelog) on `claude/stats-for-nerds-3yajyc`, **rebased onto `main` `70711fd` (the louder banner-hub deploy; `index.html` auto-merged — disjoint regions; this changelog was the only conflict, both entries kept) then fast-forwarded to `main` on the organizer's explicit "Go ahead"** (in direct reply to "Say push and it ships"). **Frontend only — no DB / scoring / sync change, zero new backend traffic.** One deliberate shared-code touch (below); everything else is additive `renderNerds`/`renderAwards` display.
+
+**The shared-code change (the one to review):** `consensusCompute()` now also keeps `CONS.perP` — an **anonymous** array of `{c: hits, n: settled calls}` per player, values it already computed in its existing loop and previously discarded. No slug, no name, no ordering key; three lines added, no existing field or pass touched. It exists solely to feed the raffle-or-racetrack card. Verified non-breaking by the full share-cards suite (which drives `consensusFull` consumers) and the nerd suite.
+
+**Four new Nerds cards (panel now 21):**
+- **Raffle or racetrack?** (🎰) — the variance decomposition: observed spread of per-player hit rates vs the spread pure binomial luck would produce if everyone had equal skill → a skill multiple ("×2.3 wider than luck") and a skill-share meter, with a raffle/racetrack verdict and a plain-words method line. Gates: 15+ colleagues with 10+ settled calls, base rate not 0/1.
+- **The predictability ladder** (🪜) — office pick accuracy by structural round (weighted, k-floored), the knockout-cliff read (group vs KO accuracy), easiest/hardest round. Complements the calendar-axis form curve.
+- **The photo finish** (🏁) — the shape of the top 10: leader's cushion, points covering the top 5, the gap ladder (#1→#2 … #9→#10) with the natural break highlighted. Standings-only; the only name is the leader's first name.
+- **The belt races** (🥊) — all four Trophy Room titles as one tension board: leader + margin, dead-heat flags, challengers-within-one; points at the full races in 🏆 Awards. Reads `rows` + `CONS.tops` only.
+
+**Trophy Room (`renderAwards`) race pulse:** each title card now shows a display-only tension line under its top-3 — "🔥 N-way dead heat at the top" or "🔥 N challenger(s) within one <unit> of the belt". **No race rule, floor, or tie-break changed** — definitions stay locked; this is commentary on the existing numbers. Hidden when the race is unclaimed or nobody is within one.
+
+**Verified on this tree:** `node tests/nerd-stats/run.mjs` **ALL GREEN** — all 21 cards render, batch-4 numbers recomputed independently from the seed and matched to the DOM: raffle multiple ×13.0 / 92% skill / n=48 (the seed assigns true skill 35–95%, so a hard racetrack verdict is the correct read), ladder = 6 rounds with MD1 66%, photo finish 19/22/19 (cushion/top-5/break), belts (Oracle leader + value, Hot Hand record), and the Trophy Room pulse ("2-way dead heat" on Oracle) asserted in Awards mode. Regression: `tests/perf-boot/run.mjs` ALL GREEN; `tests/share-cards/run.mjs` green except the **pre-existing** 340px header failure. `node --check` clean on both inline blocks. 390px full-page screenshot of all 21 cards eyeballed.
+
+**Rollback:** `git push origin +70711fd:main` (client-only — nothing server-side changed; reverts `main` to the banner-hub tip, the parent of this commit). The app ships a service worker: a stale shell may need one hard reload / app reopen.
+
+---
+
 ## 2026-07-06 (Doha) — MAIN DEPLOY: the home banner becomes a "what's new" hub for all four launches
 
 **Commits:** this commit (`index.html` + changelog) on `claude/nudge-users-new-features-1xjgw6`, cherry-picked onto the live nudge-pass tip (`b055b84`) and fast-forwarded to `main` **on the organizer's explicit "Go ahead with this solution."** A parallel session shipped the nudge pass below (spotlight refresh + engagement-cleared breadcrumbs + Help re-open) to production while this was in flight; this deploy therefore adds **only** the louder home-banner layer and drops the two commits that duplicated that live work. **Frontend only — no DB / scoring / sync change, zero new backend traffic.** Organizer ask: "slightly louder, and for all the new features I shipped today."
@@ -22,7 +42,6 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 **Verified on this (rebased) tree:** `node tests/share-cards/run.mjs` — banner shows every visit with the `share cards are here` copy ✓, the FAB (not the banner) still owns the tray ✓, FAB count/clearance ✓ (only the **pre-existing** 340px header-overlap failure remains). `node tests/nerd-stats/run.mjs` **ALL GREEN**. `node tests/perf-boot/run.mjs` **ALL GREEN**. Direct probe on the real page: banner defaults expanded; all four chips are `<button>`s with the right deep-links; tapping 🤓 → `state.view='leaderboard'`, `LB_MODE='nerds'`, `wc:seen:nerds=1`, **`wc:whatsnew` still null**; 🏆 → awards mode. Expanded-banner screenshot at 390px eyeballed (clean 2×2 chip grid).
 
 **Rollback:** `git push origin +b055b84:main` (client-only — reverts `main` to the live nudge-pass tip, the parent of this deploy; nothing server-side changed). The app ships a service worker: a stale shell may need one hard reload / app reopen.
-
 ---
 
 ## 2026-07-06 (Doha) — MAIN DEPLOY: the nudge pass (spotlight refresh + engagement-cleared breadcrumbs) ships to production
