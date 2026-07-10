@@ -5,6 +5,14 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-07-10 (Doha) — MAIN DEPLOY · BILLBOARD STRIP-FIRST ships to production
+
+**Commits:** the strip-first commit (`index.html` + the changelog entry below) plus this changelog note, fast-forwarded to `main` on the organizer's explicit "push to main" (branch `claude/tab-switching-feedback-mfv63l`). **Frontend only — no DB / scoring / sync change.** Full detail in the branch entry directly below; recap: the what's-new billboard opens as the slim strip by default, the full card auto-opens once per announcement (signature of the card's own copy — editing the banner text IS the release step), `?banner` force-link and the chevron choice behave as before. Note for the current announcement: devices that already saw today's copy full will now see the strip; the next copy edit earns its own full showing everywhere.
+
+**Rollback:** `git push origin +ad1bb22:main` (client-only; reverts `main` to the tab-switch-feel tip, the parent of this pass). Stale-while-revalidate shell: reaches each device on its next open.
+
+---
+
 ## 2026-07-10 (Doha) — BILLBOARD GOES STRIP-FIRST: full card only for a genuinely new announcement (branch-only, NOT deployed)
 
 **Commits:** this commit (`index.html` + changelog) on `claude/tab-switching-feedback-mfv63l`, on the organizer's ask ("rather it start as the slim strip by default — with the full card only for genuinely new announcements"). **Frontend only — no DB / scoring / sync change.**
