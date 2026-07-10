@@ -5,6 +5,23 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-07-10 (Doha) — TAB-SWITCH FEEL: directional slide + title ink + nav pop + haptic tick (branch-only, NOT deployed)
+
+**Commits:** this commit (`index.html` + changelog) on `claude/tab-switching-feedback-mfv63l`, on the organizer's read: "when pressing on the other tabs, it doesnt feel like i changed the tab". **Frontend only — no DB / scoring / sync change.** Root cause: every view entered with the identical fade-up, the chrome above stays static, and the nav's own feedback sits under the thumb that tapped it — a switch read as a flicker, not a move.
+
+**What:**
+- **Directional slide** — the entering view now slides in from the tapped tab's side (nav order matches → bracket → leaderboard → me; `.vx-r`/`.vx-l`, 40px · .38s, house ease). Set by `showView` on a real view change only: boot, the join gate and in-place repaints (`showView(view,true)`) keep the plain rise, and repaints never replay the entrance (classes untouched, no display flip).
+- **Title ink stamp** — the entered view's section title draws a 2px gold hairline that dissolves (`titleink`, .85s) — a one-beat "you're here now" up where the eyes are. Direct-child `.sec-title` only, so the Me page's nested "Organizer tools" title doesn't double-fire.
+- **Nav icon pop** — the newly active tab's icon springs 1 → 1.3 → 1.08 (`navpop`, .32s, the navin spring curve), stacking on the existing gold bar + glow.
+- **Haptic tick** — `navigator.vibrate(10)` in `go()` on a real change; userActivation-gated (boot stays silent), skipped under reduced motion, try/caught. iOS has no vibrate API — Android-only by nature.
+- All of it rides the existing reduced-motion global reset (ink ends at opacity:0, so it never shows there).
+
+**Verified:** real-browser (Playwright/Chromium, 390px) — `vx-r` runs bracket→leaderboard, `vx-l` back, `navpop` + `titleink` on change, join→bracket falls through to plain rise, and an in-place repaint restarts **zero** animations; mid-flight screenshots eyeballed. Regressions: `nerd-stats` ALL GREEN, `squad-board` ALL GREEN.
+
+**Rollback:** `git revert` this commit — one CSS block by the `.view` rules, one line in the S5 nav pass, two small guards in `showView`/`go()`.
+
+---
+
 ## 2026-07-08 (Doha) — MAIN DEPLOY · MATCH HIGHLIGHTS BANNER: LEGO-style card auto-minted after each big match
 
 **Commits:** the banner commit (`index.html` + `docs/HANDOFF-highlights-banner.md`) plus this changelog note, fast-forwarded to `main` on the organizer's explicit "Push to main" (branch `claude/match-highlights-banner-h2lqq5`). **Frontend + one new `kv` key — no schema, policy, scoring or sync change.**

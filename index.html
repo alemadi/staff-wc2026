@@ -230,6 +230,23 @@
   .view{display:none;animation:rise .45s both}
   .view.active{display:block}
   @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  /* Tab-switch feel: the entering view slides in from the tapped tab's side
+     (vx-r = moved right along the nav, vx-l = moved left; classes set by showView
+     on a real view change only — boot, the join gate and in-place repaints keep the
+     plain rise), and the view's title draws a gold hairline that dissolves: a
+     one-beat "you're here now" stamp up where the eyes are, since the nav's own
+     feedback sits under the thumb that tapped it. Both replay via the same
+     display:none→block restart the rise relies on; the reduced-motion reset above
+     zeroes them (the ink ends at opacity:0, so it simply never shows). */
+  .view.vx-r{animation:vx-r .38s cubic-bezier(.2,.8,.2,1) both}
+  .view.vx-l{animation:vx-l .38s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes vx-r{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
+  @keyframes vx-l{from{opacity:0;transform:translateX(-40px)}to{opacity:1;transform:none}}
+  .view>.sec-title h2{position:relative}
+  .view>.sec-title h2::after{content:"";position:absolute;left:1px;right:0;bottom:-4px;height:2px;border-radius:2px;transform-origin:0 50%;pointer-events:none;
+    background:linear-gradient(90deg,var(--gold-deep),var(--gold-bright) 55%,transparent);
+    animation:titleink .85s .12s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes titleink{0%{transform:scaleX(0);opacity:1}55%{transform:scaleX(1);opacity:1}100%{transform:scaleX(1);opacity:0}}
   .sec-title{display:flex;align-items:center;gap:10px;margin:20px 2px 12px}
   .sec-title h2{font-family:var(--font-d);font-size:23px;letter-spacing:.5px;font-weight:400}
   .sec-title .tag{margin-left:auto;font-size:11px;color:var(--muted);font-weight:600;text-align:right}
@@ -1266,7 +1283,8 @@
   .navbtn{color:var(--muted)}
   .navbtn.on::before{animation:navin .25s cubic-bezier(.34,1.56,.64,1) both}
   @keyframes navin{from{transform:scaleX(0)}to{transform:scaleX(1)}}
-  .navbtn.on svg{transform:scale(1.08)}
+  .navbtn.on svg{transform:scale(1.08);animation:navpop .32s cubic-bezier(.34,1.56,.64,1)} /* pop replays only when .on lands on a new tab — an in-place repaint's toggle(on,true) mutates nothing */
+  @keyframes navpop{0%{transform:scale(1)}55%{transform:scale(1.3)}100%{transform:scale(1.08)}}
   /* S6 — toast: 3px intent accent (warning/info no longer identical) + spring in */
   #toast{transition:opacity .3s,transform .35s cubic-bezier(.34,1.56,.64,1)}
   #toast.success{border-left:3px solid var(--ok)}
@@ -3187,6 +3205,11 @@ function xbGoMode(m){
 
 function go(view){
   if((view==="matches"||view==="me")&&!state.player){toast("Join the pool to make picks \u26bd");view="join";}
+  /* tab-switch haptic: one 10ms tick on a real change. userActivation-gated so the
+     boot go() stays silent, skipped under reduced motion; iOS has no vibrate API,
+     so this is Android-only by nature. */
+  if(view!==state.view&&navigator.vibrate&&(!navigator.userActivation||navigator.userActivation.isActive)
+    &&!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)){try{navigator.vibrate(10)}catch(_){}}
   state.view=view;showView(view);}
 /* PERF: entrance animations replay only when a view is ENTERED. Every render host calls
    animGate(host,signature) before rebuilding: same signature (a timer refresh, a results
@@ -3202,7 +3225,17 @@ function animGate(host,sig){
 function showView(view,keepScroll){
   document.body.classList.toggle("in",!!state.player);
   document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
-  const el=document.getElementById("view-"+view);if(el)el.classList.add("active");
+  const el=document.getElementById("view-"+view);
+  /* entrance direction: slide from the tapped tab's side (nav order below). Only on a
+     real view change — LAST_VIEW is still the outgoing view here. On an in-place
+     repaint the classes are left untouched, so the entrance never replays under a
+     data refresh; boot and the join gate fall through to the plain rise. */
+  if(el&&LAST_VIEW&&LAST_VIEW!==view){
+    const ORD=["matches","bracket","leaderboard","me"],a=ORD.indexOf(LAST_VIEW),b=ORD.indexOf(view);
+    el.classList.remove("vx-l","vx-r");
+    if(a>-1&&b>-1)el.classList.add(b>a?"vx-r":"vx-l");
+  }
+  if(el)el.classList.add("active");
   ["matches","bracket","leaderboard","me"].forEach(n=>{const b=document.getElementById("nav-"+n);if(b){const a=n===view;b.classList.toggle("on",a);a?b.setAttribute("aria-current","page"):b.removeAttribute("aria-current");}});
   if(view!==LAST_VIEW){LAST_VIEW=view;document.querySelectorAll("[data-rsig]").forEach(h=>{delete h.dataset.rsig;h.classList.remove("noanim");});}
   if(view==="matches"){renderFilters();renderMatches();}
