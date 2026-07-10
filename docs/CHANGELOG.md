@@ -5,6 +5,18 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-07-11 (Doha) — MAIN DEPLOY · MATCH HIGHLIGHTS: drop the "minted at full time" chip
+
+**Commits:** the chip-removal commit (`index.html`) plus this changelog note, fast-forwarded to `main` on the organizer's explicit "push to main" (branch `claude/match-highlights-banner-h2lqq5`, restarted from `main` `8df49df` so it carries the later banner work — minimal variant, deepened scrim, strip-first billboard). **Frontend only — no DB / scoring / sync change.**
+
+**What:** removed the second chip in the highlights banner's top row (`🧱 minted at full time`), leaving just the round label (`#hl-round`). The auto-mint provenance read as noise on a card the office only opens for the result; the round chip alone is cleaner. No JS touched — `renderHighlight` never referenced that static span.
+
+**Verified:** real-browser load against live Supabase (current card: k26 Spain 2–1 Belgium with the organizer's uploaded crowd image) — banner renders on mobile at 420px with only the QUARTER-FINAL chip up top, headline/score/sub and image intact, zero page errors; screenshot eyeballed.
+
+**Rollback:** `git revert <this commit>` — restores the static `<span class="hl-chip">🧱 minted at full time</span>` in the `.hl-top` row. Frontend-only; no DB change.
+
+---
+
 ## 2026-07-10 (Doha) — MAIN DEPLOY · BILLBOARD STRIP-FIRST ships to production
 
 **Commits:** the strip-first commit (`index.html` + the changelog entry below) plus this changelog note, fast-forwarded to `main` on the organizer's explicit "push to main" (branch `claude/tab-switching-feedback-mfv63l`). **Frontend only — no DB / scoring / sync change.** Full detail in the branch entry directly below; recap: the what's-new billboard opens as the slim strip by default, the full card auto-opens once per announcement (signature of the card's own copy — editing the banner text IS the release step), `?banner` force-link and the chevron choice behave as before. Note for the current announcement: devices that already saw today's copy full will now see the strip; the next copy edit earns its own full showing everywhere.
