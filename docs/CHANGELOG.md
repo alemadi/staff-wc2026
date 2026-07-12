@@ -5,6 +5,18 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-07-12 (Doha) — LEADERBOARD 🔥 STREAK CHIPS GO OFFICE-WIDE (branch-only, NOT deployed)
+
+**Commits:** this commit (`index.html` + `tests/lb-streak-chips/` + changelog) on `claude/streaks-feature-77xziz`, on the organizer's ask (screenshot circling other players' People-board rows: "maybe add streaks here"). **Frontend only — no DB / scoring / sync change; zero new pulls.**
+
+**What:** the `🔥×N` exact-score streak chip (C1) now shows on **every** leaderboard row with a live run ≥2, not just your own. `consensusCompute()` — which already walks every player blob for the analytics tier — additionally records each player's live knockout exact-score run (`koStreakCurrent`, 🛡 shield-aware exactly when scoring is, i.e. `puLive()`), keeping only runs ≥2 in a new slug→run map `CONS.koRun`. `lbRowHTML` reads that map for other rows; one's own row stays locally computed (fresh the instant a result lands, no analytics wait) and is now also `puLive()`-shield-aware, matching the Me-card streak tile instead of silently diverging from it on a shielded miss. Chips gain a `title` tooltip ("N exact knockout scores in a row"). Applies wherever `lbRowHTML` renders — People board and Squad board (both already kick `consensusFull()` + silent re-render, so chips enrich in place). Demo mode and demo rows stay chip-free; seal-safe (the walk reads settled knockouts only).
+
+**Verified:** new headless proof `tests/lb-streak-chips/run.mjs` over the real page (mocked Supabase, QF-week world, hand-built runs): own-row ×2 renders pre-analytics, a rival's ×3 renders after the tier lands, a run-of-1 and a just-broken run show no chip, `CONS.koRun` holds exactly the ≥2 runs, zero page errors — ALL GREEN. Regressions: `squad-board` ALL GREEN, `nerd-stats` ALL GREEN. Screenshot eyeballed at 390px.
+
+**Rollback:** `git revert` this commit — restores the me-only chip (and its non-shield-aware walk). Frontend-only; no DB change.
+
+---
+
 ## 2026-07-11 (Doha) — MAIN DEPLOY · MATCH HIGHLIGHTS: drop the "minted at full time" chip
 
 **Commits:** the chip-removal commit (`index.html`) plus this changelog note, fast-forwarded to `main` on the organizer's explicit "push to main" (branch `claude/match-highlights-banner-h2lqq5`, restarted from `main` `8df49df` so it carries the later banner work — minimal variant, deepened scrim, strip-first billboard). **Frontend only — no DB / scoring / sync change.**

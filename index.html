@@ -4064,7 +4064,14 @@ function meHonours(s){
 }
 function lbRowHTML(r,i,PT){
   var streakChip="";
-  if(r.me&&state.player&&!state.demo){try{const run=koStreakCurrent(state.player.predictions,state.results);if(run>=2)streakChip='<span class="lb-streak">\ud83d\udd25\u00d7'+run+'</span>';}catch(e){}}
+  /* C1 goes office-wide: the \ud83d\udd25 chip on EVERY row with a live exact-score run, not just your own.
+     Own row stays locally computed (fresh the second a result lands); other rows read the
+     slug\u2192run map the analytics tier builds (CONS.koRun) \u2014 no extra pull, seal-safe (settled
+     knockouts only). Both sides are \ud83d\udee1 shield-aware exactly when scoring is (puLive). */
+  if(!state.demo&&!r.demo){try{
+    const run=(r.me&&state.player)?koStreakCurrent(state.player.predictions,state.results,puLive()?true:undefined):((CONS.koRun&&CONS.koRun[r.slug])|0);
+    if(run>=2)streakChip='<span class="lb-streak" title="'+run+' exact knockout scores in a row">\ud83d\udd25\u00d7'+run+'</span>';
+  }catch(e){}}
   return '<div class="lb-row '+(r.me?"me":"")+'" style="animation-delay:'+Math.min(i*0.03,0.5)+'s"><div class="rank">'+r.rank+'</div>'+moveHTML(r.dRank)+'<div class="avatar">'+avatarFill(r.name)+'</div>'+
     '<div class="lb-info"><div class="n">'+esc(r.name)+(r.me?'<span class="youtag">YOU</span>':'')+streakChip+titleChip(r.slug)+(r.rv?'<span class="rivtag">\ud83c\udfaf RIVAL</span>':'')+(r.dby?'<span class="derbytag">\u2694\ufe0f DERBY</span>':'')+(r.demo?'<span class="demotag">demo</span>':'')+'</div><div class="d">'+esc(r.sub!=null?r.sub:(r.dept||""))+'</div>'+ /* squad board swaps the dept subline for the office rank */
     '<div class="lb-stats"><span>◎ <b>'+r.exact+'</b> exact</span><span>✓ <b>'+r.correct+'</b> correct</span><span>'+r.predicted+'/'+PT+' picked</span></div></div>'+
@@ -9304,6 +9311,7 @@ async function consensusCompute(){
     /* TROPHY ROOM — full race lists (not just the leader) + my own numbers, so the
        award races can show a live top-3 and a "you" line without a second pull. */
     const stA=[],pfA=[],upA=[];const mine={streak:0,perfect:0,upset:0};
+    const koRun={}; /* slug → LIVE exact-score KO run (>=2 only) — feeds the People-board 🔥 chips */
     const perP=[]; /* anonymous {c:hits,n:settled calls} per player — no slug, no name; feeds the raffle-or-racetrack variance card */
     const chipLed={armed:{qf:0,sf:0,fin:0},cashed:0,burned:0,pending:0,doubled:0}; /* aggregate armband ledger — counts + points only, no identities */
     const joinMap={}; /* slug → joinedAt ms; the join-cohort card aggregates by tercile, never names a cohort member */
@@ -9331,6 +9339,9 @@ async function consensusCompute(){
          in `best` for the "in form" pulse line). */
       let runBest=0,runCur=0;for(let i=0;i<seq.length;i++){if(seq[i]){runCur++;if(runCur>runBest)runBest=runCur;}else runCur=0;}
       if(runBest>0)stA.push({slug:p.slug||"",name:p.name||p.slug||"",v:runBest});
+      /* live exact-score KO run for this player's leaderboard chip — same walk as their own
+         row would do (koStreakCurrent, 🛡 shield-aware when power-ups are live) */
+      if(p.slug){try{const kr=koStreakCurrent(pr,state.results,puLive()?true:undefined);if(kr>=2)koRun[p.slug]=kr;}catch(e){}}
       officeHits+=hits;officeTot+=seq.length;
       if(seq.length>0)perP.push({c:hits,n:seq.length});
       if(p.slug&&p.joinedAt)joinMap[p.slug]=+p.joinedAt;
@@ -9633,7 +9644,7 @@ async function consensusCompute(){
         wc.chaos={rounds:rounds,mult:(gAvg>0&&mx>0)?Math.round(mx/gAvg*10)/10:0,maxLab:mxLab};
       })();
     }catch(e){} /* a Wave-C failure must never break the classic consensus fields */
-    CONS={t:Date.now(),map:map,n:players.length,champN:champN,champMap:cm,best:best,bestPerfect:bestPerfect,perfectByDay:pday,bestUpset:bestUp,deptByDay:deptDay,dayTop:dayTop,dayHit:dayHit,twin:twin,perfectN:perfectN,officeHit:{h:officeHits,t:officeTot},perP:perP,chips:chipLed,joinMap:joinMap,tops:{streak:stA,perfect:pfA,upset:upA},mine:(state.meSlug?mine:null),wc:wc,full:true,fullT:Date.now(),rk:Object.keys(state.results).length,busy:null,busyF:null};
+    CONS={t:Date.now(),map:map,n:players.length,champN:champN,champMap:cm,best:best,bestPerfect:bestPerfect,perfectByDay:pday,bestUpset:bestUp,deptByDay:deptDay,dayTop:dayTop,dayHit:dayHit,twin:twin,perfectN:perfectN,officeHit:{h:officeHits,t:officeTot},perP:perP,chips:chipLed,joinMap:joinMap,tops:{streak:stA,perfect:pfA,upset:upA},koRun:koRun,mine:(state.meSlug?mine:null),wc:wc,full:true,fullT:Date.now(),rk:Object.keys(state.results).length,busy:null,busyF:null};
     try{wcHeavy(players);}catch(e){} /* WAVE C — heavy replay cache (WCR); same protection */
     return CONS;
 }
