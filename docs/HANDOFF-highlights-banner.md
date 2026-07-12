@@ -50,8 +50,10 @@ session) — e.g. for a "biggest news" card that isn't a match result.
 
 ## Automation
 
-A scheduled Claude routine (hourly, `7 * * * *`) owned by the organizer's
-Claude session does, each run:
+A scheduled Claude routine (hourly, `7 * * * *`; since 2026-07-12 the "v2
+(clarity-first art)" trigger, which spawns a fresh session per run — the
+original session-bound routine silently missed k27 twice and was replaced)
+does, each run:
 
 1. Read `kv('wc:results')` + `wc_ko_sched`/`wc_alias` and find knockout
    matches that are final but newer than the current `wc:highlight.id/ts`.
@@ -60,10 +62,18 @@ Claude session does, each run:
 3. Write the copy (headline / score / sub — factual: score, round, who's next,
    from bracket feeders; no invented match events).
 4. Generate the LEGO scene with Higgsfield (`nano_banana_pro`, 16:9, macro toy
-   photography of a brick stadium; winner's kit celebrating, loser's kit
-   dejected; explicit "no text/logos" — text lives in the HTML overlay).
+   photography; explicit "no text/logos" — text lives in the HTML overlay).
+   **Clarity-first pattern** (2026-07-12; the earlier packed-stadium tableaus
+   read as noise at banner size): exactly four figures — three in the winner's
+   kit celebrating, the middle one hoisting a large brick-built national flag
+   of the winner (the instantly-readable element), one dejected figure in the
+   loser's kit by a brick goalpost — against a dark, blurred, crowd-free
+   stadium, with all subjects composed in the middle horizontal band (phones
+   crop the 16:9 art to a ~2.8:1 letterbox strip). The full prompt lives in
+   the trigger itself.
 5. Upsert `wc:highlight` with the CDN `_min.webp` URL (service-level SQL).
-6. After the final (k32) card is minted, the routine disables itself.
+6. After the final (k32) card is minted, the routine disables itself
+   (via `list_triggers` + `update_trigger`).
 
 Costs ~6 Higgsfield credits per match on the organizer's account.
 
