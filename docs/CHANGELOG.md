@@ -5,6 +5,26 @@ Rollback steps are exact and executable: git commands, plus inverse SQL for any 
 
 ---
 
+## 2026-07-20 (Doha) — FINAL-STANDINGS AUDIT: zero drift across all 731 players — prizes are safe to award
+
+**Commits:** `tests/final-audit/audit.py` + this changelog note on `claude/tournament-outro-4ojslq` (**read-only audit — no DB change, no code change to the app**). On the organizer's ask ("audit the scores one more time") before the prize handout, per the published rules' "audit of their entry before any award."
+
+**Method:** an independent Python recompute of every player's score from the raw kv blobs (results + all 731 player rows pulled over the public REST read), implementing the published ladder from scratch — group +3/+2 (outcome-gated), knockout advance 4/5/6/8/6/10 + exact 4/5/6/7/5/8, streak 0/5/15/20 with the one-time 🛡 shield at kn≥25, ⚡ armband ×2 (round-bucket + id equality, k31 excluded), 🦅 upset +2 (PU_RANK, tie teams via kteams-override-then-feeder-chain), champion +25 never doubled — then diffed row-for-row against the live `standings()` RPC on all four columns (pts / exact / correct / predicted). The script shares no code with either engine and is committed for re-runs (fetch commands in its docstring).
+
+**Findings — all clean:**
+- **Zero drift**: all 731 rows match the independent recompute exactly, all four columns.
+- **Results integrity**: 72 group + 32 KO results present and sane; every KO winner consistent with the resolved bracket AND the recorded scoreline; `_champ` == k32 winner (Spain).
+- **Rank-table parity**: `PU_RANK` (index.html) is byte-identical to `wc_rank` (DB), all 48 teams.
+- **Chips**: every stored armband targets a legal match for its round.
+- **Champion**: 70 of 731 picked Spain; +25 each (1,750 pts) — applied exactly once per picker.
+- **Podium + tiebreak**: #1 388 · #2 384 · #3 368 — the 368-pt tie at #3 resolves by the published order (predictions 104=104 → exact scores 19 v 16) in favour of the France-picker who led before the champion bonus. Matches the live board.
+- **Post-lock writes**: 7 player blobs were touched after the Final kicked off — harmless by construction: `kv` is SELECT-only to the API roles and `save_picks` seals kicked-off picks, the champion (locked 18 Jun) and locked chips server-side, so those writes could only carry profile fields or re-saves of sealed values. None of the 7 is in the top 10.
+- **Left to the organizer** (not in data): confirm no top-3 finisher is a pool admin (admins are not prize-eligible), and the Instagram DM verification per the rules.
+
+**Rollback:** nothing to roll back — the audit wrote nothing to the DB.
+
+---
+
 ## 2026-07-20 (Doha) — LIVE DB · FULL TIME: champion result set to Spain — the outro is live
 
 **Commits:** this changelog note only, on `claude/tournament-outro-4ojslq` (**no code change — DB-only**). On the organizer's explicit ask ("I want you to do it") after confirming the Final (k32 Spain 1–0) was in but `_champ` was still unset, so every FULL TIME surface was gated off.
