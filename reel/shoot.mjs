@@ -30,14 +30,16 @@ if(mode==='qa'){
   console.log('QA frames written:',times.length);
 }else{
   const N=Math.round(DUR*FPS);
+  const startF = process.argv[3]!==undefined ? parseInt(process.argv[3],10) : 0;
+  const endF   = process.argv[4]!==undefined ? parseInt(process.argv[4],10) : N-1;
   const dir=WD+'/frames';
-  for(const f of fs.readdirSync(dir)) fs.unlinkSync(dir+'/'+f);
+  if(startF===0 && endF===N-1){ for(const f of fs.readdirSync(dir)) fs.unlinkSync(dir+'/'+f); }
   const t0=Date.now();
-  for(let i=0;i<N;i++){const t=i/FPS;
+  for(let i=startF;i<=endF;i++){const t=i/FPS;
     await page.evaluate(tt=>window.render(tt),t);
     await page.screenshot({path:`${dir}/f_${String(i).padStart(4,'0')}.png`,omitBackground:true});
-    if(i%120===0)console.log(`frame ${i}/${N}  (${((Date.now()-t0)/1000).toFixed(1)}s)`);
+    if((i-startF)%120===0)console.log(`frame ${i}/${endF}  (${((Date.now()-t0)/1000).toFixed(1)}s)`);
   }
-  console.log('FULL capture done:',N,'frames in',((Date.now()-t0)/1000).toFixed(1)+'s');
+  console.log('capture done:',startF,'..',endF,'in',((Date.now()-t0)/1000).toFixed(1)+'s');
 }
 await browser.close();

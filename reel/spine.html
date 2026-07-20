@@ -141,8 +141,8 @@
   <div id="s4pod"></div>
   <div class="c kick z20" id="s4over" style="top:648px;font-size:30px;color:var(--gb)">Your&nbsp;Staff&nbsp;Champion&nbsp;2026</div>
   <div class="flaprow z20" id="s4flap" style="top:864px"></div>
-  <div class="c z20" id="s4name" style="top:1016px;font-family:var(--font-b);font-weight:800;font-size:40px;color:var(--cream);letter-spacing:.03em">@dineshsiva6&nbsp;&nbsp;·&nbsp;&nbsp;<span style="color:var(--gb)">Group&nbsp;IT</span></div>
-  <div class="c z20" id="s4tag" style="top:1150px;font-family:var(--font-d);font-size:44px;letter-spacing:.4px;color:var(--cream)">CALLED&nbsp;SPAIN&nbsp;FROM&nbsp;<span style="color:var(--gb)">DAY&nbsp;ONE.</span></div>
+  <div class="c z20" id="s4name" style="top:1016px;font-family:var(--font-b);font-weight:800;font-size:40px;color:var(--cream);letter-spacing:.03em">@rushdy.fowzer&nbsp;&nbsp;·&nbsp;&nbsp;<span style="color:var(--gb)">Retail&nbsp;Banking</span></div>
+  <div class="c z20" id="s4tag" style="top:1150px;font-family:var(--font-d);font-size:44px;letter-spacing:.4px;color:var(--cream)"><span style="color:var(--gb)">388&nbsp;PTS</span>&nbsp;·&nbsp;CALLED&nbsp;SPAIN&nbsp;FROM&nbsp;DAY&nbsp;ONE.</div>
 
   <!-- S5 Maldives -->
   <div class="c kick" id="s5top" style="top:648px;font-size:30px;color:var(--gb)">First&nbsp;Prize&nbsp;·&nbsp;Trip&nbsp;for&nbsp;One</div>
@@ -197,7 +197,7 @@ for(let i=0;i<170;i++){const e=document.createElement('div');e.className='conf';
 function buildFlap(container,text,cls){container.innerHTML='';const tiles=[];
   for(const ch of text){const t=document.createElement('div');t.className='tile '+cls;t.textContent=ch;container.appendChild(t);tiles.push(t);}
   container.__tiles=tiles;return tiles;}
-buildFlap($('s4flap'),'DANE','big');
+buildFlap($('s4flap'),'RUSHDY','big');
 buildFlap($('s5flap'),'MALDIVES','sm');
 
 /* flap reveal: each tile drops/settles at start+ i*stag */
@@ -225,9 +225,9 @@ const raceTarget=[0.42,0.55,0.5,0.68,1.0,0.6,0.47]; // relative final heights, l
 /* ---------- podium (3rd + 2nd; 1st becomes the hero) ---------- */
 const podWrap=$('s4pod');
 const podData=[
-  {medal:'🥈',rank:'2',handle:'@cemcamldr',h:300,cls:'silver'},
-  {medal:'🥇',rank:'1',handle:'@dineshsiva6',h:390,cls:'gold',hero:true},
-  {medal:'🥉',rank:'3',handle:'@dave.mccloud.988',h:230,cls:'bronze'}
+  {rank:'2',handle:'@dineshsiva6',h:300,cls:'silver'},
+  {rank:'1',handle:'@rushdy.fowzer',h:390,cls:'gold',hero:true},
+  {rank:'3',handle:'@cemcamldr',h:230,cls:'bronze'}
 ];
 podData.forEach(d=>{const col=document.createElement('div');col.className='pcol '+d.cls;
   col.innerHTML=`<div class="phandle">${d.handle}</div><div class="pblock" style="height:0px"><b>${d.rank}</b></div>`;

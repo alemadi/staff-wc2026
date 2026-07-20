@@ -8,13 +8,15 @@ QNB Staff World Cup 2026 prediction pool.
 
 ## The story (all real data)
 - **Tournament:** Spain are World Champions — Spain 1–0 Argentina (a.e.t.), Ferran Torres in extra time (19 Jul 2026).
-- **Pool champion:** Dane (`@dineshsiva6`, Group IT) — backed Spain from day one and topped the field.
-- **Podium:** 🥇 @dineshsiva6 · 🥈 @cemcamldr · 🥉 @dave.mccloud.988
+- **Pool champion:** Rushdy Fowzer (`@rushdy.fowzer`, Retail Banking) — 388 pts, 20 exact scorelines, called Spain; overtook Dane on the final night.
+- **Podium:** 🥇 @rushdy.fowzer (388) · 🥈 @dineshsiva6 / Dane (384) · 🥉 @cemcamldr (368)
 - **Scale:** 732 players · 104 matches · 39 days (11 Jun → 19 Jul) · every department.
 - **Prize:** the Maldives (1st) · QNB Life Rewards (2nd/3rd).
 
-Facts were sourced from the live pool backend (Supabase `kv` keys `wc:ranksnap`,
-`wc:results`, `wc:highlight`, and per-player `wc:player:*` records). No invented numbers.
+Final standings were computed with the app's own scoring engine (`standings()` /
+`wc_standings_compute()` in `sql/standings.sql`) against the **final-inclusive**
+`wc:results` — not the pre-final `wc:ranksnap` snapshot (which was written an hour
+before the final was scored). No invented numbers.
 
 ## Brand fidelity
 Rendered in the app's own design system so it reads as "paid for," not generic:

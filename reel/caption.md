@@ -7,7 +7,7 @@
 
 But the real final? That was in the office. 😅
 
-👑 Your Staff Champion 2026: @dineshsiva6 (Group IT) — backed Spain from Day One and topped the whole leaderboard. 🥈 @cemcamldr · 🥉 @dave.mccloud.988
+👑 Your Staff Champion 2026: @rushdy.fowzer (Retail Banking) — 388 points, 20 exact scorelines, and he called Spain from Day One. He pipped @dineshsiva6 on the final whistle. 🥈 @dineshsiva6 · 🥉 @cemcamldr
 
 Prize is now boarding… ✈️🏝️ the Maldives.
 
@@ -16,13 +16,13 @@ See you at the next one. 🔮
 
 ## Option B — short & bold
 6 weeks. 732 players. 1 champion. 🏆
-Spain won the World Cup — @dineshsiva6 won the office. 👑✈️🏝️
-Congrats Dane, enjoy the Maldives. See you next tournament.
+Spain won the World Cup — @rushdy.fowzer won the office (388 pts). 👑✈️🏝️
+Enjoy the Maldives. See you next tournament.
 #StaffChallenge #WorldCup2026 #Maldives #Champions #Reels
 
 ## Option C — understated
 The Staff Challenge 2026 is done. 🏁
-Champions of the world: Spain. Champion of the office: @dineshsiva6. 👑
+Champions of the world: Spain. Champion of the office: @rushdy.fowzer (388 pts). 👑
 104 matches, 732 of us, one trip to the Maldives. Thank you all for playing. 🤝
 #StaffChallenge #WorldCup2026 #Maldives #OfficePool
 
@@ -30,11 +30,11 @@ Champions of the world: Spain. Champion of the office: @dineshsiva6. 👑
 
 ## Posting notes
 - **Format:** already 9:16, 1080×1920, 33s — post as a Reel (fits Reels/Stories/TikTok as-is).
-- **Cover/thumbnail:** use `cover_title.png` (clean, on-brand) or `cover_champion.png` (the winner). Set it as the Reel cover in the editor.
+- **Cover/thumbnail:** use `cover_title.png` (clean) or `cover_champion.png` (the winner). Set it as the Reel cover in the editor.
 - **Audio:** the reel ships with a subtle sound-design bed. For maximum reach, add a
   trending licensed track in the Instagram app (search Reels audio) — it layers over
   the built-in impacts without clashing, and trending audio boosts distribution.
-- **Tag the people** you featured (@dineshsiva6, @cemcamldr, @dave.mccloud.988) so it
+- **Tag the people** you featured (@rushdy.fowzer, @dineshsiva6, @cemcamldr) so it
   lands in their notifications — with their okay.
 - **Hook:** the first ~1s (tri-color slash + wordmark) is the scroll-stopper; don't add
   an intro card before it.
