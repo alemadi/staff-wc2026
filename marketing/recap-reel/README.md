@@ -18,8 +18,9 @@ like a graded film, not a template. The brand palette and type match the app
 (Anton display, Hanken Grotesk, ink `#050507`, gold `#b49759`/`#e3d3a3`, cream
 `#f4eee3`).
 
-## Narrative (7 beats, each landing on a cut)
+## Narrative (cold-open + 7 beats, each landing on a cut)
 
+0. **Cold open** — 0.7s trophy punch-in → white-flash cut (hooks before the slow atmosphere)
 1. **Hook** — stadium tunnel push → *"It's over. Six weeks · 104 matches"*
 2. **Scale** — gold cards burst → *731 players · 40,332 predictions*
 3. **The final** — trophy + confetti → *Spain 1–0 Argentina (AET, Ferran Torres) · World champions*
@@ -50,9 +51,11 @@ Fully reproducible from `src/`:
    stills (tunnel, card-burst, trophy, lone card, podium, Maldives).
 2. **Motion** — Higgsfield `cinematic_studio_3_0` image-to-video, 6s each, slow
    locked pushes with explicit anti-warp direction.
-3. **Typography** — `src/cards.html` rendered to transparent 1080×1920 PNG
-   overlays via headless Chromium (`src/shoot.mjs`); brand fonts, radial scrims
-   for legibility over motion.
+3. **Typography (animated)** — `src/cards.html` carries a deterministic JS
+   animation engine (`renderFrame(beat,t,D)`): headlines mask-rise + fade,
+   hero numbers count up (0→731, 0→40,332), text sits inside Instagram-safe
+   margins. `src/capture.mjs` renders each beat to a transparent PNG **sequence**
+   via headless Chromium (brand fonts, radial scrims for legibility over motion).
 4. **Score** — `src/score.py` synthesizes an original cinematic bed (numpy +
    scipy reverb) scored to the exact cut: A-minor drone → relative-major lift on
    the trophy boom (7.0s) → tension pulse → warm C-major resolve, with impacts
@@ -65,9 +68,9 @@ Fully reproducible from `src/`:
 
 ```bash
 # needs: ffmpeg, node + playwright-core, python3 (numpy, scipy), brand fonts
-node src/shoot.mjs        # render overlay PNGs
-python3 src/score.py      # render score.wav
-python3 src/build.py       # assemble final mp4
+node src/capture.mjs     # render animated overlay PNG sequences (seq/<beat>/)
+python3 src/score.py     # render score.wav (scored to the cut)
+python3 src/build.py      # cold-open hook + composite + grade + mux -> final mp4
 ```
 
 Raw 2K keyframes and 6s source clips are intentionally not committed (large and
